@@ -1,0 +1,539 @@
+// Alonha - Real Estate Platform with AI/NLP
+// Database: PostgreSQL (recommended for JSON, full-text search)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============ ENUMS ============
+enum UserRole {
+  GUEST
+  BUYER
+  RENTER
+  AGENT
+  BUSINESS
+  ADMIN
+}
+
+enum ListingStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+  HIDDEN
+}
+
+enum ListingType {
+  SALE
+  RENT
+}
+
+enum PropertyCategory {
+  CAN_HO_CHUNG_CU
+  NHA_RIENG
+  NHA_MAT_PHONG
+  DAT_NEN
+  KHO_NHA_XUONG
+  BDS_KHAC
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAW
+  VIP_PACKAGE
+  UP_TOP
+  FEATURE_VIDEO
+  FEATURE_360
+  REFUND
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  DISMISSED
+}
+
+enum ReportReason {
+  SPAM
+  FRAUD
+  DUPLICATE
+  INAPPROPRIATE
+  OTHER
+}
+
+// ============ USER & AUTH ============
+model User {
+  id            String    @id @default(cuid())
+  email         String?   @unique
+  phone         String?   @unique
+  passwordHash  String?
+  name          String
+  avatar        String?
+  role          UserRole  @default(GUEST)
+  isVerified    Boolean   @default(false)
+  isLocked      Boolean   @default(false)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  listings      Listing[]       @relation("ListingOwner")
+  favorites     Favorite[]
+  savedSearches SavedSearch[]
+  sentMessages  ChatMessage[]    @relation("MessageSender")
+  conversationsAsUser1 Conversation[] @relation("ConversationUser1")
+  conversationsAsUser2 Conversation[] @relation("ConversationUser2")
+  viewingAppointments ViewingAppointment[]
+  wallet        Wallet?
+  leads         Lead[]          @relation("LeadAgent")
+  leadsAsCustomer Lead[]        @relation("LeadCustomer")
+  reports       Report[]        @relation("ReportReporter")
+  otpCodes      OtpCode[]
+  userBehaviors UserBehavior[]  // AI: hành vi xem tin
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String  // oauth, credentials
+  provider          String  // google, facebook, credentials
+  providerAccountId String?
+  refreshToken      String?
+  accessToken      String?
+  expiresAt        Int?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  token        String   @unique
+  expiresAt    DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OtpCode {
+  id        String   @id @default(cuid())
+  userId    String?
+  email     String?
+  phone     String?
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ============ LOCATION (Tỉnh/Thành phố & Phường/Xã theo API v2) ============
+// Sau khi sáp nhập, hệ thống hành chính sử dụng mã tỉnh/thành (province_code)
+// và mã phường/xã (code) từ API v2: https://provinces.open-api.vn/api/v2/w/
+// Không dùng bảng quận/huyện riêng trong DB, chỉ lưu mã + tên để lọc và hiển thị.
+
+// ============ PROJECT (Dự án BĐS) ============
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  address     String?
+  developer   String?
+  totalArea   Float?
+  imageUrl    String?
+  provinceCode String?
+  provinceName String?
+  districtCode String?
+  districtName String?
+  wardCode     String?
+  wardName     String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  listings Listing[]
+}
+
+// ============ LISTING (Tin đăng) ============
+model Listing {
+  id              String         @id @default(cuid())
+  slug            String         @unique
+  title           String
+  description     String?
+  listingType     ListingType    // SALE | RENT
+  category        PropertyCategory
+  status          ListingStatus  @default(PENDING)
+  price           Decimal        @db.Decimal(18, 0)
+  pricePerSqm     Decimal?       @db.Decimal(12, 0)
+  area            Float          // m2
+  bedrooms        Int?
+  bathrooms       Int?
+  direction       String?        // Đông, Tây, Nam, Bắc...
+  legalStatus     String?        // Sổ đỏ, HĐMB...
+  furniture       String?        // Nội thất: Đầy đủ, Cơ bản...
+  amenities       Json?          // ["Hồ bơi", "Gara", "Gym", ...]
+  address         String?
+  // Location theo API hành chính v2 (không dùng bảng master trong DB)
+  provinceCode    String?        // Mã tỉnh/thành (province_code từ API v2)
+  provinceName    String?        // Tên tỉnh/thành (hiển thị)
+  wardCode        String?        // Mã phường/xã API v2 (để lọc)
+  wardName        String?        // Tên phường/xã (hiển thị)
+  latitude        Float?
+  longitude       Float?
+  contactName     String
+  contactPhone    String
+  contactEmail    String?
+  showPhone       Boolean        @default(true)
+  viewCount       Int            @default(0)
+  phoneClickCount Int            @default(0)
+  saveCount       Int            @default(0)
+  isVip           Boolean        @default(false)
+  vipLevel        String?        // diamond, gold, silver
+  hasVideo        Boolean        @default(false)
+  has360Tour      Boolean        @default(false)
+  isVerified      Boolean        @default(false)
+  verifiedAt     DateTime?
+  topExpiresAt    DateTime?      // Hết hạn up top
+  expiresAt      DateTime?
+  publishedAt     DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  // AI: mô tả tự sinh, tags ảnh
+  aiDescription   String?
+  imageTags       Json?          // [{ url, tags: [] }]
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+
+  ownerId String
+  projectId  String?
+
+  owner   User     @relation("ListingOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  images       ListingImage[]
+  favorites    Favorite[]
+  savedIn      SavedSearchListing[]
+  appointments ViewingAppointment[]
+  comparisons  CompareGroupItem[]
+  listingServices ListingService[]
+  reports      Report[]
+  leads        Lead[]
+}
+
+model ListingImage {
+  id        String   @id @default(cuid())
+  listingId String
+  url       String
+  order     Int      @default(0)
+  isPrimary Boolean  @default(false)
+  caption   String?
+  tags      String[] // AI: phong khach, bep...
+  createdAt DateTime @default(now())
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+// ============ USER INTERACTIONS ============
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  listingId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  @@unique([userId, listingId])
+}
+
+model SavedSearch {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String?
+  criteria  Json     // { keyword, provinceId, priceMin, priceMax, areaMin, ... }
+  notify    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listings SavedSearchListing[]
+}
+
+model SavedSearchListing {
+  id             String   @id @default(cuid())
+  savedSearchId  String
+  listingId      String
+  notifiedAt     DateTime?
+  createdAt      DateTime @default(now())
+
+  savedSearch SavedSearch @relation(fields: [savedSearchId], references: [id], onDelete: Cascade)
+  listing    Listing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  @@unique([savedSearchId, listingId])
+}
+
+// ============ CHAT ============
+model Conversation {
+  id        String   @id @default(cuid())
+  user1Id   String
+  user2Id   String
+  listingId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user1    User     @relation("ConversationUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2    User     @relation("ConversationUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+}
+
+model ChatMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  readAt         DateTime?
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User        @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+// ============ ĐẶT LỊCH XEM NHÀ ============
+model ViewingAppointment {
+  id        String            @id @default(cuid())
+  listingId String
+  userId    String
+  agentId   String?           // owner or assigned agent
+  fullName  String
+  phone     String
+  email     String?
+  note      String?
+  schedule  DateTime
+  status    AppointmentStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ============ SO SÁNH BĐS ============
+model CompareGroup {
+  id        String   @id @default(cuid())
+  userId    String?
+  sessionId String?  // for guest
+  name      String?
+  createdAt DateTime @default(now())
+
+  items CompareGroupItem[]
+}
+
+model CompareGroupItem {
+  id             String   @id @default(cuid())
+  compareGroupId String
+  listingId      String
+  order          Int      @default(0)
+
+  compareGroup CompareGroup @relation(fields: [compareGroupId], references: [id], onDelete: Cascade)
+  listing      Listing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  @@unique([compareGroupId, listingId])
+}
+
+// ============ AGENT: VÍ & GIAO DỊCH ============
+model Wallet {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  balance   Decimal  @default(0) @db.Decimal(14, 0)
+  currency  String   @default("VND")
+  updatedAt DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+}
+
+model Transaction {
+  id              String            @id @default(cuid())
+  walletId        String
+  type            TransactionType
+  amount          Decimal           @db.Decimal(14, 0)
+  balanceAfter    Decimal?          @db.Decimal(14, 0)
+  status          TransactionStatus @default(PENDING)
+  referenceId     String?           // listingId, orderId...
+  paymentMethod   String?           // VNPAY, MOMO, ATM
+  paymentCode     String?
+  description     String?
+  metadata        Json?
+  createdAt       DateTime          @default(now())
+  completedAt     DateTime?
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+}
+
+// ============ GÓI DỊCH VỤ TIN (VIP, UP TOP) ============
+model ServicePackage {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  name         String
+  description  String?
+  price        Decimal  @db.Decimal(14, 0)
+  durationDays Int?
+  isActive     Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  listingServices ListingService[]
+}
+
+model ListingService {
+  id                String   @id @default(cuid())
+  listingId         String
+  servicePackageId  String
+  startsAt          DateTime
+  expiresAt         DateTime
+  createdAt         DateTime @default(now())
+
+  listing Listing        @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  service ServicePackage @relation(fields: [servicePackageId], references: [id], onDelete: Cascade)
+}
+
+// ============ LEAD (Khách hàng tiềm năng từ form) ============
+model Lead {
+  id        String   @id @default(cuid())
+  listingId String
+  customerId String?  // user đã đăng nhập
+  agentId   String?   // chủ tin / môi giới
+  name      String
+  phone     String
+  email     String?
+  message   String?
+  source    String?   // detail_page, contact_form
+  isRead    Boolean   @default(false)
+  createdAt DateTime @default(now())
+
+  listing  Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  customer User?   @relation("LeadCustomer", fields: [customerId], references: [id], onDelete: SetNull)
+  agent    User?   @relation("LeadAgent", fields: [agentId], references: [id], onDelete: SetNull)
+}
+
+// ============ BÁO CÁO VI PHẠM ============
+model Report {
+  id        String       @id @default(cuid())
+  listingId String
+  reporterId String
+  reason    ReportReason
+  note      String?
+  status    ReportStatus @default(PENDING)
+  reviewedBy String?
+  reviewedAt DateTime?
+  createdAt DateTime     @default(now())
+
+  listing  Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  reporter User    @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+}
+
+// ============ CMS: NỘI DUNG, BANNER ============
+model Content {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  excerpt     String?
+  body        String?
+  type        String   // news, feng_shui, project_guide, handbook
+  imageUrl    String?
+  isPublished Boolean  @default(false)
+  publishedAt DateTime?
+  metaTitle   String?
+  metaDescription String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Banner {
+  id        String   @id @default(cuid())
+  title     String?
+  imageUrl  String
+  linkUrl   String?
+  position  String   // home_slider, sidebar, top
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  startAt   DateTime?
+  endAt     DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============ CẤU HÌNH HỆ THỐNG ============
+model SystemConfig {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String?
+  type  String @default("string") // string, json, number
+}
+
+// ============ KIỂM DUYỆT TIN ============
+model ModerationLog {
+  id        String   @id @default(cuid())
+  listingId String
+  action    String   // approved, rejected
+  reason    String?
+  adminId   String?
+  createdAt DateTime @default(now())
+}
+
+// ============ AI: HÀNH VI NGƯỜI DÙNG (Recommendation) ============
+model UserBehavior {
+  id        String   @id @default(cuid())
+  userId    String?
+  sessionId String?
+  listingId String
+  action    String   // view, save, click_phone, search
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+// ============ AI: CHATBOT ============
+model ChatbotConversation {
+  id        String   @id @default(cuid())
+  sessionId String
+  userId    String?
+  context   Json?    // listingId, last question...
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages ChatbotMessage[]
+}
+
+model ChatbotMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  role           String   // user, assistant
+  content        String
+  createdAt      DateTime @default(now())
+
+  conversation ChatbotConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
