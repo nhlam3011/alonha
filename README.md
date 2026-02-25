@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Alonha - Nền tảng Bất động sản (AI/NLP)
 
-## Getting Started
+Website bất động sản với tìm kiếm, lọc, đăng tin, quản lý tin, công cụ tính vay/phong thủy, chatbot và phân quyền Admin/Môi giới/Khách.
 
-First, run the development server:
+## Công nghệ
+
+- **Next.js 16** (App Router), **React 19**, **TypeScript**
+- **Prisma 7** + PostgreSQL (adapter `@prisma/adapter-pg`)
+- **NextAuth v5** (Credentials + Google)
+- **Tailwind CSS 4**
+
+## Yêu cầu
+
+- Node.js 18+
+- PostgreSQL (hoặc Supabase)
+- Biến môi trường (xem `.env.example`)
+
+## Cài đặt
+
+```bash
+npm install
+cp .env.example .env
+# Sửa .env: DATABASE_URL, DIRECT_URL, NEXTAUTH_SECRET, NEXTAUTH_URL
+```
+
+## Database
+
+**Prisma 7** dùng `prisma.config.ts` cho migrate; client dùng adapter trong `lib/prisma.ts`.
+
+### Cách 1: Prisma CLI (khi kết nối DB ổn định)
+
+```bash
+npx prisma migrate dev --name init
+npm run db:seed
+```
+
+### Cách 2: Tạo bảng thủ công (Supabase / khi CLI timeout)
+
+1. Mở **Supabase Dashboard** → **SQL Editor**.
+2. Copy toàn bộ nội dung file `prisma/init.sql` và **Run** để tạo schema + bảng.
+3. Trên máy, chạy seed để tạo dữ liệu mẫu:
+
+```bash
+npm run db:seed
+```
+
+**Tài khoản sau seed:**
+
+| Email            | Mật khẩu | Vai trò  |
+|------------------|----------|----------|
+| admin@alonha.vn  | 123456   | Admin    |
+| agent@alonha.vn  | 123456   | Môi giới |
+| user@alonha.vn   | 123456   | Khách    |
+
+## Chạy dev
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Mở [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Build & Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+Đảm bảo `.env` có `DATABASE_URL` và `NEXTAUTH_URL` (ví dụ `https://your-domain.com`).
 
-To learn more about Next.js, take a look at the following resources:
+## Cấu trúc chính
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Phân hệ Khách:** Trang chủ, tìm kiếm/lọc tin, chi tiết BĐS, công cụ (tính vay, so sánh, phong thủy), đặt lịch xem, lưu tin (khi đăng nhập).
+- **Phân hệ User:** Đăng ký/đăng nhập (email, Google), quên mật khẩu (OTP), tài khoản, tin đã lưu.
+- **Phân hệ Môi giới:** Đăng tin (wizard), quản lý tin đăng tại `/moi-gioi`.
+- **Phân hệ Admin:** Dashboard, quản lý user, duyệt tin tại `/admin` (chỉ role ADMIN).
+- **API:** `/api/listings`, `/api/favorites`, `/api/auth/*`, `/api/ai/chat`, `/api/ai/recommend`, ...
+- **SEO:** `app/sitemap.ts`, `app/robots.ts`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Scripts
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `npm run dev` — Chạy dev server
+- `npm run build` — Build production
+- `npm run db:seed` — Chạy seed (sau khi migrate)
+- `npm run db:migrate` — Chạy Prisma migrate dev
+# alonha
