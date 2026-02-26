@@ -107,22 +107,24 @@ export function ProjectClientFilters({
                             </button>
                         }
                     >
-                        <select
-                            value={status}
-                            onChange={(e) => updateFilters({ status: e.target.value })}
-                            className="filter-select min-w-[130px]"
-                        >
-                            {STATUS_OPTIONS.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
-                        </select>
+                        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 w-full">
+                            <select
+                                value={status}
+                                onChange={(e) => updateFilters({ status: e.target.value })}
+                                className="filter-select !py-1.5 !px-3 !text-xs h-9 min-w-[120px] rounded-full bg-[var(--card)] text-[var(--foreground)]"
+                            >
+                                {STATUS_OPTIONS.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
+                            </select>
 
-                        <select
-                            value={provinceId}
-                            onChange={(e) => updateFilters({ provinceId: e.target.value })}
-                            className="filter-select min-w-[120px]"
-                        >
-                            <option value="">Tỉnh/thành</option>
-                            {provinces.map((p) => (<option key={p.id || p.code} value={p.code || p.id}>{p.name}</option>))}
-                        </select>
+                            <select
+                                value={provinceId}
+                                onChange={(e) => updateFilters({ provinceId: e.target.value })}
+                                className="filter-select !py-1.5 !px-3 !text-xs h-9 min-w-[120px] rounded-full bg-[var(--card)] text-[var(--foreground)]"
+                            >
+                                <option value="">Tỉnh/thành</option>
+                                {provinces.map((p) => (<option key={p.id || p.code} value={p.code || p.id}>{p.name}</option>))}
+                            </select>
+                        </div>
                     </UnifiedFilterBar>
                 </div>
             </div>
@@ -186,8 +188,8 @@ export function ProjectPagination({ total, currentPage, limit = 12 }: { total: n
                             key={p}
                             onClick={() => handlePageChange(p)}
                             className={`inline-flex size-10 items-center justify-center rounded-full text-sm font-bold transition ${p === currentPage
-                                    ? "bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/30"
-                                    : "bg-[var(--card)] text-[var(--muted-foreground)] hover:bg-[var(--primary)]/10 hover:text-[var(--primary)]"
+                                ? "bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/30"
+                                : "bg-[var(--card)] text-[var(--muted-foreground)] hover:bg-[var(--primary)]/10 hover:text-[var(--primary)]"
                                 }`}
                         >
                             {p}
