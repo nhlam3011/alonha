@@ -140,7 +140,7 @@ async function main() {
       email: "user@alonha.vn",
       name: "Người dùng",
       passwordHash,
-      role: "GUESS",
+      role: "USER",
     },
   });
 

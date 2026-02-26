@@ -99,7 +99,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       if (session.user) {
         session.user.id = (token.id ?? token.sub) as string;
-        session.user.role = (token.role ?? "GUEST") as UserRole;
+        session.user.role = (token.role ?? "USER") as UserRole;
         if (token.picture) {
           session.user.image = token.picture;
         }
