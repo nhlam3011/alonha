@@ -354,72 +354,74 @@ function SearchContent() {
               </div>
             }
           >
-            {/* Loại hình bất động sản (Category) */}
-            <select
-              value={category}
-              onChange={(e) => updateParam("category", e.target.value)}
-              className="filter-select min-w-[130px] text-sm bg-[var(--card)] text-[var(--foreground)] dark:bg-[var(--card)] dark:text-[var(--foreground)]"
-            >
-              {CATEGORY_OPTIONS.map((c) => (<option key={c.value} value={c.value}>{c.label}</option>))}
-            </select>
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none w-full">
+              {/* Loại hình bất động sản (Category) */}
+              <select
+                value={category}
+                onChange={(e) => updateParam("category", e.target.value)}
+                className="filter-select !py-1.5 !px-3 !text-xs h-9 min-w-[120px] rounded-full bg-[var(--card)] text-[var(--foreground)] dark:bg-[var(--card)] dark:text-[var(--foreground)]"
+              >
+                {CATEGORY_OPTIONS.map((c) => (<option key={c.value} value={c.value}>{c.label}</option>))}
+              </select>
 
-            {/* Tỉnh/thành */}
-            <SearchableSelect
-              options={provinces.map(p => ({ value: p.code ?? p.id, label: p.name }))}
-              value={provinceId}
-              onChange={(val) => { const p = new URLSearchParams(searchParams.toString()); if (val) p.set("provinceId", val); else p.delete("provinceId"); p.delete("wardId"); router.push(`/tim-kiem?${p.toString()}`); }}
-              placeholder="Tỉnh/thành"
-              variant="filter"
-              className="min-w-[130px] text-sm"
-            />
-
-            {/* Phường/xã */}
-            {provinceId && wards.length > 0 && (
+              {/* Tỉnh/thành */}
               <SearchableSelect
-                options={wards.map(w => ({ value: String(w.code), label: w.name }))}
-                value={wardId}
-                onChange={(val) => updateParam("wardId", val)}
-                placeholder="Phường/xã"
+                options={provinces.map(p => ({ value: p.code ?? p.id, label: p.name }))}
+                value={provinceId}
+                onChange={(val) => { const p = new URLSearchParams(searchParams.toString()); if (val) p.set("provinceId", val); else p.delete("provinceId"); p.delete("wardId"); router.push(`/tim-kiem?${p.toString()}`); }}
+                placeholder="Tỉnh/thành"
                 variant="filter"
-                className="min-w-[130px] text-sm"
+                className="min-w-[120px] !text-xs h-9"
               />
-            )}
 
-            {/* Khoảng giá */}
-            <select
-              value={`${priceMin}-${priceMax}`}
-              onChange={(e) => {
-                const val = e.target.value;
-                const p = new URLSearchParams(searchParams.toString());
-                if (val === "-") { p.delete("priceMin"); p.delete("priceMax"); }
-                else { const [min, max] = val.split("-"); if (min) p.set("priceMin", min); else p.delete("priceMin"); if (max) p.set("priceMax", max); else p.delete("priceMax"); }
-                router.push(`/tim-kiem?${p.toString()}`);
-              }}
-              className="filter-select min-w-[130px] text-sm bg-[var(--card)] text-[var(--foreground)] dark:bg-[var(--card)] dark:text-[var(--foreground)]"
-            >
-              <option value="-">Mức giá</option>
-              {PRICE_PRESETS.filter(p => p.label !== "Tất cả").map((p) => (
-                <option key={p.label} value={`${p.min}-${p.max}`}>{p.label}</option>
-              ))}
-            </select>
+              {/* Phường/xã */}
+              {provinceId && wards.length > 0 && (
+                <SearchableSelect
+                  options={wards.map(w => ({ value: String(w.code), label: w.name }))}
+                  value={wardId}
+                  onChange={(val) => updateParam("wardId", val)}
+                  placeholder="Phường/xã"
+                  variant="filter"
+                  className="min-w-[120px] !text-xs h-9"
+                />
+              )}
 
-            {/* Diện tích */}
-            <select
-              value={`${areaMin}-${areaMax}`}
-              onChange={(e) => {
-                const val = e.target.value;
-                const p = new URLSearchParams(searchParams.toString());
-                if (val === "-") { p.delete("areaMin"); p.delete("areaMax"); }
-                else { const [min, max] = val.split("-"); if (min) p.set("areaMin", min); else p.delete("areaMin"); if (max) p.set("areaMax", max); else p.delete("areaMax"); }
-                router.push(`/tim-kiem?${p.toString()}`);
-              }}
-              className="filter-select min-w-[130px] text-sm bg-[var(--card)] text-[var(--foreground)] dark:bg-[var(--card)] dark:text-[var(--foreground)]"
-            >
-              <option value="-">Diện tích</option>
-              {AREA_PRESETS.filter(p => p.label !== "Tất cả").map((a) => (
-                <option key={a.label} value={`${a.min}-${a.max}`}>{a.label}</option>
-              ))}
-            </select>
+              {/* Khoảng giá */}
+              <select
+                value={`${priceMin}-${priceMax}`}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const p = new URLSearchParams(searchParams.toString());
+                  if (val === "-") { p.delete("priceMin"); p.delete("priceMax"); }
+                  else { const [min, max] = val.split("-"); if (min) p.set("priceMin", min); else p.delete("priceMin"); if (max) p.set("priceMax", max); else p.delete("priceMax"); }
+                  router.push(`/tim-kiem?${p.toString()}`);
+                }}
+                className="filter-select !py-1.5 !px-3 !text-xs h-9 min-w-[120px] rounded-full bg-[var(--card)] text-[var(--foreground)] dark:bg-[var(--card)] dark:text-[var(--foreground)]"
+              >
+                <option value="-">Mức giá</option>
+                {PRICE_PRESETS.filter(p => p.label !== "Tất cả").map((p) => (
+                  <option key={p.label} value={`${p.min}-${p.max}`}>{p.label}</option>
+                ))}
+              </select>
+
+              {/* Diện tích */}
+              <select
+                value={`${areaMin}-${areaMax}`}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const p = new URLSearchParams(searchParams.toString());
+                  if (val === "-") { p.delete("areaMin"); p.delete("areaMax"); }
+                  else { const [min, max] = val.split("-"); if (min) p.set("areaMin", min); else p.delete("areaMin"); if (max) p.set("areaMax", max); else p.delete("areaMax"); }
+                  router.push(`/tim-kiem?${p.toString()}`);
+                }}
+                className="filter-select !py-1.5 !px-3 !text-xs h-9 min-w-[120px] rounded-full bg-[var(--card)] text-[var(--foreground)] dark:bg-[var(--card)] dark:text-[var(--foreground)]"
+              >
+                <option value="-">Diện tích</option>
+                {AREA_PRESETS.filter(p => p.label !== "Tất cả").map((a) => (
+                  <option key={a.label} value={`${a.min}-${a.max}`}>{a.label}</option>
+                ))}
+              </select>
+            </div>
 
             {/* Bộ lọc thêm Toggle */}
             <button

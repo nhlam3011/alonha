@@ -203,69 +203,71 @@ export function ClientFilters({
                             </button>
                         }
                     >
-                        <select
-                            value={category}
-                            onChange={(e) => updateFilters({ category: e.target.value })}
-                            className="filter-select min-w-[130px] text-sm bg-[var(--card)] text-[var(--foreground)]"
-                        >
-                            {CATEGORY_OPTIONS.map((c) => (<option key={c.value} value={c.value}>{c.label}</option>))}
-                        </select>
+                        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none w-full">
+                            <select
+                                value={category}
+                                onChange={(e) => updateFilters({ category: e.target.value })}
+                                className="filter-select !py-1.5 !px-3 !text-xs h-9 min-w-[120px] rounded-full bg-[var(--card)] text-[var(--foreground)]"
+                            >
+                                {CATEGORY_OPTIONS.map((c) => (<option key={c.value} value={c.value}>{c.label}</option>))}
+                            </select>
 
-                        <SearchableSelect
-                            options={provinces.map(p => ({ value: p.code || p.id, label: p.name }))}
-                            value={provinceId}
-                            onChange={(val) => updateFilters({ provinceId: val, wardId: null })}
-                            placeholder="Tỉnh/thành"
-                            variant="filter"
-                            className="min-w-[130px] text-sm"
-                        />
-
-                        {provinceId && wards.length > 0 && (
                             <SearchableSelect
-                                options={wards.map(w => ({ value: String(w.code), label: w.name }))}
-                                value={wardId}
-                                onChange={(val) => updateFilters({ wardId: val })}
-                                placeholder="Phường/xã"
+                                options={provinces.map(p => ({ value: p.code || p.id, label: p.name }))}
+                                value={provinceId}
+                                onChange={(val) => updateFilters({ provinceId: val, wardId: null })}
+                                placeholder="Tỉnh/thành"
                                 variant="filter"
-                                className="min-w-[130px] text-sm"
+                                className="min-w-[120px] !text-xs h-9"
                             />
-                        )}
 
-                        <select
-                            value={`${priceMin}-${priceMax}`}
-                            onChange={(e) => {
-                                const val = e.target.value;
-                                if (val === "-") updateFilters({ priceMin: null, priceMax: null });
-                                else { const [min, max] = val.split("-"); updateFilters({ priceMin: min, priceMax: max }); }
-                            }}
-                            className="filter-select min-w-[130px] text-sm bg-[var(--card)] text-[var(--foreground)]"
-                        >
-                            <option value="-">Mức giá</option>
-                            {PRICE_PRESETS.filter(p => p.label !== "Tất cả").map((p) => (
-                                <option key={p.label} value={`${p.min}-${p.max}`}>{p.label}</option>
-                            ))}
-                        </select>
+                            {provinceId && wards.length > 0 && (
+                                <SearchableSelect
+                                    options={wards.map(w => ({ value: String(w.code), label: w.name }))}
+                                    value={wardId}
+                                    onChange={(val) => updateFilters({ wardId: val })}
+                                    placeholder="Phường/xã"
+                                    variant="filter"
+                                    className="min-w-[120px] !text-xs h-9"
+                                />
+                            )}
 
-                        <select
-                            value={`${areaMin}-${areaMax}`}
-                            onChange={(e) => {
-                                const val = e.target.value;
-                                if (val === "-") updateFilters({ areaMin: null, areaMax: null });
-                                else { const [min, max] = val.split("-"); updateFilters({ areaMin: min, areaMax: max }); }
-                            }}
-                            className="filter-select min-w-[130px] text-sm bg-[var(--card)] text-[var(--foreground)]"
-                        >
-                            <option value="-">Diện tích</option>
-                            {AREA_PRESETS.filter(p => p.label !== "Tất cả").map((a) => (
-                                <option key={a.label} value={`${a.min}-${a.max}`}>{a.label}</option>
-                            ))}
-                        </select>
+                            <select
+                                value={`${priceMin}-${priceMax}`}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === "-") updateFilters({ priceMin: null, priceMax: null });
+                                    else { const [min, max] = val.split("-"); updateFilters({ priceMin: min, priceMax: max }); }
+                                }}
+                                className="filter-select !py-1.5 !px-3 !text-xs h-9 min-w-[120px] rounded-full bg-[var(--card)] text-[var(--foreground)]"
+                            >
+                                <option value="-">Mức giá</option>
+                                {PRICE_PRESETS.filter(p => p.label !== "Tất cả").map((p) => (
+                                    <option key={p.label} value={`${p.min}-${p.max}`}>{p.label}</option>
+                                ))}
+                            </select>
+
+                            <select
+                                value={`${areaMin}-${areaMax}`}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === "-") updateFilters({ areaMin: null, areaMax: null });
+                                    else { const [min, max] = val.split("-"); updateFilters({ areaMin: min, areaMax: max }); }
+                                }}
+                                className="filter-select !py-1.5 !px-3 !text-xs h-9 min-w-[120px] rounded-full bg-[var(--card)] text-[var(--foreground)]"
+                            >
+                                <option value="-">Diện tích</option>
+                                {AREA_PRESETS.filter(p => p.label !== "Tất cả").map((a) => (
+                                    <option key={a.label} value={`${a.min}-${a.max}`}>{a.label}</option>
+                                ))}
+                            </select>
+                        </div>
 
                         <button
                             onClick={() => setMoreFiltersOpen((o) => !o)}
                             className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-10 px-5 text-sm font-medium transition ${moreFiltersOpen || direction || legalStatus || bedrooms
-                                    ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
-                                    : "border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--primary)]/50"
+                                ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                                : "border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--primary)]/50"
                                 }`}
                         >
                             <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
@@ -284,8 +286,8 @@ export function ClientFilters({
                                                 key={b.value}
                                                 onClick={() => updateFilters({ bedrooms: b.value })}
                                                 className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition ${bedrooms === b.value
-                                                        ? "bg-[var(--primary)] text-primary-foreground shadow-sm"
-                                                        : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]"
+                                                    ? "bg-[var(--primary)] text-primary-foreground shadow-sm"
+                                                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]"
                                                     }`}
                                             >
                                                 {b.label}
@@ -372,8 +374,8 @@ export function ClientPagination({ total, currentPage, limit = 12 }: { total: nu
                             key={p}
                             onClick={() => handlePageChange(p)}
                             className={`inline-flex size-10 items-center justify-center rounded-full text-sm font-bold transition ${p === currentPage
-                                    ? "bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/30"
-                                    : "bg-[var(--card)] text-[var(--muted-foreground)] hover:bg-[var(--primary)]/10 hover:text-[var(--primary)]"
+                                ? "bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/30"
+                                : "bg-[var(--card)] text-[var(--muted-foreground)] hover:bg-[var(--primary)]/10 hover:text-[var(--primary)]"
                                 }`}
                         >
                             {p}
