@@ -35,7 +35,7 @@ export function Footer() {
       {/* Background Elements */}
       <div className="absolute top-0 left-0 w-96 h-96 orb orb-blue -translate-x-1/2 -translate-y-1/2 opacity-30" />
       <div className="absolute bottom-0 right-0 w-96 h-96 orb orb-cyan translate-x-1/2 translate-y-1/2 opacity-20" />
-      
+
       {/* Main Footer */}
       <div className="layout-container relative z-10 py-16">
         <div className="grid gap-12 lg:grid-cols-4">
@@ -43,7 +43,7 @@ export function Footer() {
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center gap-2.5 group mb-4">
               <div className="relative w-10 h-10">
-              <Image
+                <Image
                   src="/logo.png"
                   alt="AloNha"
                   fill
@@ -149,7 +149,7 @@ export function Footer() {
         <div className="layout-container py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-sm text-[var(--muted-foreground)] text-center sm:text-left">
-              © {currentYear} <span className="font-bold text-[var(--foreground)]">AloNha</span>. Made with care in Vietnam
+              © {currentYear} <span className="font-bold text-[var(--foreground)]">AloNha</span>. Cu Tien Nam
             </p>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />

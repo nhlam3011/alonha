@@ -1,8 +1,6 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { notFound } from "next/navigation";
+import { Metadata } from "next";
 
 type NewsArticle = {
     id: string;
@@ -21,48 +19,48 @@ type NewsArticle = {
     tags: string[];
 };
 
-// Sample article content
+// Dữ liệu mock (tương lai sẽ thay bằng gọi DB/API thực tế)
 const SAMPLE_ARTICLE: NewsArticle = {
     id: "1",
     slug: "xu-huong-gia-bat-dong-san-2024",
     title: "Xu hướng giá bất động sản 2024: Những điểm sáng và thách thức",
     content: `
-    <p>Thị trường bất động sản năm 2024 dự báo sẽ có nhiều biến động với sự phân hóa rõ rệt giữa các phân khúc. Các chuyên gia đưa ra dự báo về xu hướng giá trong thời gian tới.</p>
-    
-    <h2>Tổng quan thị trường</h2>
-    <p>Theo các chuyên gia kinh tế, thị trường bất động sản Việt Nam trong năm 2024 sẽ chịu ảnh hưởng bởi nhiều yếu tố vĩ mô như lãi suất, chính sách tín dụng và tình hình kinh tế toàn cầu.</p>
-    
-    <p>Các dự báo cho thấy thị trường sẽ có sự phân hóa rõ rệt giữa các phân khúc và khu vực. Trong khi bất động sản cao cấp có thể giảm nhiệt, thì phân khúc nhà ở trung cấp và bình dân vẫn duy trì sức cầu ổn định.</p>
-    
-    <h2>Các yếu tố ảnh hưởng</h2>
-    <h3>1. Chính sách tín dụng</h3>
-    <p>Ngân hàng Nhà nước tiếp tục duy trì chính sách tiền tệ thận trọng, lãi suất cho vay bất động sản vẫn ở mức cao. Điều này ảnh hưởng trực tiếp đến khả năng tiếp cận vốn của người mua nhà.</p>
-    
-    <h3>2. Quy hoạch và pháp lý</h3>
-    <p>Các vấn đề về quy hoạch và pháp lý vẫn là rào cản lớn cho thị trường. Nhiều dự án bị đình trệ do vướng mắc pháp lý, gây ảnh hưởng đến nguồn cung.</p>
-    
-    <h3>3. Nhu cầu thực</h3>
-    <p>Nhu cầu nhà ở thực vẫn rất lớn, đặc biệt tại các đô thị lớn. Tuy nhiên, sức mua bị hạn chế do thu nhập người dân chưa tăng tương ứng với giá nhà.</p>
-    
-    <h2>Dự báo theo phân khúc</h2>
-    <p><strong>Căn hộ chung cư:</strong> Dự kiến giá sẽ tăng nhẹ 3-5% tại các vị trí tốt, đặc biệt ở các dự án đã hoàn thiện hạ tầng và tiện ích.</p>
-    
-    <p><strong>Nhà phố, biệt thự:</strong> Phân khúc này có thể giảm giá 5-10% do nguồn cung dồi dào và sức cầu hạn chế.</p>
-    
-    <p><strong>Đất nền:</strong> Biến động mạnh tùy thuộc vào vị trí và pháp lý. Các dự án có pháp lý clear vẫn được săn đón.</p>
-    
-    <h2>Lời khuyên cho nhà đầu tư</h2>
-    <p>Các chuyên gia khuyến nghị nhà đầu tư nên:</p>
-    <ul>
-      <li>Tập trung vào các dự án có pháp lý hoàn chỉnh</li>
-      <li>Ưu tiên vị trí có hạ tầng giao thông phát triển</li>
-      <li>Tránh đầu cơ, tập trung vào giá trị thực</li>
-      <li>Theo dõi sát chính sách vĩ mô</li>
-    </ul>
-    
-    <h2>Kết luận</h2>
-    <p>Thị trường bất động sản 2024 sẽ là năm của sự chọn lọc. Nhà đầu tư cần thận trọng và có chiến lược rõ ràng để tối ưu hóa lợi nhuận và giảm thiểu rủi ro.</p>
-  `,
+  <p>Thị trường bất động sản năm 2024 dự báo sẽ có nhiều biến động với sự phân hóa rõ rệt giữa các phân khúc. Các chuyên gia đưa ra dự báo về xu hướng giá trong thời gian tới.</p>
+  
+  <h2>Tổng quan thị trường</h2>
+  <p>Theo các chuyên gia kinh tế, thị trường bất động sản Việt Nam trong năm 2024 sẽ chịu ảnh hưởng bởi nhiều yếu tố vĩ mô như lãi suất, chính sách tín dụng và tình hình kinh tế toàn cầu.</p>
+  
+  <p>Các dự báo cho thấy thị trường sẽ có sự phân hóa rõ rệt giữa các phân khúc và khu vực. Trong khi bất động sản cao cấp có thể giảm nhiệt, thì phân khúc nhà ở trung cấp và bình dân vẫn duy trì sức cầu ổn định.</p>
+  
+  <h2>Các yếu tố ảnh hưởng</h2>
+  <h3>1. Chính sách tín dụng</h3>
+  <p>Ngân hàng Nhà nước tiếp tục duy trì chính sách tiền tệ thận trọng, lãi suất cho vay bất động sản vẫn ở mức cao. Điều này ảnh hưởng trực tiếp đến khả năng tiếp cận vốn của người mua nhà.</p>
+  
+  <h3>2. Quy hoạch và pháp lý</h3>
+  <p>Các vấn đề về quy hoạch và pháp lý vẫn là rào cản lớn cho thị trường. Nhiều dự án bị đình trệ do vướng mắc pháp lý, gây ảnh hưởng đến nguồn cung.</p>
+  
+  <h3>3. Nhu cầu thực</h3>
+  <p>Nhu cầu nhà ở thực vẫn rất lớn, đặc biệt tại các đô thị lớn. Tuy nhiên, sức mua bị hạn chế do thu nhập người dân chưa tăng tương ứng với giá nhà.</p>
+  
+  <h2>Dự báo theo phân khúc</h2>
+  <p><strong>Căn hộ chung cư:</strong> Dự kiến giá sẽ tăng nhẹ 3-5% tại các vị trí tốt, đặc biệt ở các dự án đã hoàn thiện hạ tầng và tiện ích.</p>
+  
+  <p><strong>Nhà phố, biệt thự:</strong> Phân khúc này có thể giảm giá 5-10% do nguồn cung dồi dào và sức cầu hạn chế.</p>
+  
+  <p><strong>Đất nền:</strong> Biến động mạnh tùy thuộc vào vị trí và pháp lý. Các dự án có pháp lý clear vẫn được săn đón.</p>
+  
+  <h2>Lời khuyên cho nhà đầu tư</h2>
+  <p>Các chuyên gia khuyến nghị nhà đầu tư nên:</p>
+  <ul>
+    <li>Tập trung vào các dự án có pháp lý hoàn chỉnh</li>
+    <li>Ưu tiên vị trí có hạ tầng giao thông phát triển</li>
+    <li>Tránh đầu cơ, tập trung vào giá trị thực</li>
+    <li>Theo dõi sát chính sách vĩ mô</li>
+  </ul>
+  
+  <h2>Kết luận</h2>
+  <p>Thị trường bất động sản 2024 sẽ là năm của sự chọn lọc. Nhà đầu tư cần thận trọng và có chiến lược rõ ràng để tối ưu hóa lợi nhuận và giảm thiểu rủi ro.</p>
+`,
     excerpt: "Thị trường bất động sản năm 2024 dự báo sẽ có nhiều biến động với sự phân hóa rõ rệt giữa các phân khúc.",
     category: "thi-truong",
     categoryLabel: "Thị trường",
@@ -107,57 +105,40 @@ function formatDate(dateStr: string): string {
     return date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-export default function NewsDetailPage() {
-    const params = useParams();
-    const [article, setArticle] = useState<NewsArticle | null>(null);
-    const [loading, setLoading] = useState(true);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+    const { slug } = await params;
 
-    useEffect(() => {
-        // Simulate API call
-        const timer = setTimeout(() => {
-            setArticle(SAMPLE_ARTICLE);
-            setLoading(false);
-        }, 300);
-        return () => clearTimeout(timer);
-    }, [params.slug]);
+    // Tương lai: const article = await getArticleBySlug(slug);
+    const article = SAMPLE_ARTICLE.slug === slug ? SAMPLE_ARTICLE : null;
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-[var(--background)]">
-                <div className="layout-container px-4 py-6 md:px-10">
-                    <div className="max-w-4xl mx-auto">
-                        {/* Breadcrumb skeleton */}
-                        <div className="animate-pulse h-4 w-48 bg-[var(--border)]/50 rounded mb-6" />
+    if (!article) return { title: "Không tìm thấy bài viết | AloNha" };
 
-                        {/* Image skeleton */}
-                        <div className="animate-pulse h-64 sm:h-96 bg-[var(--border)]/50 rounded-2xl mb-6" />
+    return {
+        title: `${article.title} | AloNha`,
+        description: article.excerpt,
+        openGraph: {
+            title: article.title,
+            description: article.excerpt,
+            images: [article.imageUrl],
+            type: "article",
+            publishedTime: article.publishedAt,
+            authors: [article.author],
+        },
+    };
+}
 
-                        {/* Content skeleton */}
-                        <div className="space-y-4">
-                            <div className="animate-pulse h-8 w-3/4 bg-[var(--border)]/50 rounded" />
-                            <div className="animate-pulse h-4 w-full bg-[var(--border)]/50 rounded" />
-                            <div className="animate-pulse h-4 w-full bg-[var(--border)]/50 rounded" />
-                            <div className="animate-pulse h-4 w-2/3 bg-[var(--border)]/50 rounded" />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+
+export default async function NewsDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = await params;
+
+    // Giả lập delay server fetch, thay vì useEffect ở client
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // Tương lai: fetch DB thực tế
+    const article = SAMPLE_ARTICLE.slug === slug ? SAMPLE_ARTICLE : null;
 
     if (!article) {
-        return (
-            <div className="min-h-screen bg-[var(--background)]">
-                <div className="layout-container px-4 py-6 md:px-10">
-                    <div className="max-w-4xl mx-auto text-center py-20">
-                        <p className="text-[var(--muted-foreground)]">Không tìm thấy bài viết</p>
-                        <Link href="/tin-tuc" className="mt-4 inline-block text-[var(--primary)] hover:underline">
-                            Quay lại trang tin tức
-                        </Link>
-                    </div>
-                </div>
-            </div>
-        );
+        notFound();
     }
 
     return (
@@ -182,14 +163,14 @@ export default function NewsDetailPage() {
                     </nav>
 
                     {/* Article Header */}
-                    <article className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+                    <article className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm">
                         {/* Featured Image */}
-                        <div className="relative h-64 sm:h-96 overflow-hidden">
+                        <div className="relative h-64 sm:h-96 overflow-hidden bg-[var(--muted)]">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                                 src={article.imageUrl}
                                 alt={article.title}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                             />
                         </div>
 
@@ -224,7 +205,7 @@ export default function NewsDetailPage() {
 
                             {/* Author */}
                             <div className="flex items-center gap-3 mb-6 pb-6 border-b border-[var(--border)]">
-                                <div className="relative w-10 h-10 rounded-full overflow-hidden bg-[var(--muted)]">
+                                <div className="relative w-10 h-10 rounded-full overflow-hidden bg-[var(--muted)] shadow-sm">
                                     {article.authorAvatar ? (
                                         // eslint-disable-next-line @next/next/no-img-element
                                         <img
@@ -248,7 +229,7 @@ export default function NewsDetailPage() {
 
                             {/* Article Body */}
                             <div
-                                className="prose prose-sm sm:prose-base max-w-none prose-headings:text-[var(--foreground)] prose-p:text-[var(--muted-foreground)] prose-a:text-[var(--primary)] prose-strong:text-[var(--foreground)] prose-ul:text-[var(--muted-foreground)] prose-ol:text-[var(--muted-foreground)] prose-li:text-[var(--muted-foreground)]"
+                                className="prose prose-sm sm:prose-base max-w-none prose-headings:text-[var(--foreground)] prose-p:text-[var(--foreground)] prose-a:text-[var(--primary)] prose-strong:text-[var(--foreground)] prose-ul:text-[var(--foreground)] prose-ol:text-[var(--foreground)] prose-li:text-[var(--foreground)]"
                                 dangerouslySetInnerHTML={{ __html: article.content }}
                             />
 
@@ -260,7 +241,7 @@ export default function NewsDetailPage() {
                                         <Link
                                             key={tag}
                                             href={`/tin-tuc?tag=${tag}`}
-                                            className="rounded-full border border-[var(--border)] px-3 py-1 text-xs text-[var(--muted-foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
+                                            className="rounded-full border border-[var(--border)] px-3 py-1 text-xs text-[var(--muted-foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-colors"
                                         >
                                             #{tag}
                                         </Link>
@@ -272,17 +253,17 @@ export default function NewsDetailPage() {
                             <div className="mt-6 flex items-center gap-3">
                                 <span className="text-sm font-medium text-[var(--foreground)]">Chia sẻ:</span>
                                 <div className="flex items-center gap-2">
-                                    <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors">
+                                    <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-colors">
                                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                                         </svg>
                                     </button>
-                                    <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors">
+                                    <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-colors">
                                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
                                         </svg>
                                     </button>
-                                    <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors">
+                                    <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-colors">
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                         </svg>
@@ -302,7 +283,7 @@ export default function NewsDetailPage() {
                                     href={`/tin-tuc/${related.slug}`}
                                     className="group overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)] hover:shadow-lg transition-all"
                                 >
-                                    <div className="relative h-32 overflow-hidden">
+                                    <div className="relative h-32 overflow-hidden bg-[var(--muted)]">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img
                                             src={related.imageUrl}
@@ -311,11 +292,11 @@ export default function NewsDetailPage() {
                                         />
                                     </div>
                                     <div className="p-3">
-                                        <span className="text-xs text-[var(--primary)]">{related.categoryLabel}</span>
-                                        <h3 className="mt-1 text-sm font-medium text-[var(--foreground)] line-clamp-2 group-hover:text-[var(--primary)] transition-colors">
+                                        <span className="text-xs font-semibold text-[var(--primary)]">{related.categoryLabel}</span>
+                                        <h3 className="mt-1 text-sm font-bold text-[var(--foreground)] line-clamp-2 group-hover:text-[var(--primary)] transition-colors">
                                             {related.title}
                                         </h3>
-                                        <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                                        <p className="mt-2 text-xs text-[var(--muted-foreground)]">
                                             {formatDate(related.publishedAt)}
                                         </p>
                                     </div>

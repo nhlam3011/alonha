@@ -319,7 +319,7 @@ export async function GET(req: Request) {
   }
 }
 
-const ALLOWED_POST_ROLES = ["AGENT", "BUSINESS", "ADMIN"];
+const ALLOWED_POST_ROLES = ["AGENT", "ADMIN"];
 
 export async function POST(req: Request) {
   const session = await auth();

@@ -1,27 +1,9 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { HeroSearch } from "@/components/search/HeroSearch";
-import { PropertyCard, PropertyCardSkeleton } from "@/components/listings/PropertyCard";
-import type { ListingCardData } from "@/components/listings/PropertyCard";
-
-type ProjectItem = {
-  id: string;
-  name: string;
-  slug: string;
-  imageUrl: string | null;
-  listingCount: number;
-  totalArea: number | null;
-  provinceId?: string;
-  province?: { name: string };
-};
-
-type ProvinceItem = {
-  id: string;
-  name: string;
-  listingCount?: number;
-};
+import { PropertyCard } from "@/components/listings/PropertyCard";
+import { prisma } from "@/lib/prisma";
+import { getProvinces } from "@/lib/provinces";
+import { toListingCard, listingSelectCard } from "@/lib/listings";
 
 // Inline SVG Icons
 const SparklesIcon = ({ className }: { className?: string }) => (
@@ -100,45 +82,71 @@ const POPULAR_CITIES = [
   { id: "hai-phong", name: "Hải Phòng", count: "600+", image: "https://images.unsplash.com/photo-1558284581-2287953257fc?auto=format&fit=crop&q=80&w=800" },
 ];
 
-export default function HomePage() {
-  const [featuredListings, setFeaturedListings] = useState<ListingCardData[]>([]);
-  const [vipListings, setVipListings] = useState<ListingCardData[]>([]);
-  const [projects, setProjects] = useState<ProjectItem[]>([]);
-  const [provinces, setProvinces] = useState<ProvinceItem[]>([]);
-  const [loadingListings, setLoadingListings] = useState(true);
-  const [loadingProjects, setLoadingProjects] = useState(true);
+export const revalidate = 60; // SSR with ISR cache (revalidate every 60s)
 
-  useEffect(() => {
-    fetch("/api/listings?limit=8&sort=newest")
-      .then((r) => r.json())
-      .then((res) => res.data && setFeaturedListings(res.data))
-      .catch(() => { })
-      .finally(() => setLoadingListings(false));
+export default async function HomePage() {
+  // 1. Fetch Featured Listings
+  const featuredDb = await prisma.listing.findMany({
+    where: { status: "APPROVED", publishedAt: { not: null } },
+    orderBy: [{ isVip: "desc" }, { publishedAt: "desc" }, { createdAt: "desc" }],
+    take: 8,
+    select: listingSelectCard,
+  });
+  const featuredListings = featuredDb.map(row => toListingCard(row as any));
 
-    fetch("/api/listings?limit=4&isVip=true")
-      .then((r) => r.json())
-      .then((res) => res.data && setVipListings(res.data))
-      .catch(() => { });
+  // 2. Fetch VIP Listings
+  const vipDb = await prisma.listing.findMany({
+    where: { status: "APPROVED", publishedAt: { not: null }, isVip: true },
+    orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+    take: 4,
+    select: listingSelectCard,
+  });
+  const vipListings = vipDb.map(row => toListingCard(row as any));
 
-    fetch("/api/projects?limit=6")
-      .then((r) => r.json())
-      .then((res) => {
-        if (Array.isArray(res)) setProjects(res);
-        else if (res.data) setProjects(res.data);
-      })
-      .catch(() => { })
-      .finally(() => setLoadingProjects(false));
+  // 3. Fetch Projects
+  const projectsDb = await prisma.project.findMany({
+    where: { isActive: true },
+    orderBy: { createdAt: "desc" },
+    take: 6,
+    include: {
+      _count: { select: { listings: true } },
+    },
+  });
+  const projects = projectsDb.map(p => ({
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+    imageUrl: p.imageUrl,
+    totalArea: p.totalArea,
+    listingCount: p._count.listings,
+    province: p.provinceName ? { name: p.provinceName } : undefined
+  }));
 
-    fetch("/api/provinces")
-      .then((r) => r.json())
-      .then((res) => {
-        if (Array.isArray(res)) {
-          const withListings = res.filter((p) => (p.listingCount || 0) > 0);
-          setProvinces(withListings.slice(0, 12));
-        }
-      })
-      .catch(() => { });
-  }, []);
+  // 4. Fetch Provinces
+  const externalProvinces = await getProvinces();
+  const listingsByProvince = await prisma.listing.groupBy({
+    by: ["provinceCode"],
+    where: {
+      status: "APPROVED",
+      publishedAt: { not: null },
+      provinceCode: { not: null },
+    },
+    _count: { id: true },
+  });
+
+  const countMap = new Map<string, number>();
+  for (const item of listingsByProvince) {
+    if (item.provinceCode) {
+      countMap.set(String(item.provinceCode), item._count.id);
+    }
+  }
+
+  const provincesUnsorted = externalProvinces.map((prov) => ({
+    id: String(prov.code),
+    name: prov.name,
+    listingCount: countMap.get(String(prov.code)) || 0,
+  }));
+  const provinces = provincesUnsorted.filter(p => p.listingCount > 0).sort((a, b) => b.listingCount - a.listingCount).slice(0, 12);
 
   return (
     <div className="bg-[var(--background)] min-h-screen overflow-x-hidden">
@@ -359,13 +367,7 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {loadingProjects ? (
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="rounded-3xl bg-[var(--card)] border border-[var(--border)] overflow-hidden animate-pulse h-96" />
-              ))}
-            </div>
-          ) : projects.length > 0 ? (
+          {projects.length > 0 ? (
             <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
               {projects.slice(0, 6).map((project) => (
                 <Link
@@ -436,9 +438,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-            {loadingListings
-              ? Array.from({ length: 8 }).map((_, i) => <PropertyCardSkeleton key={i} />)
-              : featuredListings.map((listing) => <PropertyCard key={listing.id} listing={listing} />)}
+            {featuredListings.map((listing) => <PropertyCard key={listing.id} listing={listing} />)}
           </div>
         </div>
       </section>

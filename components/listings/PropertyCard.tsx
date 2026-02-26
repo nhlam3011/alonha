@@ -138,7 +138,10 @@ export function PropertyCard({ listing, viewMode = "grid" }: Props) {
             </div>
           </Link>
 
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 flex-1 relative">
+            <div className="absolute top-0 right-0 z-20 md:opacity-0 md:-translate-y-2 md:group-hover:opacity-100 md:group-hover:translate-y-0 opacity-100 translate-y-0 transition-all duration-300 drop-shadow-md">
+              <CompareButton listingId={listing.id} compact className="inline-flex items-center justify-center rounded-lg bg-[var(--card)] px-2.5 py-1.5 text-xs font-bold text-[var(--foreground)] transition-transform hover:scale-105 border border-[var(--border)]" />
+            </div>
             <div className="flex flex-wrap items-center gap-2.5 text-xs text-[var(--muted-foreground)]">
               <span className="flex items-center gap-1 font-semibold text-[var(--foreground)]">
                 <svg className="size-3.5 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,12 +168,12 @@ export function PropertyCard({ listing, viewMode = "grid" }: Props) {
             </div>
 
             {listing.address && (
-              <p className="flex items-start gap-1 text-xs text-[var(--muted-foreground)] line-clamp-1">
-                <svg className="mt-0.5 h-3 w-3 shrink-0 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <p className="text-xs text-[var(--muted-foreground)] line-clamp-1 mt-auto pt-1">
+                <svg className="inline-block mr-1 h-3.5 w-3.5 text-[var(--primary)] align-text-bottom" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="truncate">{listing.address}</span>
+                {listing.address}
               </p>
             )}
           </div>
@@ -211,8 +214,12 @@ export function PropertyCard({ listing, viewMode = "grid" }: Props) {
         </span>
 
         {/* Compare Button */}
-        <div className="absolute right-3 top-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-          <CompareButton listingId={listing.id} />
+        <div className="absolute right-3 bottom-3 z-20 md:opacity-0 md:translate-x-2 md:group-hover:opacity-100 md:group-hover:translate-x-0 opacity-100 translate-x-0 transition-all duration-300 shadow-lg">
+          <CompareButton
+            listingId={listing.id}
+            compact
+            className="inline-flex items-center justify-center rounded-lg bg-[var(--card)] px-2.5 py-1.5 text-xs font-bold text-[var(--foreground)] transition-transform hover:scale-105 border border-[var(--border)]"
+          />
         </div>
       </Link>
 
@@ -265,12 +272,12 @@ export function PropertyCard({ listing, viewMode = "grid" }: Props) {
           </div>
 
           {listing.address && (
-            <div className="mt-2 flex items-center justify-center gap-2 text-sm text-[var(--muted-foreground)]">
-              <svg className="size-4 shrink-0 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="mt-2 text-sm text-[var(--muted-foreground)] line-clamp-1 text-left pr-2">
+              <svg className="inline-block mr-1.5 size-4 text-[var(--primary)] align-text-bottom" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <span className="line-clamp-1">{listing.address}</span>
+              {listing.address}
             </div>
           )}
         </div>

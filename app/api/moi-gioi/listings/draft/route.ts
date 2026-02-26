@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/listings";
 
-const ALLOWED = ["AGENT", "BUSINESS", "ADMIN"];
+const ALLOWED = ["AGENT", "ADMIN"];
 
 async function ensureAgent() {
   const session = await auth();

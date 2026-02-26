@@ -6,10 +6,13 @@ import { LayoutFooter } from "@/components/layout/LayoutFooter";
 import { LayoutChatbotTrigger } from "@/components/chat/LayoutChatbotTrigger";
 
 const HIDE_CHROME_PREFIXES = ["/admin", "/moi-gioi"];
+const NO_PADDING_PREFIXES = ["/dang-nhap", "/dang-ky", "/quen-mat-khau", "/dat-lai-mat-khau"];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const hideChrome = HIDE_CHROME_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  const noPadding = NO_PADDING_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-x-clip bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300">
@@ -30,7 +33,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {!hideChrome && <Header />}
-      <main className={`relative flex-1 ${!hideChrome ? "pt-20" : ""}`}>{children}</main>
+      <main className={`relative flex-1 ${!hideChrome && !noPadding ? "pt-20" : ""}`}>{children}</main>
       {!hideChrome && <LayoutFooter />}
       <LayoutChatbotTrigger />
     </div>

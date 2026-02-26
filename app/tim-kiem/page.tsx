@@ -312,8 +312,8 @@ function SearchContent() {
         <div className="px-4 md:px-6">
           <UnifiedSearchHeader
             tabs={[
-              { value: "sale", label: "Mua bán" },
-              { value: "rent", label: "Cho thuê", colorClass: "bg-red-500 text-white shadow-sm" }
+              { value: "sale", label: "Mua bán", colorClass: "bg-[var(--primary)] text-primary-foreground shadow-sm" },
+              { value: "rent", label: "Cho thuê", colorClass: "bg-[var(--primary)] text-primary-foreground shadow-sm" }
             ]}
             activeTab={loaiHinh}
             onTabChange={(val) => {
@@ -343,12 +343,12 @@ function SearchContent() {
                   <button
                     key={m}
                     onClick={() => setViewMode(m)}
-                    className={`flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-medium transition-all ${viewMode === m ? "bg-[var(--primary)] text-white shadow-md" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--foreground)]/5"}`}
+                    className={`flex items-center gap-1.5 px-3 h-9 rounded-full text-sm font-medium transition-all ${viewMode === m ? "bg-[var(--primary)] text-primary-foreground shadow-md" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--foreground)]/5"}`}
                     title={m === "split" ? "Chia đôi" : m === "list" ? "Danh sách" : "Bản đồ"}
                   >
-                    {m === "split" && <><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="18" rx="1.5" /><rect x="14" y="3" width="7" height="18" rx="1.5" /></svg> <span className="hidden xl:inline">Chia màn</span></>}
-                    {m === "list" && <><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><circle cx="4" cy="6" r="1.5" /><circle cx="4" cy="12" r="1.5" /><circle cx="4" cy="18" r="1.5" /></svg> <span className="hidden xl:inline">Danh sách</span></>}
-                    {m === "map" && <><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" strokeLinejoin="round" /></svg> <span className="hidden xl:inline">Bản đồ</span></>}
+                    {m === "split" && <><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="18" rx="1.5" /><rect x="14" y="3" width="7" height="18" rx="1.5" /></svg> <span className="hidden xl:inline">Chia màn</span></>}
+                    {m === "list" && <><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><circle cx="4" cy="6" r="1.5" /><circle cx="4" cy="12" r="1.5" /><circle cx="4" cy="18" r="1.5" /></svg> <span className="hidden xl:inline">Danh sách</span></>}
+                    {m === "map" && <><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" strokeLinejoin="round" /></svg> <span className="hidden xl:inline">Bản đồ</span></>}
                   </button>
                 ))}
               </div>
@@ -358,7 +358,7 @@ function SearchContent() {
             <select
               value={category}
               onChange={(e) => updateParam("category", e.target.value)}
-              className="filter-select min-w-[130px]"
+              className="filter-select min-w-[130px] text-sm bg-[var(--card)] text-[var(--foreground)] dark:bg-[var(--card)] dark:text-[var(--foreground)]"
             >
               {CATEGORY_OPTIONS.map((c) => (<option key={c.value} value={c.value}>{c.label}</option>))}
             </select>
@@ -370,7 +370,7 @@ function SearchContent() {
               onChange={(val) => { const p = new URLSearchParams(searchParams.toString()); if (val) p.set("provinceId", val); else p.delete("provinceId"); p.delete("wardId"); router.push(`/tim-kiem?${p.toString()}`); }}
               placeholder="Tỉnh/thành"
               variant="filter"
-              className="min-w-[120px]"
+              className="min-w-[130px] text-sm"
             />
 
             {/* Phường/xã */}
@@ -381,7 +381,7 @@ function SearchContent() {
                 onChange={(val) => updateParam("wardId", val)}
                 placeholder="Phường/xã"
                 variant="filter"
-                className="min-w-[120px]"
+                className="min-w-[130px] text-sm"
               />
             )}
 
@@ -395,7 +395,7 @@ function SearchContent() {
                 else { const [min, max] = val.split("-"); if (min) p.set("priceMin", min); else p.delete("priceMin"); if (max) p.set("priceMax", max); else p.delete("priceMax"); }
                 router.push(`/tim-kiem?${p.toString()}`);
               }}
-              className="filter-select min-w-[110px]"
+              className="filter-select min-w-[130px] text-sm bg-[var(--card)] text-[var(--foreground)] dark:bg-[var(--card)] dark:text-[var(--foreground)]"
             >
               <option value="-">Mức giá</option>
               {PRICE_PRESETS.filter(p => p.label !== "Tất cả").map((p) => (
@@ -413,7 +413,7 @@ function SearchContent() {
                 else { const [min, max] = val.split("-"); if (min) p.set("areaMin", min); else p.delete("areaMin"); if (max) p.set("areaMax", max); else p.delete("areaMax"); }
                 router.push(`/tim-kiem?${p.toString()}`);
               }}
-              className="filter-select min-w-[110px]"
+              className="filter-select min-w-[130px] text-sm bg-[var(--card)] text-[var(--foreground)] dark:bg-[var(--card)] dark:text-[var(--foreground)]"
             >
               <option value="-">Diện tích</option>
               {AREA_PRESETS.filter(p => p.label !== "Tất cả").map((a) => (
@@ -439,14 +439,14 @@ function SearchContent() {
             <div className="border-t border-[var(--border)] py-3 animate-fade-in-up">
               <div className="flex flex-wrap items-end gap-5">
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Phòng ngủ</label>
-                  <div className="flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--card)] p-[2px]">
+                  <label className="mb-1.5 block text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Phòng ngủ</label>
+                  <div className="flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--card)] p-[3px]">
                     {BEDROOM_OPTIONS.map((b) => (
                       <button
                         key={b.value}
                         onClick={() => updateParam("bedrooms", b.value)}
-                        className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition ${bedrooms === b.value
-                          ? "bg-[var(--primary)] text-white shadow-sm"
+                        className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition ${bedrooms === b.value
+                          ? "bg-[var(--primary)] text-primary-foreground shadow-sm"
                           : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]"
                           }`}
                       >
@@ -456,15 +456,15 @@ function SearchContent() {
                   </div>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Hướng</label>
-                  <select value={direction} onChange={(e) => updateParam("direction", e.target.value)} className="filter-select min-w-[130px]">
+                  <label className="mb-1.5 block text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Hướng</label>
+                  <select value={direction} onChange={(e) => updateParam("direction", e.target.value)} className="filter-select min-w-[130px] text-sm bg-[var(--card)] text-[var(--foreground)] dark:bg-[var(--card)] dark:text-[var(--foreground)]">
                     <option value="">Tất cả hướng</option>
                     {DIRECTION_OPTIONS.map((d) => (<option key={d} value={d}>{d}</option>))}
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Pháp lý</label>
-                  <select value={legalStatus} onChange={(e) => updateParam("legalStatus", e.target.value)} className="filter-select min-w-[130px]">
+                  <label className="mb-1.5 block text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Pháp lý</label>
+                  <select value={legalStatus} onChange={(e) => updateParam("legalStatus", e.target.value)} className="filter-select min-w-[130px] text-sm bg-[var(--card)] text-[var(--foreground)] dark:bg-[var(--card)] dark:text-[var(--foreground)]">
                     <option value="">Tất cả</option>
                     {LEGAL_OPTIONS.map((s) => (<option key={s} value={s}>{s}</option>))}
                   </select>
@@ -476,18 +476,18 @@ function SearchContent() {
 
         {/* ── Active filter chips ── */}
         {activeChips.length > 0 && (
-          <div className="px-4 pb-2 md:px-6">
+          <div className="px-4 pb-3 md:px-6">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm text-[var(--muted-foreground)] mr-1">Đang lọc:</span>
+              <span className="text-sm font-medium text-[var(--muted-foreground)] mr-1">Đang lọc:</span>
               {activeChips.map((chip) => (
-                <span key={chip.label} className="inline-flex items-center gap-1.5 rounded-full bg-[var(--primary)]/10 px-3 py-1 text-xs font-semibold text-[var(--primary)] border border-[var(--primary)]/20 shadow-sm">
+                <span key={chip.label} className="inline-flex items-center gap-1.5 rounded-full bg-[var(--primary)]/10 px-3 py-1.5 text-sm font-semibold text-[var(--primary)] border border-[var(--primary)]/20 shadow-sm">
                   {chip.label}
-                  <button onClick={chip.onClear} className="ml-1 rounded-full p-0.5 transition hover:bg-[var(--primary)]/20 hover:text-red-500">
-                    <svg className="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                  <button onClick={chip.onClear} className="ml-1 rounded-full p-0.5 transition hover:bg-[var(--primary)]/20 hover:text-[var(--destructive)]">
+                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </span>
               ))}
-              <button onClick={resetAll} className="ml-2 rounded-full border-none text-xs font-semibold text-red-500 transition hover:text-red-600 underline underline-offset-2">
+              <button onClick={resetAll} className="ml-2 rounded-full border-none text-sm font-semibold text-[var(--destructive)] transition hover:text-red-600 underline underline-offset-2">
                 Xoá tất cả
               </button>
             </div>
@@ -497,19 +497,19 @@ function SearchContent() {
 
       {/* ── Stats & AI Explanation ── */}
       <div className="flex flex-col z-20 shrink-0">
-        <div className={`overflow-hidden bg-[var(--card)] transition-all duration-300 ease-in-out border-b border-[var(--border)] ${aiExplanation ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0 border-transparent'}`}>
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--primary)]/5 text-xs sm:text-sm">
-            <div className="w-6 h-6 rounded-full bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
-              <svg className="w-3.5 h-3.5 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+        <div className={`overflow-hidden bg-[var(--card)] transition-all duration-300 ease-in-out border-b border-[var(--border)] ${aiExplanation ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0 border-transparent'}`}>
+          <div className="flex items-center gap-2 px-4 py-3 bg-[var(--primary)]/5 text-sm md:text-base">
+            <div className="w-8 h-8 rounded-full bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+              <svg className="w-4 h-4 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
             </div>
             <span className="text-[var(--primary)] font-semibold flex-1 leading-snug break-words">AI đã lọc: {aiExplanation}</span>
-            <button onClick={() => setAiExplanation("")} className="w-6 h-6 flex items-center justify-center text-[var(--primary)]/50 hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-full transition-colors text-lg">×</button>
+            <button onClick={() => setAiExplanation("")} className="w-8 h-8 flex items-center justify-center text-[var(--primary)]/50 hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-full transition-colors text-xl">×</button>
           </div>
         </div>
 
         {/* Removed stats text total.toLocaleString from here, keeping it inside active tabs / list panel below or leave out. We can put it back as a small bar if needed */}
         {mapListings.length > 0 && mapListings.length < total && (
-          <div className="px-4 py-1.5 text-xs bg-[var(--card)] text-[var(--muted-foreground)] border-b border-[var(--border)]">
+          <div className="px-5 py-2 text-sm bg-[var(--card)] text-[var(--muted-foreground)] border-b border-[var(--border)] font-medium">
             Hiển thị {mapListings.length} mốc trên bản đồ / {total} kết quả phù hợp
           </div>
         )}
@@ -548,9 +548,9 @@ function SearchContent() {
                   <div className="w-20 h-20 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mb-5">
                     <svg className="w-9 h-9 text-[var(--primary)]/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><path strokeLinecap="round" strokeWidth={2} d="m21 21-4.3-4.3" /></svg>
                   </div>
-                  <h3 className="text-lg font-bold text-[var(--foreground)] mb-2">Không tìm thấy kết quả</h3>
-                  <p className="text-sm text-[var(--muted-foreground)] text-center max-w-xs leading-relaxed">Thử tìm kiếm với từ khóa khác hoặc mở rộng bộ lọc</p>
-                  <button onClick={() => router.push("/tim-kiem")} className="mt-5 px-5 py-2.5 bg-[var(--primary)] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity shadow-md">
+                  <h3 className="text-xl font-bold text-[var(--foreground)] mb-2">Không tìm thấy kết quả</h3>
+                  <p className="text-base text-[var(--muted-foreground)] text-center max-w-xs leading-relaxed">Thử tìm kiếm với từ khóa khác hoặc mở rộng bộ lọc</p>
+                  <button onClick={() => router.push("/tim-kiem")} className="mt-5 px-6 py-3 bg-[var(--primary)] text-primary-foreground rounded-xl text-base font-semibold hover:opacity-90 transition-opacity shadow-md">
                     Xóa bộ lọc
                   </button>
                 </div>
@@ -586,16 +586,16 @@ function SearchContent() {
         {/* ── Mobile FAB: toggle list/map ── */}
         <button
           onClick={() => setViewMode(viewMode === "list" ? "map" : "list")}
-          className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-5 py-3 rounded-full bg-[var(--foreground)] text-[var(--background)] shadow-2xl font-semibold text-sm transition-all active:scale-95"
+          className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-6 py-3.5 rounded-full bg-[var(--foreground)] text-[var(--background)] shadow-2xl font-bold text-base transition-all active:scale-95"
         >
           {viewMode === "map" ? (
             <>
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /></svg>
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /></svg>
               Danh sách
             </>
           ) : (
             <>
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg>
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg>
               Bản đồ
             </>
           )}

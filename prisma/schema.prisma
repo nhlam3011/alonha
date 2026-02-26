@@ -11,11 +11,8 @@ datasource db {
 
 // ============ ENUMS ============
 enum UserRole {
-  GUEST
-  BUYER
-  RENTER
+  USER
   AGENT
-  BUSINESS
   ADMIN
 }
 
@@ -89,7 +86,7 @@ model User {
   passwordHash  String?
   name          String
   avatar        String?
-  role          UserRole  @default(GUEST)
+  role          UserRole  @default(USER)
   isVerified    Boolean   @default(false)
   isLocked      Boolean   @default(false)
   lastLoginAt   DateTime?
@@ -111,6 +108,8 @@ model User {
   reports       Report[]        @relation("ReportReporter")
   otpCodes      OtpCode[]
   userBehaviors UserBehavior[]  // AI: hành vi xem tin
+  notifications Notification[]
+  notificationSettings UserNotificationSettings?
 }
 
 model Account {
@@ -536,4 +535,55 @@ model ChatbotMessage {
   createdAt      DateTime @default(now())
 
   conversation ChatbotConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+// ============ NOTIFICATIONS ============
+enum NotificationType {
+  LISTING_APPROVED
+  LISTING_REJECTED
+  LISTING_NEW
+  LISTING_EXPIRING
+  APPOINTMENT_NEW
+  APPOINTMENT_CONFIRMED
+  APPOINTMENT_CANCELLED
+  LEAD_NEW
+  LEAD_REPLY
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  SYSTEM
+  SAVED_SEARCH_MATCH
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  userId      String
+  type        NotificationType
+  title       String
+  content     String
+  link        String?
+  isRead      Boolean          @default(false)
+  emailSent   Boolean          @default(false)
+  metadata    Json?
+  createdAt   DateTime         @default(now())
+  readAt      DateTime?
+
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserNotificationSettings {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  emailEnabled    Boolean  @default(true)
+  listingApproved Boolean  @default(true)
+  listingRejected Boolean  @default(true)
+  listingNew      Boolean  @default(true)
+  listingExpiring Boolean  @default(true)
+  appointmentNew  Boolean  @default(true)
+  leadNew         Boolean  @default(true)
+  payment         Boolean  @default(true)
+  savedSearch     Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

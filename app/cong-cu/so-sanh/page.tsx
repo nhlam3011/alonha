@@ -112,35 +112,32 @@ export default function ComparePage() {
   }
 
   const compareRows = useMemo(() => [
-    { label: "Loại", render: (item: CompareItem) => (<span className={item.listing.listingType === "SALE" ? "badge-primary" : "badge-sale"}>{item.listing.listingType === "SALE" ? "Bán" : "Cho thuê"}</span>) },
-    { label: "Giá", render: (item: CompareItem) => <span className="font-bold text-[var(--primary)]">{formatPrice(item.listing.price)}</span> },
-    { label: "Đơn giá/m²", render: (item: CompareItem) => <span className="text-[var(--foreground)]">{item.listing.pricePerSqm ? `${formatPrice(item.listing.pricePerSqm)}/m²` : "—"}</span> },
-    { label: "Diện tích", render: (item: CompareItem) => <span className="font-medium text-[var(--foreground)]">{item.listing.area} m²</span> },
-    { label: "PN / PT", render: (item: CompareItem) => <span className="text-[var(--foreground)]">{item.listing.bedrooms ?? "—"} / {item.listing.bathrooms ?? "—"}</span> },
-    { label: "Hướng", render: (item: CompareItem) => <span className="text-[var(--foreground)]">{item.listing.direction || "—"}</span> },
-    { label: "Pháp lý", render: (item: CompareItem) => <span className="text-[var(--foreground)]">{item.listing.legalStatus || "—"}</span> },
-    { label: "Địa chỉ", render: (item: CompareItem) => <span className="line-clamp-2 text-xs text-[var(--muted-foreground)]" title={item.listing.address || ""}>{item.listing.address || "—"}</span> },
+    { label: "Loại", render: (item: CompareItem) => (<span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${item.listing.listingType === "SALE" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"}`}>{item.listing.listingType === "SALE" ? "Bán" : "Cho thuê"}</span>) },
+    { label: "Giá", render: (item: CompareItem) => <span className="text-base font-bold text-[var(--primary)]">{formatPrice(item.listing.price)}</span> },
+    { label: "Đơn giá/m²", render: (item: CompareItem) => <span className="text-sm text-[var(--foreground)]">{item.listing.pricePerSqm ? `${formatPrice(item.listing.pricePerSqm)}/m²` : "—"}</span> },
+    { label: "Diện tích", render: (item: CompareItem) => <span className="text-sm font-medium text-[var(--foreground)]">{item.listing.area} m²</span> },
+    { label: "Phòng ngủ / Tắm", render: (item: CompareItem) => <span className="text-sm text-[var(--foreground)]">{item.listing.bedrooms ?? "—"} / {item.listing.bathrooms ?? "—"}</span> },
+    { label: "Hướng", render: (item: CompareItem) => <span className="text-sm text-[var(--foreground)]">{item.listing.direction || "—"}</span> },
+    { label: "Pháp lý", render: (item: CompareItem) => <span className="text-sm text-[var(--foreground)]">{item.listing.legalStatus || "—"}</span> },
+    { label: "Địa chỉ", render: (item: CompareItem) => <span className="line-clamp-2 text-sm text-[var(--muted-foreground)]" title={item.listing.address || ""}>{item.listing.address || "—"}</span> },
   ], []);
 
   return (
-    <div className="layout-container py-6 lg:py-8">
-      <div className="mx-auto max-w-6xl">
+    <div className="space-y-6">
+      <div className="max-w-6xl">
         {/* Header */}
-        <div className="mb-6">
-          <Link href="/cong-cu" className="group mb-3 inline-flex items-center gap-1.5 text-sm text-[var(--muted-foreground)] hover:text-[var(--primary)]">
-            <svg className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-            Công cụ
-          </Link>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
             <h1 className="text-2xl font-extrabold text-[var(--foreground)] lg:text-3xl">So sánh bất động sản</h1>
-            {items.length > 0 && (
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-[var(--muted-foreground)]">Đang so sánh:</span>
-                <span className="font-bold text-[var(--primary)]">{items.length}/{maxItems}</span>
-                <div className="h-1.5 w-16 rounded-full bg-[var(--muted)]"><div className="h-full rounded-full bg-[var(--primary)] transition-all" style={{ width: `${(items.length / maxItems) * 100}%` }} /></div>
-              </div>
-            )}
+            <p className="mt-2 text-sm text-[var(--muted-foreground)]">Cùng lúc đối chiếu các tin đăng để tìm ra lựa chọn tối ưu.</p>
           </div>
+          {items.length > 0 && (
+            <div className="flex items-center gap-2 text-sm pb-1">
+              <span className="text-[var(--muted-foreground)]">Đang so sánh:</span>
+              <span className="font-bold text-[var(--primary)]">{items.length}/{maxItems}</span>
+              <div className="h-1.5 w-16 rounded-full bg-[var(--muted)]"><div className="h-full rounded-full bg-[var(--primary)] transition-all" style={{ width: `${(items.length / maxItems) * 100}%` }} /></div>
+            </div>
+          )}
         </div>
 
         {/* Add Form */}
@@ -182,47 +179,51 @@ export default function ComparePage() {
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="flex justify-end">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-[var(--foreground)]">Chi tiết so sánh</h2>
               <button type="button" onClick={handleClearAll} disabled={!!removingId}
-                className="text-xs font-medium text-[var(--accent)] hover:underline disabled:opacity-50">Xóa tất cả</button>
+                className="flex items-center gap-1 text-sm font-medium text-[var(--destructive)] hover:underline disabled:opacity-50">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                Xóa tất cả
+              </button>
             </div>
             <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm">
               <div className="overflow-x-auto scrollbar-thin">
-                <table className="w-full min-w-[700px] border-collapse text-sm">
+                <table className="w-full min-w-[700px] table-fixed border-collapse text-sm">
                   <thead>
                     <tr>
-                      <th className="sticky left-0 z-10 w-32 border-b border-r border-[var(--border)] bg-[var(--background)] p-3 text-left text-xs font-semibold text-[var(--foreground)] shadow-[2px_0_4px_rgba(0,0,0,0.04)]">
+                      <th className="sticky left-0 z-10 w-[140px] border-b border-r border-[var(--border)] bg-[var(--background)] p-4 text-left text-sm font-semibold text-[var(--foreground)] shadow-[2px_0_4px_rgba(0,0,0,0.04)]">
                         Tiêu chí
                       </th>
                       {items.map((item) => (
-                        <th key={item.id} className="min-w-[220px] border-b border-l border-[var(--border)] bg-[var(--background)] p-3 text-left align-top">
-                          <div className="group relative">
+                        <th key={item.id} className="w-[300px] border-b border-l border-[var(--border)] bg-[var(--background)] p-4 text-left align-top">
+                          <div className="group relative flex h-full flex-col">
                             <button onClick={() => handleRemove(item.listingId)}
-                              className="absolute -right-1 -top-1 z-20 rounded-full border border-[var(--border)] bg-[var(--card)] p-1 text-[var(--muted-foreground)] opacity-0 shadow-sm hover:text-[var(--accent)] group-hover:opacity-100" title="Xóa">
-                              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                              className="absolute -right-2 -top-2 z-20 rounded-full border border-[var(--border)] bg-[var(--background)] p-1.5 text-[var(--muted-foreground)] opacity-0 shadow-sm transition-opacity hover:bg-[var(--destructive)] hover:text-white group-hover:opacity-100" title="Xóa">
+                              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
-                            <Link href={`/bat-dong-san/${item.listing.slug}`} className="block">
-                              <div className="relative mb-2 aspect-[16/10] overflow-hidden rounded-lg bg-[var(--muted)]">
-                                <Image src={item.listing.imageUrl || PLACEHOLDER_IMAGE} alt={item.listing.title} fill sizes="250px" className="object-cover" />
+                            <Link href={`/bat-dong-san/${item.listing.slug}`} className="flex flex-col gap-3">
+                              <div className="relative aspect-video w-full shrink-0 overflow-hidden rounded-lg bg-[var(--muted)]">
+                                <Image src={item.listing.imageUrl || PLACEHOLDER_IMAGE} alt={item.listing.title} fill sizes="(max-width: 768px) 100vw, 300px" className="object-cover transition-transform duration-300 group-hover:scale-105" />
                               </div>
-                              <h3 className="line-clamp-2 text-xs font-bold text-[var(--foreground)] group-hover:text-[var(--primary)]">{item.listing.title}</h3>
+                              <h3 className="line-clamp-2 h-10 text-sm font-semibold leading-tight text-[var(--foreground)] group-hover:text-[var(--primary)]">{item.listing.title}</h3>
                             </Link>
                           </div>
                         </th>
                       ))}
                       {Array.from({ length: Math.max(0, maxItems - items.length) }).map((_, i) => (
-                        <th key={`empty-${i}`} className="min-w-[220px] border-b border-l border-[var(--border)] bg-[var(--muted)]/10 p-3">
-                          <div className="flex min-h-[120px] items-center justify-center rounded-lg border-2 border-dashed border-[var(--border)] text-xs text-[var(--muted-foreground)]">Trống</div>
+                        <th key={`empty-${i}`} className="w-[300px] border-b border-l border-[var(--border)] bg-[var(--muted)]/10 p-4">
+                          <div className="flex h-[180px] w-full items-center justify-center rounded-lg border-2 border-dashed border-[var(--border)] text-sm font-medium text-[var(--muted-foreground)]">Cột trống</div>
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody>
-                    {compareRows.map((row, idx) => (
-                      <tr key={row.label} className={idx % 2 === 1 ? "bg-[var(--muted)]/15" : ""}>
-                        <th className="sticky left-0 border-r border-[var(--border)] bg-inherit p-3 text-left text-xs font-medium text-[var(--muted-foreground)] shadow-[2px_0_4px_rgba(0,0,0,0.04)]">{row.label}</th>
-                        {items.map((item) => (<td key={`${row.label}-${item.id}`} className="border-l border-[var(--border)] p-3 text-sm">{row.render(item)}</td>))}
-                        {Array.from({ length: Math.max(0, maxItems - items.length) }).map((_, i) => (<td key={`e-${i}`} className="border-l border-[var(--border)] bg-[var(--muted)]/10 p-3" />))}
+                  <tbody className="divide-y divide-[var(--border)]">
+                    {compareRows.map((row) => (
+                      <tr key={row.label} className="bg-[var(--background)] transition-colors hover:bg-[var(--muted)]/20">
+                        <th className="sticky left-0 z-10 border-r border-[var(--border)] bg-[var(--background)] p-4 text-left text-sm font-medium text-[var(--muted-foreground)] shadow-[2px_0_4px_rgba(0,0,0,0.04)]">{row.label}</th>
+                        {items.map((item) => (<td key={`${row.label}-${item.id}`} className="border-l border-[var(--border)] p-4 text-sm align-middle">{row.render(item)}</td>))}
+                        {Array.from({ length: Math.max(0, maxItems - items.length) }).map((_, i) => (<td key={`e-${i}`} className="border-l border-[var(--border)] bg-[var(--muted)]/10 p-4" />))}
                       </tr>
                     ))}
                   </tbody>

@@ -1,143 +1,76 @@
-"use client";
-
-import { Suspense, useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { Suspense } from "react";
+import { notFound } from "next/navigation";
 import Link from "next/link";
+import { Metadata } from "next";
+import { prisma } from "@/lib/prisma";
 import { PropertyCard } from "@/components/listings/PropertyCard";
-import type { ListingCardData } from "@/components/listings/PropertyCard";
-
-type ProjectDetail = {
-    id: string;
-    name: string;
-    slug: string;
-    description: string | null;
-    address: string | null;
-    developer: string | null;
-    totalArea: number | null;
-    imageUrl: string | null;
-    isActive: boolean;
-    isFallback?: boolean;
-    provinceCode?: string;
-    listingCount: number;
-};
+import { toListingCard } from "@/lib/listings";
 
 const DEFAULT_PROJECT_IMAGE = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&q=80";
 
-function ProjectDetailContent() {
-    const params = useParams();
-    const router = useRouter();
-    const projectSlug = params.slug as string;
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+    const { slug } = await params;
 
-    const [project, setProject] = useState<ProjectDetail | null>(null);
-    const [listings, setListings] = useState<ListingCardData[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        async function fetchProject() {
-            setLoading(true);
-            setError(null);
-
-            try {
-                // Fetch project details
-                const projectRes = await fetch(`/api/projects/${projectSlug}`);
-                if (!projectRes.ok) {
-                    throw new Error("Không tìm thấy dự án");
-                }
-                const projectData = await projectRes.json();
-                setProject(projectData);
-
-                // Fetch listings for this project
-                const listingsParams = new URLSearchParams();
-                listingsParams.set("projectId", projectData.id);
-                listingsParams.set("limit", "12");
-
-                const listingsRes = await fetch(`/api/listings?${listingsParams}`);
-                const listingsData = await listingsRes.json();
-
-                if (listingsData.data && Array.isArray(listingsData.data)) {
-                    setListings(listingsData.data);
-                }
-            } catch (err) {
-                console.error("Error fetching project:", err);
-                setError(err instanceof Error ? err.message : "Có lỗi xảy ra");
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        if (projectSlug) {
-            fetchProject();
-        }
-    }, [projectSlug]);
-
-    if (loading) {
-        return (
-            <div className="layout-container page-section">
-                {/* Header Skeleton */}
-                <div className="animate-pulse">
-                    <div className="h-8 w-64 bg-[var(--muted)] rounded-lg mb-2" />
-                    <div className="h-4 w-48 bg-[var(--muted)] rounded-lg" />
-                </div>
-
-                {/* Image Skeleton */}
-                <div className="mt-8 aspect-video bg-[var(--muted)] rounded-2xl" />
-
-                {/* Content Skeleton */}
-                <div className="mt-8 grid gap-8 lg:grid-cols-3">
-                    <div className="lg:col-span-2 space-y-4">
-                        <div className="h-6 w-32 bg-[var(--muted)] rounded-lg" />
-                        <div className="h-4 w-full bg-[var(--muted)] rounded-lg" />
-                        <div className="h-4 w-full bg-[var(--muted)] rounded-lg" />
-                        <div className="h-4 w-3/4 bg-[var(--muted)] rounded-lg" />
-                    </div>
-                    <div className="space-y-4">
-                        <div className="h-32 bg-[var(--muted)] rounded-2xl" />
-                        <div className="h-32 bg-[var(--muted)] rounded-2xl" />
-                    </div>
-                </div>
-            </div>
-        );
+    if (slug.startsWith("province-")) {
+        return { title: "Dự án không tồn tại | AloNha" };
     }
 
-    if (error || !project) {
-        return (
-            <div className="layout-container page-section">
-                <div className="text-center py-16">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-16 w-16 text-[var(--muted-foreground)] mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="12" x2="12" y1="8" y2="12" />
-                        <line x1="12" x2="12.01" y1="16" y2="16" />
-                    </svg>
-                    <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2">
-                        {error || "Không tìm thấy dự án"}
-                    </h2>
-                    <p className="text-[var(--muted-foreground)] mb-6">
-                        Dự án bạn đang tìm kiếm không tồn tại hoặc đã bị xóa
-                    </p>
-                    <Link
-                        href="/du-an"
-                        className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] font-medium hover:bg-[var(--primary-dark)] transition-colors"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="m15 18-6-6 6-6" />
-                        </svg>
-                        Quay lại danh sách dự án
-                    </Link>
-                </div>
-            </div>
-        );
+    const project = await prisma.project.findUnique({
+        where: { slug },
+        select: { name: true, description: true, imageUrl: true },
+    });
+
+    if (!project) return { title: "Không tìm thấy dự án | AloNha" };
+
+    return {
+        title: `${project.name} | AloNha`,
+        description: project.description ? project.description.slice(0, 160) : `Thông tin dự án ${project.name} trên AloNha.`,
+        openGraph: {
+            title: project.name,
+            description: project.description?.slice(0, 160) || "",
+            images: project.imageUrl ? [project.imageUrl] : [],
+        },
+    };
+}
+
+export default async function ProjectDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = await params;
+
+    if (slug.startsWith("province-")) {
+        notFound();
     }
+
+    const project = await prisma.project.findUnique({
+        where: { slug },
+        include: {
+            _count: { select: { listings: true } },
+        },
+    });
+
+    if (!project) {
+        notFound();
+    }
+
+    // Lấy các bài đăng thuộc dự án
+    const listingsDb = await prisma.listing.findMany({
+        where: { projectId: project.id, status: "APPROVED", publishedAt: { not: null } },
+        take: 12,
+        orderBy: { publishedAt: "desc" },
+        include: {
+            images: { orderBy: { order: "asc" }, take: 1 },
+        },
+    });
+    const listings = listingsDb.map(toListingCard);
 
     return (
         <div className="layout-container page-section">
             {/* Breadcrumb */}
             <nav className="flex items-center gap-2 text-sm mb-6">
-                <Link href="/" className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+                <Link href="/" className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
                     Trang chủ
                 </Link>
                 <span className="text-[var(--muted-foreground)]">/</span>
-                <Link href="/du-an" className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+                <Link href="/du-an" className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
                     Dự án
                 </Link>
                 <span className="text-[var(--muted-foreground)]">/</span>
@@ -169,14 +102,15 @@ function ProjectDetailContent() {
             {/* Project Image */}
             <div className="mb-8">
                 <div className="relative aspect-video rounded-2xl overflow-hidden bg-[var(--muted)]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                         src={project.imageUrl || DEFAULT_PROJECT_IMAGE}
                         alt={project.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                     />
-                    {!project.imageUrl && !project.isFallback && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/50 to-transparent">
-                            <span className="text-white/80 text-lg">Hình ảnh dự án</span>
+                    {!project.imageUrl && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/50 to-transparent pointer-events-none">
+                            <span className="text-white/80 text-lg drop-shadow-md">Hình ảnh dự án minh họa</span>
                         </div>
                     )}
                 </div>
@@ -187,17 +121,15 @@ function ProjectDetailContent() {
                 {/* Main Content */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Description */}
-                    <section className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
+                    <section className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6 shadow-sm">
                         <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">Giới thiệu dự án</h2>
                         {project.description ? (
-                            <div className="prose prose-slate max-w-none">
-                                <p className="text-[var(--foreground)] whitespace-pre-line">{project.description}</p>
+                            <div className="prose prose-slate max-w-none prose-p:text-[var(--foreground)]">
+                                <p className="whitespace-pre-line">{project.description}</p>
                             </div>
                         ) : (
                             <p className="text-[var(--muted-foreground)]">
-                                {project.isFallback
-                                    ? `Dự án khu vực {project.address}. Khám phá các bất động sản tại khu vực này.`
-                                    : "Thông tin chi tiết về dự án đang được cập nhật."}
+                                Thông tin chi tiết về dự án đang được cập nhật.
                             </p>
                         )}
                     </section>
@@ -221,7 +153,7 @@ function ProjectDetailContent() {
                             </div>
                         ) : (
                             <div className="text-center py-12 rounded-2xl border border-dashed border-[var(--border)] bg-[var(--card)]">
-                                <p className="text-[var(--muted-foreground)]">Chưa có tin đăng nào trong khu vực này</p>
+                                <p className="text-[var(--muted-foreground)]">Chưa có tin đăng nào cho dự án này</p>
                             </div>
                         )}
                     </section>
@@ -230,7 +162,7 @@ function ProjectDetailContent() {
                 {/* Sidebar */}
                 <div className="space-y-6">
                     {/* Project Info Card */}
-                    <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
+                    <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6 shadow-sm">
                         <h3 className="text-lg font-bold text-[var(--foreground)] mb-4">Thông tin dự án</h3>
                         <ul className="space-y-4">
                             {project.developer && (
@@ -271,14 +203,14 @@ function ProjectDetailContent() {
                                 </div>
                                 <div>
                                     <p className="text-sm text-[var(--muted-foreground)]">Số tin đăng</p>
-                                    <p className="font-medium text-[var(--foreground)]">{listings.length} tin</p>
+                                    <p className="font-medium text-[var(--foreground)]">{project._count.listings} tin</p>
                                 </div>
                             </li>
                         </ul>
                     </div>
 
                     {/* Contact Card */}
-                    <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
+                    <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6 shadow-sm sticky top-24">
                         <h3 className="text-lg font-bold text-[var(--foreground)] mb-4">Liên hệ</h3>
                         <div className="space-y-3">
                             <Link
@@ -307,20 +239,5 @@ function ProjectDetailContent() {
                 </div>
             </div>
         </div>
-    );
-}
-
-export default function ProjectDetailPage() {
-    return (
-        <Suspense fallback={
-            <div className="layout-container page-section">
-                <div className="animate-pulse">
-                    <div className="h-8 w-64 bg-[var(--muted)] rounded-lg mb-2" />
-                    <div className="h-4 w-48 bg-[var(--muted)] rounded-lg" />
-                </div>
-            </div>
-        }>
-            <ProjectDetailContent />
-        </Suspense>
     );
 }

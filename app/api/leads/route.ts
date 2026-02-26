@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { notifyNewLead } from "@/lib/notifications";
 
 export async function POST(req: Request) {
   try {
@@ -35,6 +36,9 @@ export async function POST(req: Request) {
         source: "detail_page",
       },
     });
+
+    // Gửi thông báo cho môi giới
+    await notifyNewLead(lead.id, name, listing.id, listing.ownerId);
 
     return NextResponse.json({ id: lead.id, ok: true });
   } catch (e) {

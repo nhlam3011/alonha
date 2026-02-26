@@ -3,7 +3,7 @@ import type { AppointmentStatus } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-const ALLOWED = ["AGENT", "BUSINESS", "ADMIN"];
+const ALLOWED = ["AGENT", "ADMIN"];
 const APPOINTMENT_STATUSES: AppointmentStatus[] = ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"];
 
 async function ensureAgent() {

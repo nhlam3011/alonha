@@ -1,88 +1,64 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Metadata } from "next";
+import ResetPasswordForm from "./ResetPasswordForm";
+import { Suspense } from "react";
+
+export const metadata: Metadata = {
+  title: "Đặt lại mật khẩu | AloNha",
+  description: "Đặt lại mật khẩu tài khoản AloNha bằng mã OTP.",
+};
+
+const BG_IMAGE = "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80";
 
 export default function ResetPasswordPage() {
-  const router = useRouter();
-  const [code, setCode] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      const res = await fetch("/api/auth/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: code.trim(), password }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(data.error || "Đặt lại mật khẩu thất bại");
-        setLoading(false);
-        return;
-      }
-      router.push("/dang-nhap?reset=1");
-    } catch {
-      setError("Đã xảy ra lỗi. Thử lại sau.");
-      setLoading(false);
-    }
-  }
-
   return (
-    <div className="mx-auto max-w-md px-4 py-12 bg-[var(--background)]">
-      <h1 className="text-2xl font-bold text-[var(--foreground)]">Đặt lại mật khẩu</h1>
-      <p className="mt-1 text-sm text-[var(--muted-foreground)]">Nhập mã OTP đã gửi đến email và mật khẩu mới.</p>
-      <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-        {error && (
-          <div className="rounded-lg bg-[var(--destructive)]/10 px-3 py-2 text-sm text-[var(--destructive)]">
-            {error}
+    <div className="min-h-screen flex selection:bg-[var(--primary)] selection:text-white relative">
+
+      {/* ── Mobile: ảnh mờ làm background ── */}
+      <div
+        className="absolute inset-0 lg:hidden bg-cover bg-center"
+        style={{ backgroundImage: `url('${BG_IMAGE}')` }}
+      />
+      <div className="absolute inset-0 lg:hidden bg-black/60 backdrop-blur-sm" />
+
+      {/* ── Desktop: Left Column ── */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-neutral-900 overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center transform hover:scale-105 transition-transform duration-[20s] ease-out"
+          style={{ backgroundImage: `url('${BG_IMAGE}')` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80" />
+        <div className="absolute inset-0 bg-[var(--primary)]/20 mix-blend-multiply" />
+
+        {/* Content — căn giữa */}
+        <div className="relative z-10 flex flex-col items-start justify-center p-12 xl:p-20 w-full">
+          <h2 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-6">
+            Bảo mật tài khoản,<br />an tâm trải nghiệm.
+          </h2>
+          <p className="text-lg text-white/80 max-w-md font-medium leading-relaxed">
+            Đặt lại mật khẩu mới để bảo vệ tài khoản và tiếp tục hành trình tìm kiếm bất động sản lý tưởng.
+          </p>
+        </div>
+      </div>
+
+      {/* ── Right Column: Form ── */}
+      <div className="relative z-10 w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 lg:p-16 xl:p-24 min-h-screen pt-20 pb-10">
+        <div className="w-full max-w-[440px] animate-in fade-in slide-in-from-bottom-4 duration-700">
+
+
+          {/* Card wrapper trên mobile */}
+          <div className="bg-[var(--background)] rounded-2xl p-6 shadow-2xl lg:p-0 lg:bg-transparent lg:shadow-none">
+            <Suspense fallback={
+              <div className="flex flex-col items-center gap-4 py-8">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent"></div>
+              </div>
+            }>
+              <ResetPasswordForm />
+            </Suspense>
           </div>
-        )}
-        <div>
-          <label htmlFor="code" className="form-label">
-            Mã OTP
-          </label>
-          <input
-            id="code"
-            type="text"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            required
-            placeholder="6 ký tự"
-            className="form-input"
-          />
+
         </div>
-        <div>
-          <label htmlFor="password" className="form-label">
-            Mật khẩu mới (tối thiểu 6 ký tự)
-          </label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-            className="form-input"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="btn-primary w-full justify-center py-2.5"
-        >
-          {loading ? "Đang xử lý..." : "Đặt lại mật khẩu"}
-        </button>
-      </form>
-      <Link href="/dang-nhap" className="mt-4 block text-sm text-[var(--primary)] hover:underline">
-        ← Quay lại đăng nhập
-      </Link>
+      </div>
     </div>
   );
 }

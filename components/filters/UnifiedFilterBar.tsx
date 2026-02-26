@@ -19,11 +19,11 @@ export function UnifiedFilterBar({
     appendRight,
 }: UnifiedFilterBarProps) {
     return (
-        <div className="flex items-center gap-2 overflow-visible flex-wrap py-2 scrollbar-none">
+        <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap py-2 scrollbar-none w-full">
             {/* Container cuộn chứa các filter component (select, dropdown) do cha truyền vào */}
             {children}
 
-            <div className="ml-auto flex shrink-0 items-center gap-2 pl-2 border-l border-[var(--border)]">
+            <div className="ml-auto flex shrink-0 items-center gap-2 pl-2 border-l border-[var(--border)] sticky right-0 bg-[var(--background)] z-10">
                 {sortOptions && sortOptions.length > 0 && onSortChange && (
                     <select
                         value={activeSort || ""}

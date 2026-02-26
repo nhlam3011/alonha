@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-const ALLOWED = ["AGENT", "BUSINESS", "ADMIN"];
+const ALLOWED = ["AGENT", "ADMIN"];
 const ALLOWED_METHODS = ["QR", "TRANSFER"];
 
 async function ensureAgent() {

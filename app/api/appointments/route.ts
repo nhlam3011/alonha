@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { notifyNewAppointment } from "@/lib/notifications";
 
 export async function GET() {
   const session = await auth();
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
     select: { ownerId: true },
   });
   if (!listing) return NextResponse.json({ error: "Tin không tồn tại" }, { status: 404 });
-  await prisma.viewingAppointment.create({
+  const appointment = await prisma.viewingAppointment.create({
     data: {
       listingId,
       userId: session.user.id,
@@ -49,5 +50,9 @@ export async function POST(req: Request) {
       schedule: new Date(schedule),
     },
   });
+
+  // Gửi thông báo cho môi giới
+  await notifyNewAppointment(appointment.id);
+
   return NextResponse.json({ ok: true });
 }

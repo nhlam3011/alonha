@@ -11,12 +11,7 @@ const navLinks = [
   { href: "/tim-kiem", label: "Bản đồ" },
   { href: "/du-an", label: "Dự án" },
   { href: "/tin-tuc", label: "Tin tức" },
-];
-
-const toolLinks = [
-  { href: "/cong-cu/tinh-vay", label: "Tính lãi vay" },
-  { href: "/cong-cu/so-sanh", label: "So sánh BĐS" },
-  { href: "/cong-cu/phong-thuy", label: "Phong thủy" },
+  { href: "/cong-cu", label: "Công cụ" },
 ];
 
 const CAN_POST_LISTING = ["AGENT", "BUSINESS", "ADMIN"];
@@ -27,22 +22,17 @@ function canPostListing(role?: string) {
 export function Header() {
   const { data: session, status } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [toolsOpen, setToolsOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const lastScrollY = useRef<number>(0);
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const toolsMenuRef = useRef<HTMLDivElement>(null);
   const role = session?.user?.role as string | undefined;
   const isAgentPortalUser = canPostListing(role);
   const isAdminUser = role === "ADMIN";
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (toolsMenuRef.current && !toolsMenuRef.current.contains(e.target as Node)) {
-        setToolsOpen(false);
-      }
       if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
         setUserMenuOpen(false);
       }
@@ -110,39 +100,6 @@ export function Header() {
                   {label}
                 </Link>
               ))}
-
-              {/* Tools Dropdown */}
-              <div className="relative" ref={toolsMenuRef}>
-                <button
-                  type="button"
-                  onClick={() => setToolsOpen(!toolsOpen)}
-                  className={`flex items-center gap-1 px-4 py-1.5 text-[15px] font-semibold rounded-full transition-all duration-200 whitespace-nowrap ${toolsOpen
-                    ? "text-[var(--primary)] bg-[var(--card)]"
-                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card)]"
-                    }`}
-                >
-                  Công cụ
-                  <svg className={`w-3 h-3 ml-0.5 transition-transform duration-200 ${toolsOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-
-                {toolsOpen && (
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-48 rounded-2xl bg-[var(--card)] border border-[var(--border)] py-2 shadow-2xl shadow-black/10 animate-fade-in">
-                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-[var(--card)] border-l border-t border-[var(--border)] rotate-45" />
-                    {toolLinks.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setToolsOpen(false)}
-                        className="relative z-10 block px-4 py-2.5 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--muted)] hover:text-[var(--primary)] transition-colors"
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
             </nav>
 
             {/* ========== Right Actions ========== */}
@@ -293,23 +250,6 @@ export function Header() {
                 </Link>
               ))}
             </nav>
-
-            {/* Tools */}
-            <div className="mx-3 pt-2 pb-3 border-t border-[var(--border)]">
-              <p className="px-4 py-2 text-[11px] font-bold tracking-widest text-[var(--muted-foreground)] uppercase">Công cụ</p>
-              <div className="grid grid-cols-3 gap-2 px-2">
-                {toolLinks.map(({ href, label }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={() => setMobileOpen(false)}
-                    className="flex items-center justify-center px-2 py-2.5 text-xs font-medium text-[var(--muted-foreground)] hover:text-[var(--primary)] bg-[var(--muted)]/50 hover:bg-[var(--primary)]/5 rounded-xl transition-all text-center"
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </div>
-            </div>
 
             {/* Auth / Post */}
             <div className="px-3 pb-3 space-y-2">

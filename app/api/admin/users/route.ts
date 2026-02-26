@@ -3,7 +3,7 @@ import type { Prisma, UserRole } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-const ROLES: UserRole[] = ["GUEST", "BUYER", "RENTER", "AGENT", "BUSINESS", "ADMIN"];
+const ROLES: UserRole[] = ["USER", "AGENT", "ADMIN"];
 
 function isValidRole(role: string | null): role is UserRole {
   return !!role && ROLES.includes(role as UserRole);
@@ -36,10 +36,8 @@ export async function GET(req: Request) {
       { phone: { contains: keyword } },
     ];
   }
-  if (isValidRole(role) && role !== "GUEST") {
+  if (isValidRole(role)) {
     where.role = role;
-  } else if (role === "GUEST") {
-    where.role = "GUEST";
   }
   if (locked === "1") where.isLocked = true;
   if (locked === "0") where.isLocked = false;

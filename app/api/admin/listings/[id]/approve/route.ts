@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { notifyListingApproved } from "@/lib/notifications";
 
 export async function POST(
   _req: Request,
@@ -13,7 +14,7 @@ export async function POST(
   const { id } = await params;
   const existing = await prisma.listing.findUnique({
     where: { id },
-    select: { id: true, status: true },
+    select: { id: true, title: true, status: true },
   });
   if (!existing) {
     return NextResponse.json({ error: "Không tìm thấy tin đăng." }, { status: 404 });
@@ -28,5 +29,9 @@ export async function POST(
     where: { id },
     data: { status: "APPROVED", publishedAt: new Date() },
   });
+
+  // Gửi thông báo cho người đăng
+  await notifyListingApproved(id, existing.title);
+
   return NextResponse.json({ ok: true });
 }

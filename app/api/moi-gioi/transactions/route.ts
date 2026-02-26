@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-const ALLOWED = ["AGENT", "BUSINESS", "ADMIN"];
+const ALLOWED = ["AGENT", "ADMIN"];
 
 export async function GET(req: Request) {
   const session = await auth();

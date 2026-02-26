@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { registerSchema } from "@/lib/validations";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
   try {
@@ -31,10 +32,16 @@ export async function POST(req: Request) {
         email: emailLower,
         phone: phone || null,
         passwordHash,
-        role: "GUEST",
+        role: "USER",
       },
       select: { id: true, email: true, name: true, role: true },
     });
+
+    // Gửi email chào mừng
+    if (user.email) {
+      await sendWelcomeEmail(user.email, user.name);
+    }
+
     return NextResponse.json({ user });
   } catch (e) {
     console.error(e);

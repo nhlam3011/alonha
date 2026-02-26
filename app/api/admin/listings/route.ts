@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { ListingStatus, Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { notifyListingApproved, notifyListingRejected } from "@/lib/notifications";
 
 const STATUSES: ListingStatus[] = ["PENDING", "APPROVED", "REJECTED", "EXPIRED", "HIDDEN"];
 const MUTABLE_STATUSES: ListingStatus[] = ["PENDING", "APPROVED", "REJECTED", "HIDDEN", "EXPIRED"];
@@ -99,7 +100,7 @@ export async function PATCH(req: Request) {
 
   const existing = await prisma.listing.findUnique({
     where: { id },
-    select: { id: true, status: true, publishedAt: true },
+    select: { id: true, title: true, status: true, publishedAt: true },
   });
   if (!existing) return NextResponse.json({ error: "Không tìm thấy tin đăng" }, { status: 404 });
   if (existing.status === "DRAFT") {
@@ -109,6 +110,7 @@ export async function PATCH(req: Request) {
     );
   }
 
+  const previousStatus = existing.status;
   const data: Prisma.ListingUpdateInput = { status: body.status };
   if (body.status === "APPROVED" && !existing.publishedAt) {
     data.publishedAt = new Date();
@@ -128,6 +130,13 @@ export async function PATCH(req: Request) {
       publishedAt: true,
     },
   });
+
+  // Gửi thông báo khi duyệt hoặc từ chối tin
+  if (body.status === "APPROVED" && previousStatus !== "APPROVED") {
+    await notifyListingApproved(id, existing.title);
+  } else if (body.status === "REJECTED" && previousStatus !== "REJECTED") {
+    await notifyListingRejected(id, existing.title);
+  }
 
   return NextResponse.json({
     data: {

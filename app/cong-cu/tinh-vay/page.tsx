@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 
 function fmtBillion(n: number): string {
@@ -67,15 +66,12 @@ export default function LoanCalculatorPage() {
   }, [schedule, years]);
 
   return (
-    <div className="layout-container py-6 lg:py-8">
-      <div className="mx-auto max-w-5xl">
+    <div className="space-y-6">
+      <div className="max-w-5xl">
         {/* Header */}
         <div className="mb-6">
-          <Link href="/cong-cu" className="group mb-3 inline-flex items-center gap-1.5 text-sm text-[var(--muted-foreground)] hover:text-[var(--primary)]">
-            <svg className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-            Công cụ
-          </Link>
           <h1 className="text-2xl font-extrabold text-[var(--foreground)] lg:text-3xl">Tính lãi suất vay</h1>
+          <p className="mt-2 text-sm text-[var(--muted-foreground)]">Ước tính lịch trả nợ chi tiết dựa trên số tiền, thời hạn và lãi suất.</p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-12">

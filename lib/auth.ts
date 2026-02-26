@@ -68,7 +68,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               email: user.email.toLowerCase(),
               name: user.name ?? user.email,
               avatar: user.image ?? undefined,
-              role: "GUEST",
+              role: "USER",
             },
           });
         }

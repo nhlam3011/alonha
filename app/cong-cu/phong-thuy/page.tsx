@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState, useCallback } from "react";
 
 type Gender = "male" | "female";
@@ -263,15 +262,12 @@ export default function FengShuiPage() {
   const selectClass = "w-full appearance-none rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-2 text-sm text-[var(--foreground)] outline-none focus:ring-2 focus:ring-[var(--primary)]";
 
   return (
-    <div className="layout-container py-6 lg:py-8">
-      <div className="mx-auto max-w-5xl">
+    <div className="space-y-6">
+      <div className="max-w-5xl">
         {/* Header */}
         <div className="mb-6">
-          <Link href="/cong-cu" className="group mb-3 inline-flex items-center gap-1.5 text-sm text-[var(--muted-foreground)] hover:text-[var(--primary)]">
-            <svg className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-            Công cụ
-          </Link>
           <h1 className="text-2xl font-extrabold text-[var(--foreground)] lg:text-3xl">Xem phong thủy nhà ở</h1>
+          <p className="mt-2 text-sm text-[var(--muted-foreground)]">Nhập thông tin cá nhân để xem hướng Cát/Hung theo Bát Trạch.</p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-12">

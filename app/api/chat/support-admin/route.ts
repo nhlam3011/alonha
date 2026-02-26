@@ -10,7 +10,7 @@ export async function GET() {
   }
 
   const role = String(session.user.role || "");
-  const AGENT_ROLES = ["AGENT", "BUSINESS", "ADMIN"];
+  const AGENT_ROLES = ["AGENT", "ADMIN"];
   if (!AGENT_ROLES.includes(role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
