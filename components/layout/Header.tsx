@@ -191,7 +191,7 @@ export function Header() {
                           type="button"
                           onClick={() => {
                             setUserMenuOpen(false);
-                            signOut({ callbackUrl: "/" });
+                            signOut({ callbackUrl: "/dang-nhap" });
                           }}
                           className="w-full flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-rose-500 hover:bg-rose-500/10 rounded-xl transition-colors"
                         >
