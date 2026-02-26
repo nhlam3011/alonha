@@ -203,7 +203,7 @@ export function ClientFilters({
                             </button>
                         }
                     >
-                        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none w-full">
+                        <div className="flex items-center gap-2 flex-wrap pb-1 w-full">
                             <select
                                 value={category}
                                 onChange={(e) => updateFilters({ category: e.target.value })}

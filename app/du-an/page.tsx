@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { ProjectCard } from "@/components/listings/ProjectCard";
@@ -60,9 +60,17 @@ export default async function ProjectsPage(props: {
   const where: Prisma.ProjectWhereInput = andConditions.length > 0 ? { AND: andConditions } : {};
 
   // Fetch Provinces cho Filter
-  const provincesRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/provinces`, {
+  const headersList = await headers();
+  const host = headersList.get("host") || "localhost:3000";
+  const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `${protocol}://${host}`;
+
+  const provincesRes = await fetch(`${baseUrl}/api/provinces`, {
     next: { revalidate: 3600 }
-  }).catch(() => null);
+  }).catch((e) => {
+    console.error("Fetch provinces error:", e);
+    return null;
+  });
   const provinces = provincesRes ? await provincesRes.json() : [];
 
   const [dbProjects, total] = await Promise.all([

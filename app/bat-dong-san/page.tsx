@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Prisma, PropertyCategory } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -204,10 +204,19 @@ export default async function ListingsPage({
 
   const skip = (page - 1) * limit;
 
-  // Lấy danh sách Provinces để fill vào filter (chỉ lấy data cần thiết)
-  const provincesRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/provinces`, {
-    next: { revalidate: 3600 } // Cache 1 giờ
-  }).catch(() => null);
+  // Cấu hình Base URL linh hoạt cho môi trường Vercel khi fetch API Server-side
+  const headersList = await headers();
+  const host = headersList.get("host") || "localhost:3000";
+  const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `${protocol}://${host}`;
+
+  // Lấy danh sách Provinces để fill vào filter 
+  const provincesRes = await fetch(`${baseUrl}/api/provinces`, {
+    next: { revalidate: 3600 }
+  }).catch((e) => {
+    console.error("Fetch provinces error:", e);
+    return null;
+  });
   const provinces = provincesRes ? await provincesRes.json() : [];
 
   const [rows, total] = await Promise.all([

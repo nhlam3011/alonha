@@ -354,7 +354,7 @@ function SearchContent() {
               </div>
             }
           >
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none w-full">
+            <div className="flex items-center gap-2 flex-wrap pb-1 w-full">
               {/* Loại hình bất động sản (Category) */}
               <select
                 value={category}
