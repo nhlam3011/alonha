@@ -11,12 +11,10 @@ export default async function AdminDashboardPage() {
   }
 
   // Parallel data fetching
-  const [userCount, listingCount, pendingCount, projectCount, packageCount, lockedUserCount] = await Promise.all([
+  const [userCount, listingCount, pendingCount, lockedUserCount] = await Promise.all([
     prisma.user.count(),
     prisma.listing.count(),
     prisma.listing.count({ where: { status: "PENDING" } }),
-    prisma.project.count(),
-    prisma.servicePackage.count(),
     prisma.user.count({ where: { isLocked: true } }),
   ]);
 

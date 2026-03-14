@@ -33,7 +33,7 @@ export function HeroSearch({ embedded = false }: { embedded?: boolean }) {
   const [keyword, setKeyword] = useState("");
   const [category, setCategory] = useState("");
   const [priceRange, setPriceRange] = useState("");
-  const [showAiSearch, setShowAiSearch] = useState(false);
+  const [showAiSearch, setShowAiSearch] = useState(true);
 
   // Voice & AI States
   const [isListening, setIsListening] = useState(false);
@@ -161,16 +161,8 @@ export function HeroSearch({ embedded = false }: { embedded?: boolean }) {
           <button
             type="button"
             onClick={() => setShowAiSearch(!showAiSearch)}
-            className={`w-full sm:w-auto mt-2 sm:mt-0 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 sm:ml-auto border border-transparent ${showAiSearch
-              ? "bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-md border-violet-400"
-              : "text-[var(--muted-foreground)] hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/10 border-[var(--border)] sm:border-transparent"
-              }`}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            AI Search
-          </button>
+            className="hidden"
+          ></button>
         </div>
 
         {!showAiSearch ? (
@@ -271,7 +263,7 @@ export function HeroSearch({ embedded = false }: { embedded?: boolean }) {
                 {isAiLoading ? (
                   <span className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
                 ) : (
-                  "AI Phân Tích"
+                  "Tìm kiếm"
                 )}
               </button>
             </div>

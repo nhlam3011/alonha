@@ -123,6 +123,10 @@ export default function CreateListingPage() {
     const [isSmartFilling, setIsSmartFilling] = useState(false);
     const [showSmartFill, setShowSmartFill] = useState(true);
 
+    // Voice Recording State
+    const [isRecording, setIsRecording] = useState(false);
+    const [recognition, setRecognition] = useState<any>(null);
+
     // --- Effects ---
 
     useEffect(() => {
@@ -164,6 +168,53 @@ export default function CreateListingPage() {
         if (!p?.code) return;
         fetch(`/api/wards?provinceCode=${p.code}`).then(r => r.json()).then(d => setWards(Array.isArray(d) ? d : [])).catch(() => setWards([]));
     }, [form.provinceId, provinces]);
+
+    // Initialize Speech Recognition
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                const rec = new SpeechRecognition();
+                rec.continuous = true;
+                rec.interimResults = true;
+                rec.lang = 'vi-VN';
+                rec.onresult = (event: any) => {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        if (event.results[i].isFinal) {
+                            transcript += event.results[i][0].transcript;
+                        }
+                    }
+                    if (transcript) {
+                        setSmartFillText(prev => prev + ' ' + transcript);
+                    }
+                };
+                rec.onerror = (event: any) => {
+                    console.error('Speech recognition error:', event.error);
+                    setIsRecording(false);
+                };
+                rec.onend = () => {
+                    setIsRecording(false);
+                };
+                setRecognition(rec);
+            }
+        }
+    }, []);
+
+    // Voice Recording Handler
+    const handleVoiceRecording = () => {
+        if (!recognition) {
+            setNotice({ type: 'error', message: 'Trình duyệt không hỗ trợ ghi âm giọng nói.' });
+            return;
+        }
+        if (isRecording) {
+            recognition.stop();
+        } else {
+            setSmartFillText('');
+            recognition.start();
+            setIsRecording(true);
+        }
+    };
 
     // Load Draft/Edit
     useEffect(() => {
@@ -668,7 +719,7 @@ export default function CreateListingPage() {
                                             <h3 className="font-bold text-[var(--foreground)] flex items-center gap-2">
                                                 <span className="text-xl">✨</span> Điền tin nhanh bằng AI
                                             </h3>
-                                            <p className="text-sm text-[var(--muted-foreground)] mt-1">Dán nội dung tin nhắn hoặc bài đăng có sẵn vào đây, AI sẽ tự động điền các trường cho bạn.</p>
+                                            <p className="text-sm text-[var(--muted-foreground)] mt-1">Dán nội dung hoặc nhấn nút 🎤 để ghi giọng nói, AI sẽ tự động điền các trường cho bạn.</p>
                                         </div>
                                         <button onClick={() => setShowSmartFill(false)} className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] p-1 text-2xl leading-none">×</button>
                                     </div>
@@ -678,15 +729,36 @@ export default function CreateListingPage() {
                                         placeholder='VD: "Bán nhà mặt tiền đường 3/2 quận 10, diện tích 5x20m, 1 trệt 3 lầu, giá 15 tỷ thương lượng..."'
                                         className="w-full h-24 p-3 rounded-xl border border-[var(--border)] bg-[var(--background)] focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] transition-all resize-none text-sm mb-3"
                                     />
-                                    <div className="flex justify-end">
-                                        <button
-                                            onClick={handleSmartFill}
-                                            disabled={isSmartFilling}
-                                            className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg text-sm font-semibold hover:brightness-110 shadow-lg shadow-[var(--primary)]/20 flex items-center gap-2"
-                                        >
-                                            {isSmartFilling ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : "⚡"}
-                                            {isSmartFilling ? "Đang phân tích..." : "Điền tự động"}
-                                        </button>
+                                    {isRecording && (
+                                        <div className="flex items-center gap-2 text-red-500 text-sm mb-2 animate-pulse">
+                                            <span className="w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+                                            Đang nghe... Hãy nói thông tin bất động sản của bạn
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between items-center mb-3">
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={handleVoiceRecording}
+                                                disabled={isSmartFilling}
+                                                className={`px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all ${isRecording
+                                                    ? 'bg-red-500 text-white animate-pulse'
+                                                    : 'bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--muted)]'
+                                                    }`}
+                                            >
+                                                <span className={isRecording ? 'animate-pulse' : ''}>🎤</span>
+                                                {isRecording ? 'Đang ghi...' : 'Ghi giọng nói'}
+                                            </button>
+                                            {smartFillText.trim().length > 0 && (
+                                                <button
+                                                    onClick={handleSmartFill}
+                                                    disabled={isSmartFilling}
+                                                    className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg text-sm font-semibold hover:brightness-110 shadow-lg shadow-[var(--primary)]/20 flex items-center gap-2"
+                                                >
+                                                    {isSmartFilling ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : "⚡"}
+                                                    {isSmartFilling ? "Đang phân tích..." : "Điền tự động"}
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -149,15 +149,15 @@ export default async function HomePage() {
   const provinces = provincesUnsorted.filter(p => p.listingCount > 0).sort((a, b) => b.listingCount - a.listingCount).slice(0, 12);
 
   return (
-    <div className="bg-[var(--background)] min-h-screen overflow-x-hidden">
+    <div suppressHydrationWarning className="bg-[var(--background)] min-h-screen overflow-x-hidden">
       {/* ━━━ HERO — Cinematic & Premium ━━━ */}
-      <section className="relative h-[100dvh] flex flex-col pt-12">
+      <section className="relative h-screen flex flex-col pt-12">
         <div className="absolute inset-0 z-0 overflow-hidden">
           <img
             src="https://images.unsplash.com/photo-1600607686527-6fb886090705?ixlib=rb-4.0.3&auto=format&fit=crop&w=2500&q=80"
             alt="Luxury Architecture"
             className="w-full h-full object-cover select-none scale-105 animate-pulse-slow origin-center"
-            draggable="false"
+            draggable={false}
             style={{ animationDuration: '20s' }}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/40 to-[var(--background)] z-10" />
