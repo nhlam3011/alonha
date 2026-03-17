@@ -170,7 +170,6 @@ export function Header() {
                         {isAgentPortalUser ? (
                           <>
                             <MenuLink href="/moi-gioi" label="Bảng điều khiển" onClick={() => setUserMenuOpen(false)} />
-                            <MenuLink href="/moi-gioi/tin-dang" label="Quản lý tin đăng" onClick={() => setUserMenuOpen(false)} />
                             <MenuLink href="/moi-gioi/vi" label="Ví tiền" onClick={() => setUserMenuOpen(false)} />
                           </>
                         ) : (

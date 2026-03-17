@@ -281,9 +281,9 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
                                 <Link
                                     key={related.id}
                                     href={`/tin-tuc/${related.slug}`}
-                                    className="group overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)] hover:shadow-lg transition-all"
+                                    className="group h-full flex flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)] hover:shadow-lg transition-all"
                                 >
-                                    <div className="relative h-32 overflow-hidden bg-[var(--muted)]">
+                                    <div className="relative h-32 overflow-hidden bg-[var(--muted)] shrink-0">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img
                                             src={related.imageUrl}
@@ -291,12 +291,12 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
                                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                         />
                                     </div>
-                                    <div className="p-3">
-                                        <span className="text-xs font-semibold text-[var(--primary)]">{related.categoryLabel}</span>
+                                    <div className="p-3 flex-1 flex flex-col">
+                                        <span className="text-xs font-semibold text-[var(--primary)] block">{related.categoryLabel}</span>
                                         <h3 className="mt-1 text-sm font-bold text-[var(--foreground)] line-clamp-2 group-hover:text-[var(--primary)] transition-colors">
                                             {related.title}
                                         </h3>
-                                        <p className="mt-2 text-xs text-[var(--muted-foreground)]">
+                                        <p className="mt-auto pt-2 text-xs text-[var(--muted-foreground)]">
                                             {formatDate(related.publishedAt)}
                                         </p>
                                     </div>

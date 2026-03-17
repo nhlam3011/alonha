@@ -309,7 +309,7 @@ function SearchContent() {
 
       {/* ═══ TOP BAR (Unified Components) ═══ */}
       <div className="shrink-0 z-30 relative bg-[var(--background)] border-b border-[var(--border)] shadow-sm">
-        <div className="px-4 md:px-6">
+        <div className="layout-container px-4 md:px-10">
           <UnifiedSearchHeader
             tabs={[
               { value: "sale", label: "Mua bán", colorClass: "bg-[var(--primary)] text-primary-foreground shadow-sm" },
@@ -356,13 +356,14 @@ function SearchContent() {
           >
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 w-full">
               {/* Loại hình bất động sản (Category) */}
-              <select
+              <SearchableSelect
+                options={CATEGORY_OPTIONS.map(c => ({ value: c.value, label: c.label }))}
                 value={category}
-                onChange={(e) => updateParam("category", e.target.value)}
-                className="filter-select !py-1.5 !px-3 !text-xs h-9 min-w-[120px] rounded-full bg-[var(--card)] text-[var(--foreground)] dark:bg-[var(--card)] dark:text-[var(--foreground)]"
-              >
-                {CATEGORY_OPTIONS.map((c) => (<option key={c.value} value={c.value}>{c.label}</option>))}
-              </select>
+                onChange={(val) => updateParam("category", val)}
+                placeholder="Loại nhà đất"
+                variant="filter"
+                className="min-w-[120px] !text-xs h-9"
+              />
 
               {/* Tỉnh/thành */}
               <SearchableSelect
@@ -387,40 +388,34 @@ function SearchContent() {
               )}
 
               {/* Khoảng giá */}
-              <select
-                value={`${priceMin}-${priceMax}`}
-                onChange={(e) => {
-                  const val = e.target.value;
+              <SearchableSelect
+                options={PRICE_PRESETS.map(p => ({ value: p.min === "" && p.max === "" ? "" : `${p.min}-${p.max}`, label: p.label }))}
+                value={priceMin === "" && priceMax === "" ? "" : `${priceMin}-${priceMax}`}
+                onChange={(val) => {
                   const p = new URLSearchParams(searchParams.toString());
-                  if (val === "-") { p.delete("priceMin"); p.delete("priceMax"); }
+                  if (val === "") { p.delete("priceMin"); p.delete("priceMax"); }
                   else { const [min, max] = val.split("-"); if (min) p.set("priceMin", min); else p.delete("priceMin"); if (max) p.set("priceMax", max); else p.delete("priceMax"); }
                   router.push(`/tim-kiem?${p.toString()}`);
                 }}
-                className="filter-select !py-1.5 !px-3 !text-xs h-9 min-w-[120px] rounded-full bg-[var(--card)] text-[var(--foreground)] dark:bg-[var(--card)] dark:text-[var(--foreground)]"
-              >
-                <option value="-">Mức giá</option>
-                {PRICE_PRESETS.filter(p => p.label !== "Tất cả").map((p) => (
-                  <option key={p.label} value={`${p.min}-${p.max}`}>{p.label}</option>
-                ))}
-              </select>
+                placeholder="Mức giá"
+                variant="filter"
+                className="min-w-[120px] !text-xs h-9"
+              />
 
               {/* Diện tích */}
-              <select
-                value={`${areaMin}-${areaMax}`}
-                onChange={(e) => {
-                  const val = e.target.value;
+              <SearchableSelect
+                options={AREA_PRESETS.map(a => ({ value: a.min === "" && a.max === "" ? "" : `${a.min}-${a.max}`, label: a.label }))}
+                value={areaMin === "" && areaMax === "" ? "" : `${areaMin}-${areaMax}`}
+                onChange={(val) => {
                   const p = new URLSearchParams(searchParams.toString());
-                  if (val === "-") { p.delete("areaMin"); p.delete("areaMax"); }
+                  if (val === "") { p.delete("areaMin"); p.delete("areaMax"); }
                   else { const [min, max] = val.split("-"); if (min) p.set("areaMin", min); else p.delete("areaMin"); if (max) p.set("areaMax", max); else p.delete("areaMax"); }
                   router.push(`/tim-kiem?${p.toString()}`);
                 }}
-                className="filter-select !py-1.5 !px-3 !text-xs h-9 min-w-[120px] rounded-full bg-[var(--card)] text-[var(--foreground)] dark:bg-[var(--card)] dark:text-[var(--foreground)]"
-              >
-                <option value="-">Diện tích</option>
-                {AREA_PRESETS.filter(p => p.label !== "Tất cả").map((a) => (
-                  <option key={a.label} value={`${a.min}-${a.max}`}>{a.label}</option>
-                ))}
-              </select>
+                placeholder="Diện tích"
+                variant="filter"
+                className="min-w-[120px] !text-xs h-9"
+              />
             </div>
 
             {/* Bộ lọc thêm Toggle */}
@@ -478,7 +473,7 @@ function SearchContent() {
 
         {/* ── Active filter chips ── */}
         {activeChips.length > 0 && (
-          <div className="px-4 pb-3 md:px-6">
+          <div className="layout-container px-4 pb-3 md:px-10">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-medium text-[var(--muted-foreground)] mr-1">Đang lọc:</span>
               {activeChips.map((chip) => (

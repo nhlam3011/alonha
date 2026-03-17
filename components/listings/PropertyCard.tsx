@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { CompareButton } from "@/components/listings/CompareButton";
 
@@ -29,6 +31,8 @@ type ViewMode = "grid" | "list";
 type Props = {
   listing: ListingCardData;
   viewMode?: ViewMode;
+  onHover?: (listingId: string) => void;
+  onHoverEnd?: () => void;
 };
 
 const placeholderImage = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80";
@@ -93,7 +97,7 @@ export function PropertyCardSkeleton({ viewMode = "grid" }: { viewMode?: ViewMod
   );
 }
 
-export function PropertyCard({ listing, viewMode = "grid" }: Props) {
+export function PropertyCard({ listing, viewMode = "grid", onHover, onHoverEnd }: Props) {
   const href = `/bat-dong-san/${listing.slug}`;
   const img = listing.imageUrl || placeholderImage;
 
@@ -105,7 +109,11 @@ export function PropertyCard({ listing, viewMode = "grid" }: Props) {
 
   if (viewMode === "list") {
     return (
-      <article className="group flex w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm transition-all duration-300 hover:border-[var(--primary)]/50 hover:shadow-lg hover:-translate-y-0.5">
+      <article
+        className="group flex w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm transition-all duration-300 hover:border-[var(--primary)]/50 hover:shadow-lg hover:-translate-y-0.5"
+        onMouseEnter={() => onHover?.(listing.id)}
+        onMouseLeave={() => onHoverEnd?.()}
+      >
         <Link
           href={href}
           className="relative shrink-0 overflow-hidden bg-[var(--muted)] aspect-square w-28 sm:w-[132px]"
@@ -183,7 +191,11 @@ export function PropertyCard({ listing, viewMode = "grid" }: Props) {
   }
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-1 hover:border-[var(--primary)]/30">
+    <article
+      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-1 hover:border-[var(--primary)]/30"
+      onMouseEnter={() => onHover?.(listing.id)}
+      onMouseLeave={() => onHoverEnd?.()}
+    >
       {/* Image Container */}
       <Link href={href} className="relative aspect-[4/3] shrink-0 overflow-hidden bg-[var(--muted)]">
         <img

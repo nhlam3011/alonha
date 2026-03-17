@@ -17,6 +17,7 @@ export default async function ProjectsPage(props: {
   const cookieStore = await cookies();
   const viewMode = (cookieStore.get("project_viewMode")?.value as "grid" | "list") || "grid";
 
+  const keyword = typeof params.keyword === "string" ? params.keyword.trim() : "";
   const provinceId = typeof params.provinceId === "string" ? params.provinceId : "";
   const status = typeof params.status === "string" ? params.status : "";
   const sort = typeof params.sort === "string" ? params.sort : "newest";
@@ -46,6 +47,31 @@ export default async function ProjectsPage(props: {
 
   // Build where clause
   const andConditions: Prisma.ProjectWhereInput[] = [];
+
+  // Keyword search
+  if (keyword) {
+    const keywordParts = keyword.split(/\s+/).filter(Boolean);
+    const orConditions: Prisma.ProjectWhereInput[] = [
+      { name: { contains: keyword, mode: "insensitive" } },
+      { description: { contains: keyword, mode: "insensitive" } },
+      { address: { contains: keyword, mode: "insensitive" } },
+      { developer: { contains: keyword, mode: "insensitive" } },
+    ];
+    if (keywordParts.length > 1) {
+      orConditions.push({
+        AND: keywordParts.map((p) => ({ name: { contains: p, mode: "insensitive" as const } })),
+      });
+      orConditions.push({
+        AND: keywordParts.map((p) => ({
+          OR: [
+            { name: { contains: p, mode: "insensitive" as const } },
+            { description: { contains: p, mode: "insensitive" as const } },
+          ],
+        })),
+      });
+    }
+    andConditions.push({ OR: orConditions });
+  }
 
   // Mặc định chỉ lấy các dự án đang active (theo api cũ)
   if (status === "dang-ban") andConditions.push({ isActive: true });

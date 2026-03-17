@@ -115,16 +115,39 @@ export async function GET(req: Request) {
 
       if (keywordHasDiacritics) {
         // Keyword có dấu: tìm trực tiếp trong title, description, address, provinceName, wardName
-        andConditions.push({
-          OR: [
-            { title: { contains: effectiveKeyword, mode: "insensitive" } },
-            { description: { contains: effectiveKeyword, mode: "insensitive" } },
-            { address: { contains: effectiveKeyword, mode: "insensitive" } },
-            { provinceName: { contains: effectiveKeyword, mode: "insensitive" } },
-            { wardName: { contains: effectiveKeyword, mode: "insensitive" } },
-            { slug: { contains: effectiveKeyword, mode: "insensitive" } },
-          ],
-        });
+        const orConditions: Prisma.ListingWhereInput[] = [
+          { title: { contains: effectiveKeyword, mode: "insensitive" } },
+          { description: { contains: effectiveKeyword, mode: "insensitive" } },
+          { address: { contains: effectiveKeyword, mode: "insensitive" } },
+          { provinceName: { contains: effectiveKeyword, mode: "insensitive" } },
+          { wardName: { contains: effectiveKeyword, mode: "insensitive" } },
+          { slug: { contains: effectiveKeyword, mode: "insensitive" } },
+        ];
+
+        const keywordParts = effectiveKeyword.split(/\\s+/).filter(Boolean);
+        if (keywordParts.length > 1) {
+          orConditions.push({
+            AND: keywordParts.map((part) => ({
+              title: { contains: part, mode: "insensitive" as const },
+            })),
+          });
+          orConditions.push({
+            AND: keywordParts.map((part) => ({
+              description: { contains: part, mode: "insensitive" as const },
+            })),
+          });
+          orConditions.push({
+            AND: keywordParts.map((part) => ({
+              OR: [
+                { title: { contains: part, mode: "insensitive" as const } },
+                { description: { contains: part, mode: "insensitive" as const } },
+                { address: { contains: part, mode: "insensitive" as const } },
+              ],
+            })),
+          });
+        }
+
+        andConditions.push({ OR: orConditions });
       } else {
         // Keyword không dấu (VD: "ha noi", "ho chi minh", "da nang")
         // 1. Phát hiện tên tỉnh/thành trong keyword

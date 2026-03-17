@@ -23,9 +23,6 @@ const RSS_SOURCES = [
     },
 ];
 
-// Auto-crawl interval in minutes (4 hours)
-const AUTO_CRAWL_INTERVAL_MINUTES = 240;
-
 type RSSItem = {
     title: string;
     link: string;
@@ -114,13 +111,10 @@ function extractImages(itemContent: string, description?: string): { mainImage: 
 // Validate image URL
 function isValidImageUrl(url: string): boolean {
     if (!url) return false;
-    // Must be http or https
     if (!url.startsWith("http://") && !url.startsWith("https://")) return false;
-    // Must have image extension or be from known image CDN
     const validExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif"];
     const hasExtension = validExtensions.some(ext => url.toLowerCase().includes(ext));
     const isFromCDN = url.includes("Unsplash") || url.includes("cloudfront") || url.includes("akamai") || url.includes("imgproxy");
-    // Filter out placeholder/spacer images
     const isNotPlaceholder = !url.includes("spacer") && !url.includes("blank") && !url.includes("1x1");
     return (hasExtension || isFromCDN) && isNotPlaceholder;
 }
@@ -128,51 +122,28 @@ function isValidImageUrl(url: string): boolean {
 // Parse RSS XML to extract items
 function parseRSS(xml: string, source: typeof RSS_SOURCES[0]): RSSItem[] {
     const items: RSSItem[] = [];
-
-    // Simple regex-based parsing (works for most RSS feeds)
     const itemRegex = /<item>([\s\S]*?)<\/item>/gi;
     let match;
 
     while ((match = itemRegex.exec(xml)) !== null) {
         const itemContent = match[1];
 
-        // Extract title
-        let title = "";
-        const titleCdataMatch = /<title>\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*<\/title>/i.exec(itemContent);
-        if (titleCdataMatch) {
-            title = titleCdataMatch[1].trim();
-        } else {
-            const titleNormalMatch = /<title>([\s\S]*?)<\/title>/i.exec(itemContent);
-            if (titleNormalMatch) title = titleNormalMatch[1].trim();
-        }
+        const titleMatch = /<title><!\[CDATA\[(.*?)\]\]><\/title>|<title>(.*?)<\/title>/i.exec(itemContent);
+        const title = titleMatch ? (titleMatch[1] || titleMatch[2] || "").trim() : "";
 
-        // Extract link
-        let link = "";
-        const linkMatch = /<link>([\s\S]*?)<\/link>/i.exec(itemContent);
-        if (linkMatch) link = linkMatch[1].trim();
+        const linkMatch = /<link>(.*?)<\/link>/i.exec(itemContent);
+        const link = linkMatch ? linkMatch[1].trim() : "";
 
-        // Extract description
-        let description = "";
-        const descCdataMatch = /<description>\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*<\/description>/i.exec(itemContent);
-        if (descCdataMatch) {
-            description = descCdataMatch[1].trim();
-        } else {
-            const descNormalMatch = /<description>([\s\S]*?)<\/description>/i.exec(itemContent);
-            if (descNormalMatch) description = descNormalMatch[1].trim();
-        }
-
-        // Remove HTML tags from description
+        const descMatch = /<description><!\[CDATA\[(.*?)\]\]><\/description>|<description>(.*?)<\/description>/i.exec(itemContent);
+        let description = descMatch ? (descMatch[1] || descMatch[2] || "").trim() : "";
         description = description.replace(/<[^>]*>/g, "").trim();
 
-        // Extract images using enhanced method
-        const { mainImage, allImages } = extractImages(itemContent, description);
+        const { mainImage, allImages } = extractImages(itemContent, descMatch?.[1]);
 
-        // Extract pubDate
-        const pubDateMatch = /<pubDate>([\s\S]*?)<\/pubDate>/i.exec(itemContent);
+        const pubDateMatch = /<pubDate>(.*?)<\/pubDate>/i.exec(itemContent);
         const pubDate = pubDateMatch ? pubDateMatch[1].trim() : "";
 
-        // Extract guid or generate one from link
-        const guidMatch = /<guid[^>]*>([\s\S]*?)<\/guid>/i.exec(itemContent);
+        const guidMatch = /<guid[^>]*>(.*?)<\/guid>/i.exec(itemContent);
         const originalId = guidMatch ? guidMatch[1].trim() : link;
 
         if (title && link) {
@@ -205,36 +176,22 @@ function generateSlug(title: string): string {
         .substring(0, 100);
 }
 
-// Get default images
-function getDefaultImage(index: number): string {
-    const images = [
-        "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80",
-        "https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=800&q=80",
-        "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80",
-        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80",
-        "https://images.unsplash.com/photo-1587293852726-70cdb56c2866?w=800&q=80",
-    ];
-    return images[index % images.length];
-}
-
 // Category labels
 function getCategoryLabel(category: string): string {
     const labels: Record<string, string> = {
         "thi-truong": "Thị trường",
-        "doanh-nghiep": "Doanh nghiệp",
-        "du-an": "Dự án",
-        "tai-chinh": "Tài chính",
-        "ha-tang": "Hạ tầng",
         "chinh-sach": "Chính sách",
         "cam-nang": "Cẩm nang",
+        "du-an": "Dự án",
         "phong-thuy": "Phong thủy",
     };
     return labels[category] || "Tin tức";
 }
 
-// Crawl and save news to database
-async function crawlAndSaveNews(): Promise<number> {
-    let savedCount = 0;
+// Main crawl function
+async function crawlAndSaveNews(): Promise<{ newArticles: number; updatedArticles: number }> {
+    let newCount = 0;
+    let updateCount = 0;
 
     for (const rssSource of RSS_SOURCES) {
         try {
@@ -256,7 +213,6 @@ async function crawlAndSaveNews(): Promise<number> {
 
             for (const item of items) {
                 try {
-                    // Check if article already exists
                     const existing = await prisma.news.findFirst({
                         where: {
                             OR: [
@@ -267,7 +223,6 @@ async function crawlAndSaveNews(): Promise<number> {
                     });
 
                     if (existing) {
-                        // Update existing article if needed
                         await prisma.news.update({
                             where: { id: existing.id },
                             data: {
@@ -275,12 +230,12 @@ async function crawlAndSaveNews(): Promise<number> {
                                 excerpt: item.description,
                                 imageUrl: item.imageUrl || existing.imageUrl,
                                 imageUrls: item.allImages?.length ? item.allImages : existing.imageUrls,
-                                views: existing.views + Math.floor(Math.random() * 10), // Increment views slightly
+                                views: existing.views + Math.floor(Math.random() * 5),
                                 updatedAt: new Date(),
                             },
                         });
+                        updateCount++;
                     } else {
-                        // Create new article
                         await prisma.news.create({
                             data: {
                                 sourceId: item.sourceId,
@@ -299,7 +254,7 @@ async function crawlAndSaveNews(): Promise<number> {
                                 isActive: true,
                             },
                         });
-                        savedCount++;
+                        newCount++;
                     }
                 } catch (error) {
                     console.error(`Error saving article:`, error);
@@ -310,124 +265,61 @@ async function crawlAndSaveNews(): Promise<number> {
         }
     }
 
-    return savedCount;
+    return { newArticles: newCount, updatedArticles: updateCount };
 }
 
-// GET endpoint - Fetch news from database
+// Cron job endpoint - can be called by Vercel Cron or external scheduler
 export async function GET(request: NextRequest) {
-    const searchParams = request.nextUrl.searchParams;
-    const category = searchParams.get("category") || "";
-    const source = searchParams.get("source") || "";
-    const limit = parseInt(searchParams.get("limit") || "20");
-    const page = parseInt(searchParams.get("page") || "1");
-    const forceCrawl = searchParams.get("forceCrawl") === "true";
+    // Verify cron secret to prevent unauthorized access
+    const authHeader = request.headers.get("authorization");
+    const cronSecret = process.env.CRON_SECRET;
 
-    try {
-        // Build where clause
-        const where: any = { isActive: true };
-
-        if (category) {
-            where.category = category;
-        }
-
-        if (source) {
-            where.sourceId = source;
-        }
-
-        // Get total count
-        const total = await prisma.news.count({ where });
-
-        // Calculate pagination
-        const totalPages = Math.ceil(total / limit);
-        const skip = (page - 1) * limit;
-
-        // Fetch from database
-        let news = await prisma.news.findMany({
-            where,
-            orderBy: { publishedAt: "desc" },
-            skip,
-            take: limit,
-        });
-
-        // Check if we need to auto-crawl (data is older than 30 minutes)
-        const lastNews = await prisma.news.findFirst({
-            orderBy: { crawledAt: "desc" },
-        });
-
-        const shouldAutoCrawl = !lastNews ||
-            (Date.now() - new Date(lastNews.crawledAt).getTime()) > (AUTO_CRAWL_INTERVAL_MINUTES * 60 * 1000);
-
-        // If no news in DB or force crawl requested or auto-crawl needed, crawl and try again
-        if (news.length === 0 || forceCrawl || shouldAutoCrawl) {
-            await crawlAndSaveNews();
-
-            // Refetch after crawling
-            news = await prisma.news.findMany({
-                where,
-                orderBy: { publishedAt: "desc" },
-                skip,
-                take: limit,
-            });
-        }
-
-        // Transform for response
-        const transformedItems = news.map((item, index) => ({
-            id: item.id,
-            slug: item.slug,
-            title: item.title,
-            excerpt: item.excerpt,
-            category: item.category,
-            categoryLabel: item.categoryLabel,
-            imageUrl: item.imageUrl || getDefaultImage(index),
-            author: item.author || item.sourceName,
-            publishedAt: item.publishedAt?.toISOString() || item.crawledAt.toISOString(),
-            readTime: Math.max(2, Math.ceil((item.excerpt?.length || 200) / 500)),
-            views: item.views,
-            sourceUrl: item.sourceUrl,
-            source: item.sourceName,
-            sourceId: item.sourceId,
-            allImages: item.imageUrls,
-        }));
-
-        return NextResponse.json({
-            data: transformedItems,
-            total: await prisma.news.count({ where }),
-            page,
-            totalPages,
-            sources: RSS_SOURCES.map((s) => ({ id: s.id, name: s.name })),
-        });
-    } catch (error) {
-        console.error("Error fetching news:", error);
-        const errorMessage = error instanceof Error ? error.message : String(error);
+    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
         return NextResponse.json(
-            { error: "Failed to fetch news", details: errorMessage },
-            { status: 500 }
+            { error: "Unauthorized" },
+            { status: 401 }
         );
     }
-}
 
-// POST endpoint - Trigger manual crawl
-export async function POST(request: NextRequest) {
     try {
-        const body = await request.json();
-        const action = body.action;
+        console.log("Starting news crawl...");
+        const startTime = Date.now();
 
-        if (action === "crawl") {
-            const savedCount = await crawlAndSaveNews();
-            return NextResponse.json({
-                success: true,
-                message: `Crawled and saved ${savedCount} new articles`,
-            });
+        const result = await crawlAndSaveNews();
+
+        const duration = Date.now() - startTime;
+
+        console.log(`News crawl completed in ${duration}ms. New: ${result.newArticles}, Updated: ${result.updatedArticles}`);
+
+        // Clean up old articles (older than 90 days, preserve featured and high-view articles)
+        const ninetyDaysAgo = new Date();
+        ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+        const deletedOld = await prisma.news.deleteMany({
+            where: {
+                crawledAt: { lt: ninetyDaysAgo },
+                isFeatured: false,
+                views: { lt: 500 }, // Preserve articles with 500+ views
+            },
+        });
+
+        if (deletedOld.count > 0) {
+            console.log(`Deleted ${deletedOld.count} old articles`);
         }
 
-        return NextResponse.json(
-            { error: "Invalid action" },
-            { status: 400 }
-        );
+        return NextResponse.json({
+            success: true,
+            message: "News crawl completed",
+            newArticles: result.newArticles,
+            updatedArticles: result.updatedArticles,
+            deletedOldArticles: deletedOld.count,
+            duration: `${duration}ms`,
+            timestamp: new Date().toISOString(),
+        });
     } catch (error) {
-        console.error("Error in news POST:", error);
+        console.error("Error in news cron:", error);
         return NextResponse.json(
-            { error: "Failed to process request" },
+            { error: "Failed to crawl news" },
             { status: 500 }
         );
     }

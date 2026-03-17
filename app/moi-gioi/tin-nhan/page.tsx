@@ -26,6 +26,7 @@ type SupportAdmin = {
 type ChatMessage = {
   id: string;
   content: string;
+  imageUrl?: string | null;
   createdAt: string;
   isMe: boolean;
 };
@@ -40,6 +41,7 @@ export default function TinNhanPage() {
   const [chatLoading, setChatLoading] = useState(true);
   const [chatSending, setChatSending] = useState(false);
   const [chatInput, setChatInput] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -56,12 +58,17 @@ export default function TinNhanPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const supportAdminRef = useRef<SupportAdmin | null>(null);
+  const conversationIdRef = useRef<string | null>(null);
+
+  // Fetch support admin + initial messages
   useEffect(() => {
     fetch("/api/chat/support-admin")
       .then((r) => r.json())
       .then((res) => {
         if (res?.data?.id) {
           setSupportAdmin(res.data);
+          supportAdminRef.current = res.data;
           return fetch(`/api/chat/messages?userId=${encodeURIComponent(res.data.id)}`);
         }
         return null;
@@ -69,8 +76,8 @@ export default function TinNhanPage() {
       .then((r) => (r ? r.json() : null))
       .then((data) => {
         if (!data) return;
+        if (data.conversationId) conversationIdRef.current = data.conversationId;
         if (Array.isArray(data.data)) {
-          // Provide safe defaults for isMe if missing
           const safeMessages = data.data.map((m: any) => ({
             ...m,
             isMe: m.isMe ?? false
@@ -82,6 +89,32 @@ export default function TinNhanPage() {
       .finally(() => {
         setChatLoading(false);
       });
+  }, []);
+
+  // Polling mỗi 3s để nhận tin nhắn mới (realtime)
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const adminId = supportAdminRef.current?.id;
+      if (!adminId) return;
+      try {
+        const url = conversationIdRef.current
+          ? `/api/chat/messages?conversationId=${encodeURIComponent(conversationIdRef.current)}`
+          : `/api/chat/messages?userId=${encodeURIComponent(adminId)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.conversationId) conversationIdRef.current = data.conversationId;
+        if (Array.isArray(data.data)) {
+          setChatMessages((prev) => {
+            // Chỉ cập nhật nếu có tin mới
+            if (data.data.length !== prev.length || (data.data.length > 0 && data.data[data.data.length - 1].id !== prev[prev.length - 1]?.id)) {
+              return data.data.map((m: any) => ({ ...m, isMe: m.isMe ?? false }));
+            }
+            return prev;
+          });
+        }
+      } catch { }
+    }, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   // Auto scroll
@@ -111,11 +144,100 @@ export default function TinNhanPage() {
       if (!res.ok || !data.data) {
         throw new Error(data.error || "Không thể gửi tin nhắn.");
       }
-      // Replace optimistic message with real one if needed, or just let it be
+      // Lưu conversationId cho polling
+      if (data.conversationId) conversationIdRef.current = data.conversationId;
     } catch {
       // Rollback in real app
     } finally {
       setChatSending(false);
+    }
+  }
+
+  // Upload hình ảnh
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !supportAdmin) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Vui lòng chọn file hình ảnh');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Hình ảnh không được vượt quá 5MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      // Upload ảnh lên server
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const uploadRes = await fetch('/api/uploads', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error('Không thể tải ảnh lên');
+      }
+
+      const uploadData = await uploadRes.json();
+      const imageUrl = uploadData.url || uploadData.data?.url;
+
+      if (!imageUrl) {
+        throw new Error('Không lấy được URL ảnh');
+      }
+
+      // Gửi tin nhắn với hình ảnh
+      const tempId = Date.now().toString();
+      const newMsg: ChatMessage = { id: tempId, content: '', imageUrl, createdAt: new Date().toISOString(), isMe: true };
+      setChatMessages(prev => [...prev, newMsg]);
+
+      const res = await fetch("/api/chat/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: supportAdmin.id, content: '', imageUrl }),
+      });
+      const data = (await res.json().catch(() => ({})));
+      if (!res.ok || !data.data) {
+        throw new Error(data.error || "Không thể gửi tin nhắn.");
+      }
+      if (data.conversationId) conversationIdRef.current = data.conversationId;
+    } catch (err: any) {
+      alert(err.message || 'Lỗi khi gửi ảnh');
+    } finally {
+      setUploadingImage(false);
+      e.target.value = '';
+    }
+  }
+
+  // Xóa lịch sử trò chuyện
+  async function handleClearHistory() {
+    if (!conversationIdRef.current) {
+      alert('Chưa có cuộc trò chuyện nào');
+      return;
+    }
+
+    if (!confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện không?')) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/chat/messages?conversationId=${conversationIdRef.current}&clearAll=true`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Không thể xóa lịch sử');
+      }
+
+      setChatMessages([]);
+      alert('Đã xóa lịch sử trò chuyện');
+    } catch (err: any) {
+      alert(err.message || 'Lỗi khi xóa lịch sử');
     }
   }
 
@@ -233,6 +355,15 @@ export default function TinNhanPage() {
                 </div>
               </div>
             </div>
+            {chatMessages.length > 0 && (
+              <button
+                onClick={handleClearHistory}
+                className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors"
+                title="Xóa lịch sử trò chuyện"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              </button>
+            )}
           </div>
 
           {/* Messages Area */}
@@ -251,12 +382,24 @@ export default function TinNhanPage() {
               </div>
             ) : (
               chatMessages.map((m) => (
-                <div key={m.id} className={`flex ${m.isMe ? "justify-end" : "justify-start"} animate-in slide-in-from-bottom-2 duration-300`}>
+                <div key={m.id} className={`flex ${m.isMe ? "justify-end" : "justify-start"} animate-in slide-in-from-bottom-2 duration-300 group`}>
                   <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${m.isMe
                     ? "bg-[var(--primary)] text-white rounded-br-none"
                     : "bg-white dark:bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] rounded-bl-none"
                     }`}>
-                    <p className="leading-relaxed whitespace-pre-wrap break-words">{m.content}</p>
+                    {/* Hiển thị hình ảnh nếu có */}
+                    {m.imageUrl && (
+                      <div className="mb-2">
+                        <img
+                          src={m.imageUrl}
+                          alt="Hình ảnh"
+                          className="max-w-full rounded-lg max-h-60 object-cover cursor-pointer"
+                          onClick={() => m.imageUrl && window.open(m.imageUrl, '_blank')}
+                        />
+                      </div>
+                    )}
+                    {/* Hiển thị nội dung text */}
+                    {m.content && <p className="leading-relaxed whitespace-pre-wrap break-words">{m.content}</p>}
                     <p className={`mt-1 text-[10px] text-right ${m.isMe ? "text-blue-100" : "text-[var(--muted-foreground)]"}`}>
                       {new Date(m.createdAt).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' })}
                     </p>
@@ -273,6 +416,21 @@ export default function TinNhanPage() {
               onSubmit={(e) => { e.preventDefault(); sendChatMessage(); }}
               className="relative flex items-end gap-2"
             >
+              {/* Nút gửi hình ảnh */}
+              <label className="p-3 rounded-2xl hover:bg-[var(--muted)] cursor-pointer transition-colors text-[var(--muted-foreground)] hover:text-[var(--primary)]">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploadingImage || !supportAdmin}
+                  className="hidden"
+                />
+                {uploadingImage ? (
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />
+                ) : (
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                )}
+              </label>
               <input
                 type="text"
                 value={chatInput}

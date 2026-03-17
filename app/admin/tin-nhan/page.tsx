@@ -16,6 +16,7 @@ type AgentItem = {
 type ChatMessage = {
     id: string;
     content: string;
+    imageUrl?: string | null;
     createdAt: string;
     isMe: boolean;
 };
@@ -42,6 +43,7 @@ export default function AdminTinNhanPage() {
     const [chatLoading, setChatLoading] = useState(false);
     const [chatSending, setChatSending] = useState(false);
     const [chatInput, setChatInput] = useState("");
+    const [uploadingImage, setUploadingImage] = useState(false);
     const chatEndRef = useRef<HTMLDivElement>(null);
 
     // Fetch agents
@@ -69,10 +71,13 @@ export default function AdminTinNhanPage() {
             .catch(() => { });
     }, []);
 
+    const conversationIdRef = useRef<string | null>(null);
+
     // Fetch messages when agent is selected
     useEffect(() => {
         if (!selectedAgentId) {
             setChatMessages([]);
+            conversationIdRef.current = null;
             return;
         }
 
@@ -83,14 +88,38 @@ export default function AdminTinNhanPage() {
                 if (Array.isArray(res.data)) {
                     setChatMessages(res.data);
                 }
+                if (res.conversationId) conversationIdRef.current = res.conversationId;
                 setChatLoading(false);
 
-                // Scroll to bottom
                 setTimeout(() => {
                     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
                 }, 100);
             })
             .catch(() => setChatLoading(false));
+    }, [selectedAgentId]);
+
+    // Polling mỗi 3s để nhận tin nhắn mới (realtime)
+    useEffect(() => {
+        if (!selectedAgentId) return;
+        const interval = setInterval(async () => {
+            try {
+                const url = conversationIdRef.current
+                    ? `/api/chat/messages?conversationId=${encodeURIComponent(conversationIdRef.current)}`
+                    : `/api/chat/messages?userId=${encodeURIComponent(selectedAgentId)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.conversationId) conversationIdRef.current = data.conversationId;
+                if (Array.isArray(data.data)) {
+                    setChatMessages((prev) => {
+                        if (data.data.length !== prev.length || (data.data.length > 0 && data.data[data.data.length - 1].id !== prev[prev.length - 1]?.id)) {
+                            return data.data.map((m: any) => ({ ...m, isMe: m.isMe ?? false }));
+                        }
+                        return prev;
+                    });
+                }
+            } catch { }
+        }, 3000);
+        return () => clearInterval(interval);
     }, [selectedAgentId]);
 
     const handleSendMessage = async () => {
@@ -112,6 +141,7 @@ export default function AdminTinNhanPage() {
                 if (data.data) {
                     setChatMessages((prev) => [...prev, data.data]);
                     setChatInput("");
+                    if (data.conversationId) conversationIdRef.current = data.conversationId;
                     setTimeout(() => {
                         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
                     }, 100);
@@ -121,6 +151,95 @@ export default function AdminTinNhanPage() {
             console.error("Send message failed", e);
         } finally {
             setChatSending(false);
+        }
+    };
+
+    // Upload hình ảnh
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !selectedAgentId) return;
+
+        if (!file.type.startsWith('image/')) {
+            alert('Vui lòng chọn file hình ảnh');
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Hình ảnh không được vượt quá 5MB');
+            return;
+        }
+
+        setUploadingImage(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const uploadRes = await fetch('/api/uploads', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!uploadRes.ok) {
+                throw new Error('Không thể tải ảnh lên');
+            }
+
+            const uploadData = await uploadRes.json();
+            const imageUrl = uploadData.url || uploadData.data?.url;
+
+            if (!imageUrl) {
+                throw new Error('Không lấy được URL ảnh');
+            }
+
+            const tempId = Date.now().toString();
+            const newMsg: ChatMessage = { id: tempId, content: '', imageUrl, createdAt: new Date().toISOString(), isMe: true };
+            setChatMessages(prev => [...prev, newMsg]);
+
+            const res = await fetch("/api/chat/messages", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId: selectedAgentId, content: '', imageUrl }),
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.conversationId) conversationIdRef.current = data.conversationId;
+                setTimeout(() => {
+                    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+                }, 100);
+            }
+        } catch (err: any) {
+            alert(err.message || 'Lỗi khi gửi ảnh');
+        } finally {
+            setUploadingImage(false);
+            e.target.value = '';
+        }
+    };
+
+    // Xóa lịch sử trò chuyện
+    const handleClearHistory = async () => {
+        if (!conversationIdRef.current) {
+            alert('Chưa có cuộc trò chuyện nào');
+            return;
+        }
+
+        if (!confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện không?')) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/chat/messages?conversationId=${conversationIdRef.current}&clearAll=true`, {
+                method: 'DELETE',
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || 'Không thể xóa lịch sử');
+            }
+
+            setChatMessages([]);
+            alert('Đã xóa lịch sử trò chuyện');
+        } catch (err: any) {
+            alert(err.message || 'Lỗi khi xóa lịch sử');
         }
     };
 
@@ -158,7 +277,7 @@ export default function AdminTinNhanPage() {
     };
 
     return (
-        <div className="h-[calc(100vh-64px)] flex bg-[var(--background)]">
+        <div className="flex bg-[var(--background)] h-[calc(100vh-120px)] overflow-hidden rounded-2xl border border-[var(--border)]">
             {/* Sidebar - Agent List */}
             <div className="w-80 border-r border-[var(--border)] flex flex-col">
                 <div className="p-4 border-b border-[var(--border)]">
@@ -238,6 +357,15 @@ export default function AdminTinNhanPage() {
                                     </>
                                 ) : null;
                             })()}
+                            {chatMessages.length > 0 && (
+                                <button
+                                    onClick={handleClearHistory}
+                                    className="ml-auto p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors"
+                                    title="Xóa lịch sử trò chuyện"
+                                >
+                                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                </button>
+                            )}
                         </div>
 
                         {/* Messages */}
@@ -254,11 +382,23 @@ export default function AdminTinNhanPage() {
                                     >
                                         <div
                                             className={`max-w-[70%] px-4 py-2 rounded-2xl ${msg.isMe
-                                                    ? "bg-[var(--primary)] text-white"
-                                                    : "bg-[var(--muted)] text-[var(--foreground)]"
+                                                ? "bg-[var(--primary)] text-white"
+                                                : "bg-[var(--muted)] text-[var(--foreground)]"
                                                 }`}
                                         >
-                                            <p>{msg.content}</p>
+                                            {/* Hiển thị hình ảnh nếu có */}
+                                            {msg.imageUrl && (
+                                                <div className="mb-2">
+                                                    <img
+                                                        src={msg.imageUrl}
+                                                        alt="Hình ảnh"
+                                                        className="max-w-full rounded-lg max-h-60 object-cover cursor-pointer"
+                                                        onClick={() => msg.imageUrl ? window.open(msg.imageUrl, '_blank') : undefined}
+                                                    />
+                                                </div>
+                                            )}
+                                            {/* Hiển thị nội dung text */}
+                                            {msg.content && <p>{msg.content}</p>}
                                             <p className={`text-xs mt-1 ${msg.isMe ? "text-white/70" : "text-[var(--muted-foreground)]"}`}>
                                                 {formatTime(msg.createdAt)}
                                             </p>
@@ -271,7 +411,22 @@ export default function AdminTinNhanPage() {
 
                         {/* Input */}
                         <div className="p-4 border-t border-[var(--border)]">
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 items-center">
+                                {/* Nút gửi hình ảnh */}
+                                <label className="p-3 rounded-xl hover:bg-[var(--muted)] cursor-pointer transition-colors text-[var(--muted-foreground)] hover:text-[var(--primary)]">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                        disabled={uploadingImage || !selectedAgentId}
+                                        className="hidden"
+                                    />
+                                    {uploadingImage ? (
+                                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />
+                                    ) : (
+                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                    )}
+                                </label>
                                 <input
                                     type="text"
                                     value={chatInput}

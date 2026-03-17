@@ -83,11 +83,11 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                     <div>
                         <h1 className="text-3xl font-bold text-[var(--foreground)]">{project.name}</h1>
                         {project.address && (
-                            <p className="text-[var(--muted-foreground)] mt-2 flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <p className="text-[var(--muted-foreground)] mt-2 flex items-start gap-2">
+                                <svg className="shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
                                 </svg>
-                                {project.address}
+                                <span>{project.address}</span>
                             </p>
                         )}
                     </div>
@@ -167,8 +167,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                         <ul className="space-y-4">
                             {project.developer && (
                                 <li className="flex items-start gap-3">
-                                    <div className="p-2 rounded-lg bg-[var(--primary-light)]">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <div className="p-2 rounded-lg bg-[var(--primary-light)] shrink-0">
+                                        <svg className="w-[18px] h-[18px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                             <path d="M3 21h18" />
                                             <path d="M5 21V7l8-4 8 4v14" />
                                             <path d="M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4" />
@@ -182,8 +182,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                             )}
                             {project.totalArea && (
                                 <li className="flex items-start gap-3">
-                                    <div className="p-2 rounded-lg bg-[var(--primary-light)]">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <div className="p-2 rounded-lg bg-[var(--primary-light)] shrink-0">
+                                        <svg className="w-[18px] h-[18px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                             <rect width="18" height="18" x="3" y="3" rx="2" />
                                             <path d="M3 9h18" />
                                             <path d="M9 21V9" />
@@ -196,8 +196,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                                 </li>
                             )}
                             <li className="flex items-start gap-3">
-                                <div className="p-2 rounded-lg bg-[var(--primary-light)]">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <div className="p-2 rounded-lg bg-[var(--primary-light)] shrink-0">
+                                    <svg className="w-[18px] h-[18px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                                     </svg>
                                 </div>

@@ -24,10 +24,10 @@ export async function GET(req: Request) {
 
   let conversation = null as
     | {
-        id: string;
-        user1Id: string;
-        user2Id: string;
-      }
+      id: string;
+      user1Id: string;
+      user2Id: string;
+    }
     | null;
 
   if (conversationId) {
@@ -61,6 +61,7 @@ export async function GET(req: Request) {
       id: true,
       senderId: true,
       content: true,
+      imageUrl: true,
       createdAt: true,
     },
   });
@@ -68,6 +69,7 @@ export async function GET(req: Request) {
   const data = messages.map((m) => ({
     id: m.id,
     content: m.content,
+    imageUrl: m.imageUrl,
     createdAt: m.createdAt.toISOString(),
     isMe: m.senderId === currentUserId,
   }));
@@ -78,7 +80,7 @@ export async function GET(req: Request) {
   });
 }
 
-// Gửi một tin nhắn giữa hai người dùng
+// Gửi một tin nhắn giữa hai người dùng (text hoặc image)
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -89,16 +91,19 @@ export async function POST(req: Request) {
     userId?: string;
     conversationId?: string;
     content?: string;
+    imageUrl?: string;
   };
 
   const currentUserId = session.user.id;
   const otherUserId = body.userId?.trim() || null;
   const conversationId = body.conversationId?.trim() || null;
   const content = (body.content ?? "").toString().trim();
+  const imageUrl = body.imageUrl?.trim() || null;
 
-  if (!content) {
+  // Phải có nội dung text hoặc hình ảnh
+  if (!content && !imageUrl) {
     return NextResponse.json(
-      { error: "Nội dung tin nhắn không được để trống." },
+      { error: "Nội dung tin nhắn hoặc hình ảnh không được để trống." },
       { status: 400 },
     );
   }
@@ -112,10 +117,10 @@ export async function POST(req: Request) {
 
   let conversation = null as
     | {
-        id: string;
-        user1Id: string;
-        user2Id: string;
-      }
+      id: string;
+      user1Id: string;
+      user2Id: string;
+    }
     | null;
 
   if (conversationId) {
@@ -167,12 +172,14 @@ export async function POST(req: Request) {
     data: {
       conversationId: conversation.id,
       senderId: currentUserId,
-      content: content.slice(0, 2000),
+      content: content ? content.slice(0, 2000) : "",
+      imageUrl: imageUrl,
     },
     select: {
       id: true,
       senderId: true,
       content: true,
+      imageUrl: true,
       createdAt: true,
     },
   });
@@ -186,10 +193,79 @@ export async function POST(req: Request) {
     data: {
       id: message.id,
       content: message.content,
+      imageUrl: message.imageUrl,
       createdAt: message.createdAt.toISOString(),
       isMe: true,
     },
     conversationId: conversation.id,
   });
+}
+
+// Xóa tin nhắn hoặc xóa toàn bộ lịch sử trò chuyện
+export async function DELETE(req: Request) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const messageId = searchParams.get("messageId")?.trim() || null;
+  const conversationId = searchParams.get("conversationId")?.trim() || null;
+  const clearAll = searchParams.get("clearAll") === "true";
+
+  const currentUserId = session.user.id;
+
+  // Xóa một tin nhắn cụ thể
+  if (messageId) {
+    const message = await prisma.chatMessage.findUnique({
+      where: { id: messageId },
+    });
+
+    if (!message) {
+      return NextResponse.json({ error: "Không tìm thấy tin nhắn." }, { status: 404 });
+    }
+
+    // Chỉ người gửi mới có thể xóa tin nhắn của mình
+    if (message.senderId !== currentUserId) {
+      return NextResponse.json({ error: "Bạn không thể xóa tin nhắn này." }, { status: 403 });
+    }
+
+    await prisma.chatMessage.delete({
+      where: { id: messageId },
+    });
+
+    return NextResponse.json({ message: "Đã xóa tin nhắn." });
+  }
+
+  // Xóa toàn bộ lịch sử trò chuyện
+  if (clearAll && conversationId) {
+    // Kiểm tra quyền: chỉ admin hoặc người trong cuộc hội thoại mới có thể xóa
+    const userRole = String((session.user as any).role || "USER");
+    const conversation = await prisma.conversation.findUnique({
+      where: { id: conversationId },
+    });
+
+    if (!conversation) {
+      return NextResponse.json({ error: "Không tìm thấy hội thoại." }, { status: 404 });
+    }
+
+    const isParticipant = conversation.user1Id === currentUserId || conversation.user2Id === currentUserId;
+
+    if (userRole !== "ADMIN" && !isParticipant) {
+      return NextResponse.json({ error: "Bạn không có quyền xóa cuộc trò chuyện này." }, { status: 403 });
+    }
+
+    // Xóa tất cả tin nhắn trong cuộc hội thoại
+    await prisma.chatMessage.deleteMany({
+      where: { conversationId },
+    });
+
+    return NextResponse.json({ message: "Đã xóa toàn bộ lịch sử trò chuyện." });
+  }
+
+  return NextResponse.json(
+    { error: "Thiếu thông số hợp lệ." },
+    { status: 400 },
+  );
 }
 

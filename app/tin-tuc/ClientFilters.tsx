@@ -6,10 +6,12 @@ import { useState } from "react";
 const NEWS_CATEGORIES = [
     { value: "", label: "Tất cả" },
     { value: "thi-truong", label: "Thị trường" },
+    { value: "doanh-nghiep", label: "Doanh nghiệp" },
+    { value: "du-an", label: "Dự án" },
+    { value: "tai-chinh", label: "Tài chính" },
+    { value: "ha-tang", label: "Hạ tầng" },
     { value: "chinh-sach", label: "Chính sách" },
     { value: "cam-nang", label: "Cẩm nang" },
-    { value: "du-an", label: "Dự án" },
-    { value: "phong-thuy", label: "Phong thủy" },
 ];
 
 const SORT_OPTIONS = [
@@ -66,8 +68,8 @@ export function NewsClientFilters({
                             key={cat.value}
                             onClick={() => updateFilters({ category: cat.value })}
                             className={`whitespace-nowrap rounded-full border px-4 py-1.5 text-xs font-medium transition-all ${selectedCategory === cat.value
-                                    ? "border-[var(--primary)] bg-[var(--primary)] text-white shadow-sm"
-                                    : "border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)] hover:border-[var(--primary)]/50 hover:text-[var(--foreground)]"
+                                ? "border-[var(--primary)] bg-[var(--primary)] text-white shadow-sm"
+                                : "border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)] hover:border-[var(--primary)]/50 hover:text-[var(--foreground)]"
                                 }`}
                         >
                             {cat.label}
@@ -163,8 +165,8 @@ export function NewsPagination({ total, currentPage, limit = 12 }: { total: numb
                             key={p}
                             onClick={() => handlePageChange(p)}
                             className={`inline-flex size-10 items-center justify-center rounded-full text-sm font-bold transition ${p === currentPage
-                                    ? "bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/30"
-                                    : "bg-[var(--card)] text-[var(--muted-foreground)] hover:bg-[var(--primary)]/10 hover:text-[var(--primary)]"
+                                ? "bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/30"
+                                : "bg-[var(--card)] text-[var(--muted-foreground)] hover:bg-[var(--primary)]/10 hover:text-[var(--primary)]"
                                 }`}
                         >
                             {p}

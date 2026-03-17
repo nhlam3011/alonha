@@ -24,6 +24,9 @@ const EyeIcon = (p: React.SVGProps<SVGSVGElement>) => (
 const EyeOffIcon = (p: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" /><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" /><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" /><line x1="2" x2="22" y1="2" y2="22" /></svg>
 );
+const AgentIcon = (p: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+);
 
 interface Profile {
     id: string;
@@ -36,7 +39,27 @@ interface Profile {
     createdAt: string;
 }
 
-type Tab = "profile" | "password";
+type Tab = "profile" | "password" | "agent";
+
+type AgentApp = {
+    id: string;
+    fullName: string;
+    phone: string;
+    email: string;
+    idCardNumber: string;
+    dateOfBirth: string | null;
+    address: string;
+    currentAddress: string | null;
+    education: string | null;
+    experience: string | null;
+    currentJob: string | null;
+    status: string;
+    adminNote: string | null;
+    interviewDate: string | null;
+    interviewLocation: string | null;
+    createdAt: string;
+    updatedAt: string;
+};
 
 export default function AccountSettingsPage() {
     const { data: session, status, update: updateSession } = useSession();
@@ -44,6 +67,8 @@ export default function AccountSettingsPage() {
 
     const [activeTab, setActiveTab] = useState<Tab>("profile");
     const [profile, setProfile] = useState<Profile | null>(null);
+    const [agentApp, setAgentApp] = useState<AgentApp | null>(null);
+    const [agentLoading, setAgentLoading] = useState(false);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -69,6 +94,28 @@ export default function AccountSettingsPage() {
         if (status === "unauthenticated") router.push("/dang-nhap?callbackUrl=/tai-khoan/cai-dat");
         if (status === "authenticated") fetchProfile();
     }, [status]);
+
+    useEffect(() => {
+        if (activeTab === "agent" && !agentApp) {
+            fetchAgentApp();
+        }
+    }, [activeTab]);
+
+    const fetchAgentApp = async () => {
+        setAgentLoading(true);
+        try {
+            const res = await fetch("/api/agent-application");
+            const data = await res.json();
+            if (Array.isArray(data.data) && data.data.length > 0) {
+                const active = data.data.find((a: any) => ["PENDING", "REVIEWING", "INTERVIEW", "APPROVED", "REJECTED"].includes(a.status));
+                if (active) setAgentApp(active);
+            }
+        } catch (e) {
+            console.error("Failed to fetch agent app:", e);
+        } finally {
+            setAgentLoading(false);
+        }
+    };
 
     const fetchProfile = async () => {
         setLoading(true);
@@ -234,6 +281,7 @@ export default function AccountSettingsPage() {
                         {([
                             { key: "profile", label: "Thông tin cá nhân", icon: <UserIcon /> },
                             { key: "password", label: "Đổi mật khẩu", icon: <LockIcon /> },
+                            { key: "agent", label: "Đăng ký môi giới", icon: <AgentIcon /> },
                         ] as { key: Tab; label: string; icon: React.ReactNode }[]).map((t) => (
                             <button
                                 key={t.key}
@@ -258,7 +306,7 @@ export default function AccountSettingsPage() {
                     )}
 
                     <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)]/50 backdrop-blur-md p-6 sm:p-8">
-                        {activeTab === "profile" ? (
+                        {activeTab === "profile" && (
                             <div className="space-y-5">
                                 <h2 className="text-lg font-bold text-[var(--foreground)] mb-6">Thông tin cá nhân</h2>
 
@@ -309,7 +357,9 @@ export default function AccountSettingsPage() {
                                     </button>
                                 </div>
                             </div>
-                        ) : (
+                        )}
+
+                        {activeTab === "password" && (
                             <div className="space-y-5">
                                 <h2 className="text-lg font-bold text-[var(--foreground)] mb-6">Đổi mật khẩu</h2>
 
@@ -394,6 +444,125 @@ export default function AccountSettingsPage() {
                                         {saving ? "Đang đổi..." : "Đổi mật khẩu"}
                                     </button>
                                 </div>
+                            </div>
+                        )}
+
+                        {activeTab === "agent" && (
+                            <div className="space-y-5">
+                                <h2 className="text-lg font-bold text-[var(--foreground)] mb-6 flex items-center gap-2">
+                                    <AgentIcon className="w-5 h-5 text-[var(--primary)]" />
+                                    Đăng ký Môi giới
+                                </h2>
+
+                                {agentLoading ? (
+                                    <div className="py-8 text-center">
+                                        <div className="w-8 h-8 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin mx-auto" />
+                                        <p className="mt-2 text-sm text-[var(--muted-foreground)]">Đang tải...</p>
+                                    </div>
+                                ) : agentApp ? (
+                                    <>
+                                        {/* Status badge */}
+                                        {(() => {
+                                            const statusMap: Record<string, { label: string; color: string; icon: string }> = {
+                                                PENDING: { label: "Đang chờ duyệt", color: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800", icon: "⏳" },
+                                                REVIEWING: { label: "Đang xem xét", color: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800", icon: "🔍" },
+                                                INTERVIEW: { label: "Hẹn phỏng vấn", color: "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-800", icon: "📅" },
+                                                APPROVED: { label: "Đã duyệt", color: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800", icon: "✅" },
+                                                REJECTED: { label: "Từ chối", color: "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800", icon: "❌" },
+                                            };
+                                            const s = statusMap[agentApp.status] || statusMap.PENDING;
+                                            return (
+                                                <div className={`p-4 rounded-xl border ${s.color} mb-4 flex items-center gap-3`}>
+                                                    <span className="text-2xl">{s.icon}</span>
+                                                    <div>
+                                                        <p className="font-bold">{s.label}</p>
+                                                        <p className="text-sm opacity-80">
+                                                            {agentApp.status === "APPROVED" ? "Bạn đã trở thành môi giới!" :
+                                                                agentApp.status === "REJECTED" ? "Đơn của bạn không được chấp nhận." :
+                                                                    "Hồ sơ của bạn đang được xử lý."}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+
+                                        {/* Application details */}
+                                        <div className="rounded-xl border border-[var(--border)] p-4 space-y-3">
+                                            <h3 className="font-bold text-[var(--foreground)] flex items-center gap-2">
+                                                <svg className="w-4 h-4 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                                Thông tin hồ sơ
+                                            </h3>
+                                            <div className="grid grid-cols-2 gap-3 text-sm">
+                                                <div><span className="text-[var(--muted-foreground)]">Họ tên:</span><p className="font-medium">{agentApp.fullName}</p></div>
+                                                <div><span className="text-[var(--muted-foreground)]">SĐT:</span><p className="font-medium">{agentApp.phone}</p></div>
+                                                <div><span className="text-[var(--muted-foreground)]">Email:</span><p className="font-medium">{agentApp.email}</p></div>
+                                                <div><span className="text-[var(--muted-foreground)]">CCCD:</span><p className="font-medium font-mono">{agentApp.idCardNumber}</p></div>
+                                                {agentApp.dateOfBirth && <div><span className="text-[var(--muted-foreground)]">Ngày sinh:</span><p className="font-medium">{new Date(agentApp.dateOfBirth).toLocaleDateString("vi-VN")}</p></div>}
+                                                {agentApp.currentJob && <div><span className="text-[var(--muted-foreground)]">Công việc:</span><p className="font-medium">{agentApp.currentJob}</p></div>}
+                                                {agentApp.education && <div><span className="text-[var(--muted-foreground)]">Trình độ:</span><p className="font-medium">{agentApp.education}</p></div>}
+                                                {agentApp.experience && <div><span className="text-[var(--muted-foreground)]">Kinh nghiệm:</span><p className="font-medium">{agentApp.experience}</p></div>}
+                                            </div>
+                                            <div><span className="text-[var(--muted-foreground)] text-sm">Địa chỉ thường trú:</span><p className="font-medium text-sm">{agentApp.address}</p></div>
+                                            {agentApp.currentAddress && <div><span className="text-[var(--muted-foreground)] text-sm">Địa chỉ hiện tại:</span><p className="font-medium text-sm">{agentApp.currentAddress}</p></div>}
+                                        </div>
+
+                                        {/* Interview schedule */}
+                                        {agentApp.interviewDate && (
+                                            <div className="rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 p-4">
+                                                <h3 className="font-bold text-indigo-700 dark:text-indigo-300 flex items-center gap-2 mb-2">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                                    Lịch hẹn phỏng vấn
+                                                </h3>
+                                                <p className="font-semibold text-indigo-800 dark:text-indigo-200">
+                                                    📅 {new Date(agentApp.interviewDate).toLocaleString("vi-VN", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                                                </p>
+                                                {agentApp.interviewLocation && <p className="mt-1 text-sm text-indigo-700 dark:text-indigo-300">📍 {agentApp.interviewLocation}</p>}
+                                            </div>
+                                        )}
+
+                                        {/* Admin note */}
+                                        {agentApp.adminNote && (
+                                            <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/30 p-4">
+                                                <h3 className="font-bold text-[var(--foreground)] flex items-center gap-2 mb-2">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" /></svg>
+                                                    Ghi chú từ Quản trị viên
+                                                </h3>
+                                                <p className="text-sm text-[var(--foreground)] leading-relaxed">{agentApp.adminNote}</p>
+                                            </div>
+                                        )}
+
+                                        {/* Timeline */}
+                                        <div className="rounded-xl border border-[var(--border)] p-4">
+                                            <h3 className="font-bold text-[var(--foreground)] flex items-center gap-2 mb-3">
+                                                <svg className="w-4 h-4 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                Lịch sử
+                                            </h3>
+                                            <div className="space-y-2 text-sm">
+                                                <div className="flex justify-between">
+                                                    <span className="text-[var(--muted-foreground)]">Ngày nộp đơn:</span>
+                                                    <span className="font-medium">{new Date(agentApp.createdAt).toLocaleString("vi-VN")}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-[var(--muted-foreground)]">Cập nhật cuối:</span>
+                                                    <span className="font-medium">{new Date(agentApp.updatedAt).toLocaleString("vi-VN")}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="text-center py-8">
+                                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--muted)]/20">
+                                            <AgentIcon className="h-8 w-8 text-[var(--muted-foreground)]" />
+                                        </div>
+                                        <h3 className="font-bold text-[var(--foreground)]">Bạn chưa đăng ký môi giới</h3>
+                                        <p className="mt-1 text-sm text-[var(--muted-foreground)] mb-4">
+                                            Đăng ký ngay để trở thành môi giới bất động sản
+                                        </p>
+                                        <a href="/dang-ky-moi-gioi" className="inline-block px-6 py-2.5 bg-[var(--primary)] text-white text-sm font-medium rounded-xl hover:opacity-90 transition-opacity">
+                                            Đăng ký ngay
+                                        </a>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

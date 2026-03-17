@@ -63,7 +63,10 @@ export default function WalletPage() {
     setLoading(true);
     setError(null);
     Promise.all([refreshWallet(controller.signal), refreshPackages(controller.signal)])
-      .catch((err) => setError(err instanceof Error ? err.message : "Không thể tải dữ liệu ví."))
+      .catch((err) => {
+        if (err?.name === "AbortError") return;
+        setError(err instanceof Error ? err.message : "Không thể tải dữ liệu ví.");
+      })
       .finally(() => setLoading(false));
     return () => controller.abort();
   }, [status]);
@@ -77,21 +80,27 @@ export default function WalletPage() {
         if (Array.isArray(res.data)) {
           const approved = res.data.filter((l: any) => l.status === "APPROVED");
           setListings(approved);
-          if (!selectedListingId && approved.length > 0) {
-            setSelectedListingId(approved[0].id);
-          }
+          setSelectedListingId((prev) => {
+            if (prev && approved.some((l: any) => l.id === prev)) return prev;
+            return approved.length > 0 ? approved[0].id : "";
+          });
         }
       })
-      .catch(() => { });
+      .catch((err) => {
+        if (err?.name === "AbortError") return;
+      });
     return () => controller.abort();
-  }, [status, selectedListingId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
 
   useEffect(() => {
     if (status !== "authenticated") return;
     const controller = new AbortController();
     setTxLoading(true);
     refreshTransactions(txPage, txKeyword, controller.signal)
-      .catch(() => { })
+      .catch((err) => {
+        if (err?.name === "AbortError") return;
+      })
       .finally(() => setTxLoading(false));
     return () => controller.abort();
   }, [status, txPage, txKeyword]);

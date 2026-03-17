@@ -3,6 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { UnifiedSearchHeader } from "@/components/filters/UnifiedSearchHeader";
 import { UnifiedFilterBar } from "@/components/filters/UnifiedFilterBar";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { useState } from "react";
 
 type Province = { id: string; code?: string; name: string };
@@ -37,11 +38,13 @@ export function ProjectClientFilters({
     const searchParams = useSearchParams();
     const pathname = usePathname();
 
+    const keyword = searchParams.get("keyword") ?? "";
     const status = searchParams.get("status") ?? "";
     const sort = searchParams.get("sort") ?? "newest";
     const provinceId = searchParams.get("provinceId") ?? "";
 
     const [viewMode, setViewMode] = useState<"grid" | "list">(initialViewMode);
+    const [aiLoading, setAiLoading] = useState(false);
 
     const updateFilters = (updates: Record<string, string | null>) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -55,11 +58,49 @@ export function ProjectClientFilters({
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
     };
 
+    const handleSearch = async (val: string) => {
+        const q = val.trim();
+        if (!q) {
+            // Xoá hết filter cũ khi search rỗng
+            router.push(pathname, { scroll: false });
+            return;
+        }
+        setAiLoading(true);
+        try {
+            const res = await fetch("/api/ai/search-parse", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query: q, mode: "project" }),
+            });
+            const data = await res.json();
+
+            // Tạo params mới từ đầu (xoá sạch filter cũ)
+            const params = new URLSearchParams();
+            if (data.keyword) params.set("keyword", data.keyword);
+            if (data.provinceName) {
+                const matched = provinces.find(
+                    (p) =>
+                        p.name.toLowerCase().includes(data.provinceName.toLowerCase()) ||
+                        data.provinceName.toLowerCase().includes(p.name.toLowerCase())
+                );
+                if (matched) params.set("provinceId", matched.code || matched.id);
+            }
+            router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        } catch {
+            const params = new URLSearchParams();
+            params.set("keyword", q);
+            router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        } finally {
+            setAiLoading(false);
+        }
+    };
+
     const resetAll = () => {
         router.push(pathname, { scroll: false });
     };
 
     const activeChips: { label: string; onClear: () => void }[] = [];
+    if (keyword) activeChips.push({ label: `"${keyword}"`, onClear: () => updateFilters({ keyword: null }) });
     const selectedProvince = provinces.find((p) => p.id === provinceId || p.code === provinceId);
     if (selectedProvince) activeChips.push({ label: selectedProvince.name, onClear: () => updateFilters({ provinceId: null }) });
     if (status) activeChips.push({ label: STATUS_OPTIONS.find((s) => s.value === status)?.label ?? status, onClear: () => updateFilters({ status: null }) });
@@ -83,6 +124,10 @@ export function ProjectClientFilters({
                                 router.refresh();
                             }
                         }}
+                        keyword={keyword}
+                        onSearch={handleSearch}
+                        aiLoading={aiLoading}
+                        searchPlaceholder="Tìm kiếm dự án bất động sản..."
                     />
 
                     <UnifiedFilterBar
@@ -108,22 +153,23 @@ export function ProjectClientFilters({
                         }
                     >
                         <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 w-full">
-                            <select
+                            <SearchableSelect
+                                options={STATUS_OPTIONS.map(s => ({ value: s.value, label: s.label }))}
                                 value={status}
-                                onChange={(e) => updateFilters({ status: e.target.value })}
-                                className="filter-select !py-1.5 !px-3 !text-xs h-9 min-w-[120px] rounded-full bg-[var(--card)] text-[var(--foreground)]"
-                            >
-                                {STATUS_OPTIONS.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
-                            </select>
+                                onChange={(val) => updateFilters({ status: val })}
+                                placeholder="Trạng thái"
+                                variant="filter"
+                                className="min-w-[120px] !text-xs h-9"
+                            />
 
-                            <select
+                            <SearchableSelect
+                                options={provinces.map(p => ({ value: p.code || p.id, label: p.name }))}
                                 value={provinceId}
-                                onChange={(e) => updateFilters({ provinceId: e.target.value })}
-                                className="filter-select !py-1.5 !px-3 !text-xs h-9 min-w-[120px] rounded-full bg-[var(--card)] text-[var(--foreground)]"
-                            >
-                                <option value="">Tỉnh/thành</option>
-                                {provinces.map((p) => (<option key={p.id || p.code} value={p.code || p.id}>{p.name}</option>))}
-                            </select>
+                                onChange={(val) => updateFilters({ provinceId: val })}
+                                placeholder="Tỉnh/thành"
+                                variant="filter"
+                                className="min-w-[120px] !text-xs h-9"
+                            />
                         </div>
                     </UnifiedFilterBar>
                 </div>
@@ -132,9 +178,9 @@ export function ProjectClientFilters({
             {activeChips.length > 0 && (
                 <div className="layout-container px-4 pt-4 pb-2 md:px-10">
                     <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm font-medium text-[var(--muted-foreground)]">Đang chọn:</span>
+                        <span className="text-sm font-medium text-[var(--muted-foreground)]">Đang lọc:</span>
                         {activeChips.map((chip) => (
-                            <span key={chip.label} className="inline-flex items-center gap-1.5 rounded-full bg-[var(--primary)]/10 px-3 py-1 text-xs font-semibold text-[var(--primary)] border border-[var(--primary)]/20 shadow-sm">
+                            <span key={chip.label} className="inline-flex items-center gap-1.5 rounded-full bg-[var(--primary)]/10 px-3 py-1.5 text-sm font-semibold text-[var(--primary)] border border-[var(--primary)]/20 shadow-sm">
                                 {chip.label}
                                 <button onClick={chip.onClear} className="ml-0.5 rounded-full p-0.5 transition hover:bg-[var(--primary)]/20 hover:text-red-500">
                                     <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>

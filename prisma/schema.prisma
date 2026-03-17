@@ -1,6 +1,3 @@
-// Alonha - Real Estate Platform with AI/NLP
-// Database: PostgreSQL (recommended for JSON, full-text search)
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,7 +6,508 @@ datasource db {
   provider = "postgresql"
 }
 
-// ============ ENUMS ============
+model AgentApplication {
+  id                String                 @id @default(cuid())
+  userId            String
+  fullName          String
+  phone             String
+  email             String
+  idCardNumber      String
+  dateOfBirth       DateTime?
+  address           String
+  currentAddress    String?
+  education         String?
+  experience        String?
+  currentJob        String?
+  referralSource    String?
+  selfIntro         String?
+  agreedTerms       Boolean                @default(false)
+  status            AgentApplicationStatus @default(PENDING)
+  adminNote         String?
+  interviewDate     DateTime?
+  interviewLocation String?
+  reviewedBy        String?
+  reviewedAt        DateTime?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  user              User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id                   String                    @id @default(cuid())
+  email                String?                   @unique
+  phone                String?                   @unique
+  passwordHash         String?
+  name                 String
+  avatar               String?
+  role                 UserRole                  @default(USER)
+  isVerified           Boolean                   @default(false)
+  isLocked             Boolean                   @default(false)
+  lastLoginAt          DateTime?
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
+  accounts             Account[]
+  agentApplications    AgentApplication[]
+  sentMessages         ChatMessage[]             @relation("MessageSender")
+  conversationsAsUser1 Conversation[]            @relation("ConversationUser1")
+  conversationsAsUser2 Conversation[]            @relation("ConversationUser2")
+  favorites            Favorite[]
+  leads                Lead[]                    @relation("LeadAgent")
+  leadsAsCustomer      Lead[]                    @relation("LeadCustomer")
+  listings             Listing[]                 @relation("ListingOwner")
+  notifications        Notification[]
+  otpCodes             OtpCode[]
+  reports              Report[]                  @relation("ReportReporter")
+  savedSearches        SavedSearch[]
+  sessions             Session[]
+  userBehaviors        UserBehavior[]
+  notificationSettings UserNotificationSettings?
+  viewingAppointments  ViewingAppointment[]
+  wallet               Wallet?
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String?
+  refreshToken      String?
+  accessToken       String?
+  expiresAt         Int?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OtpCode {
+  id        String   @id @default(cuid())
+  userId    String?
+  email     String?
+  phone     String?
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Project {
+  id           String    @id @default(cuid())
+  name         String
+  slug         String    @unique
+  description  String?
+  address      String?
+  developer    String?
+  totalArea    Float?
+  imageUrl     String?
+  provinceCode String?
+  provinceName String?
+  districtCode String?
+  districtName String?
+  wardCode     String?
+  wardName     String?
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  listings     Listing[]
+}
+
+model Listing {
+  id              String               @id @default(cuid())
+  slug            String               @unique
+  title           String
+  description     String?
+  listingType     ListingType
+  category        PropertyCategory
+  status          ListingStatus        @default(PENDING)
+  price           Decimal              @db.Decimal(18, 0)
+  pricePerSqm     Decimal?             @db.Decimal(12, 0)
+  area            Float
+  bedrooms        Int?
+  bathrooms       Int?
+  direction       String?
+  legalStatus     String?
+  furniture       String?
+  amenities       Json?
+  address         String?
+  provinceCode    String?
+  provinceName    String?
+  wardCode        String?
+  wardName        String?
+  latitude        Float?
+  longitude       Float?
+  contactName     String
+  contactPhone    String
+  contactEmail    String?
+  showPhone       Boolean              @default(true)
+  viewCount       Int                  @default(0)
+  phoneClickCount Int                  @default(0)
+  saveCount       Int                  @default(0)
+  isVip           Boolean              @default(false)
+  vipLevel        String?
+  hasVideo        Boolean              @default(false)
+  has360Tour      Boolean              @default(false)
+  isVerified      Boolean              @default(false)
+  verifiedAt      DateTime?
+  topExpiresAt    DateTime?
+  expiresAt       DateTime?
+  publishedAt     DateTime?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  aiDescription   String?
+  imageTags       Json?
+  metaTitle       String?
+  metaDescription String?
+  ownerId         String
+  projectId       String?
+  comparisons     CompareGroupItem[]
+  favorites       Favorite[]
+  leads           Lead[]
+  owner           User                 @relation("ListingOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  project         Project?             @relation(fields: [projectId], references: [id])
+  images          ListingImage[]
+  listingServices ListingService[]
+  reports         Report[]
+  savedIn         SavedSearchListing[]
+  appointments    ViewingAppointment[]
+}
+
+model ListingImage {
+  id        String   @id @default(cuid())
+  listingId String
+  url       String
+  order     Int      @default(0)
+  isPrimary Boolean  @default(false)
+  caption   String?
+  tags      String[]
+  createdAt DateTime @default(now())
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  listingId String
+  createdAt DateTime @default(now())
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
+}
+
+model SavedSearch {
+  id        String               @id @default(cuid())
+  userId    String
+  name      String?
+  criteria  Json
+  notify    Boolean              @default(true)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listings  SavedSearchListing[]
+}
+
+model SavedSearchListing {
+  id            String      @id @default(cuid())
+  savedSearchId String
+  listingId     String
+  notifiedAt    DateTime?
+  createdAt     DateTime    @default(now())
+  listing       Listing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  savedSearch   SavedSearch @relation(fields: [savedSearchId], references: [id], onDelete: Cascade)
+
+  @@unique([savedSearchId, listingId])
+}
+
+model Conversation {
+  id        String        @id @default(cuid())
+  user1Id   String
+  user2Id   String
+  listingId String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  messages  ChatMessage[]
+  user1     User          @relation("ConversationUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2     User          @relation("ConversationUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+}
+
+model ChatMessage {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  imageUrl       String?
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+model ViewingAppointment {
+  id        String            @id @default(cuid())
+  listingId String
+  userId    String
+  agentId   String?
+  fullName  String
+  phone     String
+  email     String?
+  note      String?
+  schedule  DateTime
+  status    AppointmentStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  listing   Listing           @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CompareGroup {
+  id        String             @id @default(cuid())
+  userId    String?
+  sessionId String?
+  name      String?
+  createdAt DateTime           @default(now())
+  items     CompareGroupItem[]
+}
+
+model CompareGroupItem {
+  id             String       @id @default(cuid())
+  compareGroupId String
+  listingId      String
+  order          Int          @default(0)
+  compareGroup   CompareGroup @relation(fields: [compareGroupId], references: [id], onDelete: Cascade)
+  listing        Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([compareGroupId, listingId])
+}
+
+model Wallet {
+  id           String        @id @default(cuid())
+  userId       String        @unique
+  balance      Decimal       @default(0) @db.Decimal(14, 0)
+  currency     String        @default("VND")
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[]
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Transaction {
+  id            String            @id @default(cuid())
+  walletId      String
+  type          TransactionType
+  amount        Decimal           @db.Decimal(14, 0)
+  balanceAfter  Decimal?          @db.Decimal(14, 0)
+  status        TransactionStatus @default(PENDING)
+  referenceId   String?
+  paymentMethod String?
+  paymentCode   String?
+  description   String?
+  metadata      Json?
+  createdAt     DateTime          @default(now())
+  completedAt   DateTime?
+  wallet        Wallet            @relation(fields: [walletId], references: [id], onDelete: Cascade)
+}
+
+model ServicePackage {
+  id              String           @id @default(cuid())
+  code            String           @unique
+  name            String
+  description     String?
+  price           Decimal          @db.Decimal(14, 0)
+  durationDays    Int?
+  isActive        Boolean          @default(true)
+  sortOrder       Int              @default(0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  listingServices ListingService[]
+}
+
+model ListingService {
+  id               String         @id @default(cuid())
+  listingId        String
+  servicePackageId String
+  startsAt         DateTime
+  expiresAt        DateTime
+  createdAt        DateTime       @default(now())
+  listing          Listing        @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  service          ServicePackage @relation(fields: [servicePackageId], references: [id], onDelete: Cascade)
+}
+
+model Lead {
+  id         String   @id @default(cuid())
+  listingId  String
+  customerId String?
+  agentId    String?
+  name       String
+  phone      String
+  email      String?
+  message    String?
+  source     String?
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  agent      User?    @relation("LeadAgent", fields: [agentId], references: [id])
+  customer   User?    @relation("LeadCustomer", fields: [customerId], references: [id])
+  listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id         String       @id @default(cuid())
+  listingId  String
+  reporterId String
+  reason     ReportReason
+  note       String?
+  status     ReportStatus @default(PENDING)
+  reviewedBy String?
+  reviewedAt DateTime?
+  createdAt  DateTime     @default(now())
+  listing    Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  reporter   User         @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+}
+
+model Content {
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  title           String
+  excerpt         String?
+  body            String?
+  type            String
+  imageUrl        String?
+  isPublished     Boolean   @default(false)
+  publishedAt     DateTime?
+  metaTitle       String?
+  metaDescription String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Banner {
+  id        String    @id @default(cuid())
+  title     String?
+  imageUrl  String
+  linkUrl   String?
+  position  String
+  sortOrder Int       @default(0)
+  isActive  Boolean   @default(true)
+  startAt   DateTime?
+  endAt     DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model SystemConfig {
+  id    String  @id @default(cuid())
+  key   String  @unique
+  value String?
+  type  String  @default("string")
+}
+
+model ModerationLog {
+  id        String   @id @default(cuid())
+  listingId String
+  action    String
+  reason    String?
+  adminId   String?
+  createdAt DateTime @default(now())
+}
+
+model UserBehavior {
+  id        String   @id @default(cuid())
+  userId    String?
+  sessionId String?
+  listingId String
+  action    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model ChatbotConversation {
+  id        String           @id @default(cuid())
+  sessionId String
+  userId    String?
+  context   Json?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  messages  ChatbotMessage[]
+}
+
+model ChatbotMessage {
+  id             String              @id @default(cuid())
+  conversationId String
+  role           String
+  content        String
+  createdAt      DateTime            @default(now())
+  conversation   ChatbotConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  content   String
+  link      String?
+  isRead    Boolean          @default(false)
+  emailSent Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+  readAt    DateTime?
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserNotificationSettings {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  emailEnabled    Boolean  @default(true)
+  listingApproved Boolean  @default(true)
+  listingRejected Boolean  @default(true)
+  listingNew      Boolean  @default(true)
+  listingExpiring Boolean  @default(true)
+  appointmentNew  Boolean  @default(true)
+  leadNew         Boolean  @default(true)
+  payment         Boolean  @default(true)
+  savedSearch     Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model News {
+  id            String    @id @default(cuid())
+  sourceId      String
+  sourceName    String
+  originalId    String?
+  slug          String
+  title         String
+  excerpt       String?
+  content       String?
+  imageUrl      String?
+  imageUrls     String[]
+  category      String
+  categoryLabel String?
+  author        String?
+  sourceUrl     String
+  publishedAt   DateTime?
+  views         Int       @default(0)
+  isFeatured    Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  crawledAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([sourceId])
+  @@index([category])
+  @@index([publishedAt])
+  @@index([slug])
+}
+
 enum UserRole {
   USER
   AGENT
@@ -78,466 +576,14 @@ enum ReportReason {
   OTHER
 }
 
-// ============ USER & AUTH ============
-model User {
-  id            String    @id @default(cuid())
-  email         String?   @unique
-  phone         String?   @unique
-  passwordHash  String?
-  name          String
-  avatar        String?
-  role          UserRole  @default(USER)
-  isVerified    Boolean   @default(false)
-  isLocked      Boolean   @default(false)
-  lastLoginAt   DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  accounts      Account[]
-  sessions      Session[]
-  listings      Listing[]       @relation("ListingOwner")
-  favorites     Favorite[]
-  savedSearches SavedSearch[]
-  sentMessages  ChatMessage[]    @relation("MessageSender")
-  conversationsAsUser1 Conversation[] @relation("ConversationUser1")
-  conversationsAsUser2 Conversation[] @relation("ConversationUser2")
-  viewingAppointments ViewingAppointment[]
-  wallet        Wallet?
-  leads         Lead[]          @relation("LeadAgent")
-  leadsAsCustomer Lead[]        @relation("LeadCustomer")
-  reports       Report[]        @relation("ReportReporter")
-  otpCodes      OtpCode[]
-  userBehaviors UserBehavior[]  // AI: hành vi xem tin
-  notifications Notification[]
-  notificationSettings UserNotificationSettings?
+enum AgentApplicationStatus {
+  PENDING
+  REVIEWING
+  INTERVIEW
+  APPROVED
+  REJECTED
 }
 
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String  // oauth, credentials
-  provider          String  // google, facebook, credentials
-  providerAccountId String?
-  refreshToken      String?
-  accessToken      String?
-  expiresAt        Int?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@unique([provider, providerAccountId])
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  userId       String
-  token        String   @unique
-  expiresAt    DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model OtpCode {
-  id        String   @id @default(cuid())
-  userId    String?
-  email     String?
-  phone     String?
-  code      String
-  expiresAt DateTime
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-// ============ LOCATION (Tỉnh/Thành phố & Phường/Xã theo API v2) ============
-// Sau khi sáp nhập, hệ thống hành chính sử dụng mã tỉnh/thành (province_code)
-// và mã phường/xã (code) từ API v2: https://provinces.open-api.vn/api/v2/w/
-// Không dùng bảng quận/huyện riêng trong DB, chỉ lưu mã + tên để lọc và hiển thị.
-
-// ============ PROJECT (Dự án BĐS) ============
-model Project {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  description String?
-  address     String?
-  developer   String?
-  totalArea   Float?
-  imageUrl    String?
-  provinceCode String?
-  provinceName String?
-  districtCode String?
-  districtName String?
-  wardCode     String?
-  wardName     String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  listings Listing[]
-}
-
-// ============ LISTING (Tin đăng) ============
-model Listing {
-  id              String         @id @default(cuid())
-  slug            String         @unique
-  title           String
-  description     String?
-  listingType     ListingType    // SALE | RENT
-  category        PropertyCategory
-  status          ListingStatus  @default(PENDING)
-  price           Decimal        @db.Decimal(18, 0)
-  pricePerSqm     Decimal?       @db.Decimal(12, 0)
-  area            Float          // m2
-  bedrooms        Int?
-  bathrooms       Int?
-  direction       String?        // Đông, Tây, Nam, Bắc...
-  legalStatus     String?        // Sổ đỏ, HĐMB...
-  furniture       String?        // Nội thất: Đầy đủ, Cơ bản...
-  amenities       Json?          // ["Hồ bơi", "Gara", "Gym", ...]
-  address         String?
-  // Location theo API hành chính v2 (không dùng bảng master trong DB)
-  provinceCode    String?        // Mã tỉnh/thành (province_code từ API v2)
-  provinceName    String?        // Tên tỉnh/thành (hiển thị)
-  wardCode        String?        // Mã phường/xã API v2 (để lọc)
-  wardName        String?        // Tên phường/xã (hiển thị)
-  latitude        Float?
-  longitude       Float?
-  contactName     String
-  contactPhone    String
-  contactEmail    String?
-  showPhone       Boolean        @default(true)
-  viewCount       Int            @default(0)
-  phoneClickCount Int            @default(0)
-  saveCount       Int            @default(0)
-  isVip           Boolean        @default(false)
-  vipLevel        String?        // diamond, gold, silver
-  hasVideo        Boolean        @default(false)
-  has360Tour      Boolean        @default(false)
-  isVerified      Boolean        @default(false)
-  verifiedAt     DateTime?
-  topExpiresAt    DateTime?      // Hết hạn up top
-  expiresAt      DateTime?
-  publishedAt     DateTime?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  // AI: mô tả tự sinh, tags ảnh
-  aiDescription   String?
-  imageTags       Json?          // [{ url, tags: [] }]
-  // SEO
-  metaTitle       String?
-  metaDescription String?
-
-  ownerId String
-  projectId  String?
-
-  owner   User     @relation("ListingOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-
-  images       ListingImage[]
-  favorites    Favorite[]
-  savedIn      SavedSearchListing[]
-  appointments ViewingAppointment[]
-  comparisons  CompareGroupItem[]
-  listingServices ListingService[]
-  reports      Report[]
-  leads        Lead[]
-}
-
-model ListingImage {
-  id        String   @id @default(cuid())
-  listingId String
-  url       String
-  order     Int      @default(0)
-  isPrimary Boolean  @default(false)
-  caption   String?
-  tags      String[] // AI: phong khach, bep...
-  createdAt DateTime @default(now())
-
-  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
-}
-
-// ============ USER INTERACTIONS ============
-model Favorite {
-  id        String   @id @default(cuid())
-  userId    String
-  listingId String
-  createdAt DateTime @default(now())
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  @@unique([userId, listingId])
-}
-
-model SavedSearch {
-  id        String   @id @default(cuid())
-  userId    String
-  name      String?
-  criteria  Json     // { keyword, provinceId, priceMin, priceMax, areaMin, ... }
-  notify    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  listings SavedSearchListing[]
-}
-
-model SavedSearchListing {
-  id             String   @id @default(cuid())
-  savedSearchId  String
-  listingId      String
-  notifiedAt     DateTime?
-  createdAt      DateTime @default(now())
-
-  savedSearch SavedSearch @relation(fields: [savedSearchId], references: [id], onDelete: Cascade)
-  listing    Listing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  @@unique([savedSearchId, listingId])
-}
-
-// ============ CHAT ============
-model Conversation {
-  id        String   @id @default(cuid())
-  user1Id   String
-  user2Id   String
-  listingId String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user1    User     @relation("ConversationUser1", fields: [user1Id], references: [id], onDelete: Cascade)
-  user2    User     @relation("ConversationUser2", fields: [user2Id], references: [id], onDelete: Cascade)
-  messages ChatMessage[]
-}
-
-model ChatMessage {
-  id             String   @id @default(cuid())
-  conversationId String
-  senderId       String
-  content        String
-  readAt         DateTime?
-  createdAt      DateTime @default(now())
-
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender       User        @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
-}
-
-// ============ ĐẶT LỊCH XEM NHÀ ============
-model ViewingAppointment {
-  id        String            @id @default(cuid())
-  listingId String
-  userId    String
-  agentId   String?           // owner or assigned agent
-  fullName  String
-  phone     String
-  email     String?
-  note      String?
-  schedule  DateTime
-  status    AppointmentStatus @default(PENDING)
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-
-  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-// ============ SO SÁNH BĐS ============
-model CompareGroup {
-  id        String   @id @default(cuid())
-  userId    String?
-  sessionId String?  // for guest
-  name      String?
-  createdAt DateTime @default(now())
-
-  items CompareGroupItem[]
-}
-
-model CompareGroupItem {
-  id             String   @id @default(cuid())
-  compareGroupId String
-  listingId      String
-  order          Int      @default(0)
-
-  compareGroup CompareGroup @relation(fields: [compareGroupId], references: [id], onDelete: Cascade)
-  listing      Listing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  @@unique([compareGroupId, listingId])
-}
-
-// ============ AGENT: VÍ & GIAO DỊCH ============
-model Wallet {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  balance   Decimal  @default(0) @db.Decimal(14, 0)
-  currency  String   @default("VND")
-  updatedAt DateTime @updatedAt
-
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
-}
-
-model Transaction {
-  id              String            @id @default(cuid())
-  walletId        String
-  type            TransactionType
-  amount          Decimal           @db.Decimal(14, 0)
-  balanceAfter    Decimal?          @db.Decimal(14, 0)
-  status          TransactionStatus @default(PENDING)
-  referenceId     String?           // listingId, orderId...
-  paymentMethod   String?           // VNPAY, MOMO, ATM
-  paymentCode     String?
-  description     String?
-  metadata        Json?
-  createdAt       DateTime          @default(now())
-  completedAt     DateTime?
-
-  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
-}
-
-// ============ GÓI DỊCH VỤ TIN (VIP, UP TOP) ============
-model ServicePackage {
-  id           String   @id @default(cuid())
-  code         String   @unique
-  name         String
-  description  String?
-  price        Decimal  @db.Decimal(14, 0)
-  durationDays Int?
-  isActive     Boolean  @default(true)
-  sortOrder    Int      @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  listingServices ListingService[]
-}
-
-model ListingService {
-  id                String   @id @default(cuid())
-  listingId         String
-  servicePackageId  String
-  startsAt          DateTime
-  expiresAt         DateTime
-  createdAt         DateTime @default(now())
-
-  listing Listing        @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  service ServicePackage @relation(fields: [servicePackageId], references: [id], onDelete: Cascade)
-}
-
-// ============ LEAD (Khách hàng tiềm năng từ form) ============
-model Lead {
-  id        String   @id @default(cuid())
-  listingId String
-  customerId String?  // user đã đăng nhập
-  agentId   String?   // chủ tin / môi giới
-  name      String
-  phone     String
-  email     String?
-  message   String?
-  source    String?   // detail_page, contact_form
-  isRead    Boolean   @default(false)
-  createdAt DateTime @default(now())
-
-  listing  Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  customer User?   @relation("LeadCustomer", fields: [customerId], references: [id], onDelete: SetNull)
-  agent    User?   @relation("LeadAgent", fields: [agentId], references: [id], onDelete: SetNull)
-}
-
-// ============ BÁO CÁO VI PHẠM ============
-model Report {
-  id        String       @id @default(cuid())
-  listingId String
-  reporterId String
-  reason    ReportReason
-  note      String?
-  status    ReportStatus @default(PENDING)
-  reviewedBy String?
-  reviewedAt DateTime?
-  createdAt DateTime     @default(now())
-
-  listing  Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  reporter User    @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
-}
-
-// ============ CMS: NỘI DUNG, BANNER ============
-model Content {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  title       String
-  excerpt     String?
-  body        String?
-  type        String   // news, feng_shui, project_guide, handbook
-  imageUrl    String?
-  isPublished Boolean  @default(false)
-  publishedAt DateTime?
-  metaTitle   String?
-  metaDescription String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-model Banner {
-  id        String   @id @default(cuid())
-  title     String?
-  imageUrl  String
-  linkUrl   String?
-  position  String   // home_slider, sidebar, top
-  sortOrder Int      @default(0)
-  isActive  Boolean  @default(true)
-  startAt   DateTime?
-  endAt     DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ============ CẤU HÌNH HỆ THỐNG ============
-model SystemConfig {
-  id    String @id @default(cuid())
-  key   String @unique
-  value String?
-  type  String @default("string") // string, json, number
-}
-
-// ============ KIỂM DUYỆT TIN ============
-model ModerationLog {
-  id        String   @id @default(cuid())
-  listingId String
-  action    String   // approved, rejected
-  reason    String?
-  adminId   String?
-  createdAt DateTime @default(now())
-}
-
-// ============ AI: HÀNH VI NGƯỜI DÙNG (Recommendation) ============
-model UserBehavior {
-  id        String   @id @default(cuid())
-  userId    String?
-  sessionId String?
-  listingId String
-  action    String   // view, save, click_phone, search
-  metadata  Json?
-  createdAt DateTime @default(now())
-
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-}
-
-// ============ AI: CHATBOT ============
-model ChatbotConversation {
-  id        String   @id @default(cuid())
-  sessionId String
-  userId    String?
-  context   Json?    // listingId, last question...
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  messages ChatbotMessage[]
-}
-
-model ChatbotMessage {
-  id             String   @id @default(cuid())
-  conversationId String
-  role           String   // user, assistant
-  content        String
-  createdAt      DateTime @default(now())
-
-  conversation ChatbotConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-}
-
-// ============ NOTIFICATIONS ============
 enum NotificationType {
   LISTING_APPROVED
   LISTING_REJECTED
@@ -552,38 +598,4 @@ enum NotificationType {
   PAYMENT_FAILED
   SYSTEM
   SAVED_SEARCH_MATCH
-}
-
-model Notification {
-  id          String           @id @default(cuid())
-  userId      String
-  type        NotificationType
-  title       String
-  content     String
-  link        String?
-  isRead      Boolean          @default(false)
-  emailSent   Boolean          @default(false)
-  metadata    Json?
-  createdAt   DateTime         @default(now())
-  readAt      DateTime?
-
-  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model UserNotificationSettings {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  emailEnabled    Boolean  @default(true)
-  listingApproved Boolean  @default(true)
-  listingRejected Boolean  @default(true)
-  listingNew      Boolean  @default(true)
-  listingExpiring Boolean  @default(true)
-  appointmentNew  Boolean  @default(true)
-  leadNew         Boolean  @default(true)
-  payment         Boolean  @default(true)
-  savedSearch     Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

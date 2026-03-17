@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Greeting } from "./Greeting";
+import { AgentApplicationStatus } from "@/components/account/AgentApplicationStatus";
 
 // Inline SVGs for action cards
 const BellIcon = (props: React.SVGProps<SVGSVGElement>) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>;
@@ -161,45 +162,7 @@ export default async function AccountPage() {
             </Link>
 
             {/* Role specific action */}
-            {!isAgent ? (
-              <Link
-                href="/nang-cap-tai-khoan"
-                className="group col-span-1 sm:col-span-2 relative overflow-hidden rounded-2xl bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] p-6 hover:shadow-lg hover:shadow-[var(--primary)]/20 transition-all duration-300 hover:-translate-y-1"
-              >
-                <div className="absolute -right-4 -top-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-                <div className="absolute right-10 bottom-0 text-white/10 transform rotate-12 scale-[3] pointer-events-none group-hover:scale-[3.5] transition-transform duration-500">
-                  <TrendingUpIcon className="w-24 h-24" />
-                </div>
-                <div className="relative z-10 flex items-center gap-5">
-                  <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shrink-0">
-                    <TrendingUpIcon className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-white mb-1">Nâng cấp tài khoản Môi Giới</h3>
-                    <p className="text-white/80 text-sm">Đăng tin không giới hạn, tiếp cận hàng ngàn khách hàng tiềm năng và quản lý chuyên nghiệp.</p>
-                  </div>
-                </div>
-              </Link>
-            ) : (
-              <Link
-                href="/moi-gioi"
-                className="group col-span-1 sm:col-span-2 relative overflow-hidden rounded-2xl bg-gradient-to-r from-[var(--primary)] to-emerald-500 p-6 hover:shadow-lg hover:shadow-[var(--primary)]/20 transition-all duration-300 hover:-translate-y-1"
-              >
-                <div className="absolute -right-4 -top-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-                <div className="absolute right-10 bottom-0 text-white/10 transform rotate-12 scale-[3] pointer-events-none group-hover:scale-[3.5] transition-transform duration-500">
-                  <BriefcaseIcon className="w-24 h-24" />
-                </div>
-                <div className="relative z-10 flex items-center gap-5">
-                  <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shrink-0">
-                    <BriefcaseIcon className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-white mb-1">Quản lý tin đăng & Hệ thống</h3>
-                    <p className="text-white/80 text-sm">Truy cập bảng điều khiển dành cho {roleLabel.toLowerCase()} để quản lý hoạt động kinh doanh.</p>
-                  </div>
-                </div>
-              </Link>
-            )}
+            <AgentApplicationStatus />
           </div>
         </div>
 

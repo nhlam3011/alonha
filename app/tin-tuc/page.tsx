@@ -10,10 +10,8 @@ export const metadata: Metadata = {
 
 // --- RSS Logic ---
 const RSS_SOURCES = [
-  { id: "vnexpress", name: "VnExpress BĐS", url: "https://vnexpress.net/rss/bat-dong-san.rss", category: "thi-truong" },
-  { id: "cafef", name: "CafeF BĐS", url: "https://cafef.vn/bat-dong-san.rss", category: "thi-truong" },
-  { id: "dantri", name: "Dân trí BĐS", url: "https://dantri.com.vn/bat-dong-san.rss", category: "thi-truong" },
-  { id: "batdongsan", name: "Batdongsan.com.vn", url: "https://batdongsan.com.vn/rss/tin-tuc.rss", category: "cam-nang" },
+  { id: "vnexpress", name: "VnExpress", url: "https://vnexpress.net/rss/bat-dong-san.rss", category: "thi-truong" },
+  { id: "cafef", name: "CafeF", url: "https://cafef.vn/bat-dong-san.rss", category: "thi-truong" },
 ];
 
 type RSSItem = { title: string; link: string; description: string; pubDate: string; source: string; sourceId: string; category: string; imageUrl?: string; };
@@ -93,55 +91,30 @@ export default async function NewsPage(props: {
   const limit = 12;
   const page = typeof params.page === "string" ? Math.max(1, parseInt(params.page)) : 1;
 
-  // Fetch RSS data
-  const fetchPromises = RSS_SOURCES
-    .filter((s) => !source || s.id === source)
-    .map(async (rssSource) => {
-      try {
-        const response = await fetch(rssSource.url, {
-          headers: { "User-Agent": "Mozilla/5.0", "Accept": "application/rss+xml" },
-          next: { revalidate: 900 },
-        });
-        if (!response.ok) return [];
-        const xml = await response.text();
-        return parseRSS(xml, rssSource);
-      } catch (e) {
-        return [];
-      }
-    });
+  // Fetch from database via API
+  const apiUrl = new URL(`${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/news`);
+  if (category) apiUrl.searchParams.set("category", category);
+  if (source) apiUrl.searchParams.set("source", source);
+  apiUrl.searchParams.set("limit", String(limit));
+  apiUrl.searchParams.set("page", String(page));
 
-  const results = await Promise.all(fetchPromises);
-  let allItems = results.flat();
+  let articles: NewsArticle[] = [];
+  let total = 0;
+  let sources = RSS_SOURCES;
 
-  allItems.sort((a, b) => {
-    const dateA = new Date(a.pubDate).getTime();
-    const dateB = new Date(b.pubDate).getTime();
-    return sort === "oldest" ? dateA - dateB : dateB - dateA; // popular sort is faked later
-  });
+  try {
+    const response = await fetch(apiUrl.toString(), { next: { revalidate: 300 } });
+    if (response.ok) {
+      const data = await response.json();
+      articles = data.data || [];
+      total = data.total || 0;
+      sources = data.sources || RSS_SOURCES;
+    }
+  } catch (error) {
+    console.error("Error fetching news from API:", error);
+  }
 
-  if (category) allItems = allItems.filter((item) => item.category === category);
-
-  const total = allItems.length;
-  const startIndex = (page - 1) * limit;
-  const paginatedItems = allItems.slice(startIndex, startIndex + limit);
-
-  const articles: NewsArticle[] = paginatedItems.map((item, index) => ({
-    id: generateId(item.link),
-    slug: generateSlug(item.title),
-    title: item.title,
-    excerpt: item.description,
-    category: item.category,
-    categoryLabel: getCategoryLabel(item.category),
-    imageUrl: item.imageUrl || getDefaultImage(index),
-    author: item.source,
-    publishedAt: item.pubDate,
-    readTime: Math.max(2, Math.ceil(item.description.length / 500)),
-    views: Math.floor(Math.random() * 1000) + 100, // mock views
-    sourceUrl: item.link,
-    source: item.source,
-    sourceId: item.sourceId,
-  }));
-
+  // Sort handling (for popularity)
   if (sort === "popular") {
     articles.sort((a, b) => b.views - a.views);
   }
@@ -151,7 +124,7 @@ export default async function NewsPage(props: {
 
   return (
     <div className="min-h-screen bg-[var(--background)]">
-      <NewsClientFilters total={total} sources={RSS_SOURCES} initialViewMode={viewMode} />
+      <NewsClientFilters total={total} sources={sources} initialViewMode={viewMode} />
 
       <div className="layout-container px-4 py-6 md:px-10">
         {articles.length === 0 ? (
@@ -204,9 +177,11 @@ function ArticleCard({
   isFeatured?: boolean;
   viewMode?: "grid" | "list";
 }) {
+  const isListMode = viewMode === "list" && !isFeatured;
+
   const content = (
     <>
-      <div className={`relative overflow-hidden bg-[var(--muted)] ${isFeatured ? "h-64 sm:h-80" : viewMode === "list" ? "w-48 shrink-0 aspect-auto h-32" : "aspect-video"}`}>
+      <div className={`relative overflow-hidden bg-[var(--muted)] shrink-0 ${isFeatured ? "h-64 sm:h-80" : isListMode ? "w-40 h-full min-h-[120px] md:w-56 md:min-h-[140px]" : "aspect-video"}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={article.imageUrl || DEFAULT_IMAGE}
@@ -216,7 +191,7 @@ function ArticleCard({
         {isFeatured && <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />}
       </div>
 
-      <div className={isFeatured ? "absolute bottom-0 left-0 right-0 p-6" : `p-4 flex flex-col justify-center ${viewMode === "list" ? "flex-1" : ""}`}>
+      <div className={isFeatured ? "absolute bottom-0 left-0 right-0 p-6" : `p-4 flex flex-col flex-1 ${isListMode ? "justify-center" : ""}`}>
         {isFeatured ? (
           <>
             <span className="inline-block rounded-full bg-[var(--primary)] px-3 py-1 text-xs font-medium text-white mb-3">
@@ -233,11 +208,11 @@ function ArticleCard({
             <span className="inline-block self-start rounded-full bg-[var(--primary-light)] px-2.5 py-0.5 text-xs font-medium text-[var(--primary)] mb-2">
               {article.categoryLabel}
             </span>
-            <h3 className="text-base font-semibold text-[var(--foreground)] line-clamp-2 group-hover:text-[var(--primary)] transition-colors">{article.title}</h3>
-            <p className="mt-2 text-sm text-[var(--muted-foreground)] line-clamp-2">{article.excerpt}</p>
-            <div className="mt-3 flex items-center gap-3 text-xs text-[var(--muted-foreground)]">
-              <span>{formatDate(article.publishedAt)}</span><span>•</span><span>{article.readTime} phút</span>
-              <span className="flex items-center gap-1 ml-auto">
+            <h3 className={`font-semibold text-[var(--foreground)] line-clamp-2 group-hover:text-[var(--primary)] transition-colors ${isListMode ? "text-base" : "text-base"}`}>{article.title}</h3>
+            <p className={`mt-2 text-sm text-[var(--muted-foreground)] line-clamp-2 ${isListMode ? "hidden md:block" : ""}`}>{article.excerpt}</p>
+            <div className="mt-auto pt-3 flex items-center justify-between gap-3 text-xs text-[var(--muted-foreground)]">
+              <span>{formatDate(article.publishedAt)}</span>
+              <span className="flex items-center gap-1">
                 <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                 {formatViews(article.views)}
               </span>
@@ -252,7 +227,7 @@ function ArticleCard({
     return (
       <a
         href={article.sourceUrl} target="_blank" rel="noopener noreferrer"
-        className={`group overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)] hover:shadow-lg transition-all ${isFeatured ? "block relative" : viewMode === "list" ? "flex" : "flex flex-col"}`}
+        className={`group h-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)] hover:shadow-lg transition-all ${isFeatured ? "block relative" : isListMode ? "flex" : "flex flex-col"}`}
       >
         {content}
       </a>
@@ -262,7 +237,7 @@ function ArticleCard({
   return (
     <Link
       href={`/tin-tuc/${article.slug}`}
-      className={`group overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)] hover:shadow-lg transition-all ${isFeatured ? "block relative" : viewMode === "list" ? "flex" : "flex flex-col"}`}
+      className={`group h-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)] hover:shadow-lg transition-all ${isFeatured ? "block relative" : isListMode ? "flex" : "flex flex-col"}`}
     >
       {content}
     </Link>

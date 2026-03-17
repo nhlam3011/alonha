@@ -100,6 +100,7 @@ export function ClientFilters({
     const [viewMode, setViewMode] = useState<"grid" | "list">(initialViewMode);
     const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
     const [wards, setWards] = useState<Ward[]>([]);
+    const [aiLoading, setAiLoading] = useState(false);
 
     useEffect(() => {
         if (!provinceId) {
@@ -129,7 +130,53 @@ export function ClientFilters({
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
     };
 
-    const handleAiSearch = (val: string) => updateFilters({ keyword: val });
+    const handleAiSearch = async (val: string) => {
+        const q = val.trim();
+        if (!q) {
+            // Xoá tất cả filter khi search rỗng
+            router.push(pathname, { scroll: false });
+            return;
+        }
+        setAiLoading(true);
+        try {
+            const res = await fetch("/api/ai/search-parse", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query: q, mode: "listing" }),
+            });
+            const data = await res.json();
+
+            // Tạo params mới từ đầu (xoá sạch filter cũ)
+            const params = new URLSearchParams();
+            // Giữ lại loaiHinh mặc định nếu AI không phân tích được
+            params.set("loaiHinh", data.loaiHinh || "sale");
+            if (data.keyword) params.set("keyword", data.keyword);
+            params.set("aiQuery", q);
+            if (data.category) params.set("category", data.category);
+            if (data.bedrooms != null) params.set("bedrooms", String(data.bedrooms));
+            if (data.priceMin != null) params.set("priceMin", String(data.priceMin));
+            if (data.priceMax != null) params.set("priceMax", String(data.priceMax));
+            if (data.areaMin != null) params.set("areaMin", String(data.areaMin));
+            if (data.areaMax != null) params.set("areaMax", String(data.areaMax));
+            // provinceId: map provinceName -> provinceCode
+            if (data.provinceName) {
+                const matched = provinces.find(
+                    (p) => p.name.toLowerCase().includes(data.provinceName.toLowerCase()) ||
+                        data.provinceName.toLowerCase().includes(p.name.toLowerCase())
+                );
+                if (matched) params.set("provinceId", matched.code || matched.id);
+            }
+            router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        } catch {
+            // Fallback: xoá cũ, chỉ set keyword thô
+            const params = new URLSearchParams();
+            params.set("keyword", q);
+            params.set("loaiHinh", "sale");
+            router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        } finally {
+            setAiLoading(false);
+        }
+    };
 
     const resetAll = () => {
         router.push(pathname, { scroll: false });
@@ -178,6 +225,7 @@ export function ClientFilters({
                         mapLink={buildMapLink()}
                         keyword={displayQuery}
                         onSearch={handleAiSearch}
+                        aiLoading={aiLoading}
                         searchPlaceholder="Tìm kiếm bất động sản..."
                     />
 
@@ -204,13 +252,14 @@ export function ClientFilters({
                         }
                     >
                         <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 w-full">
-                            <select
+                            <SearchableSelect
+                                options={CATEGORY_OPTIONS.map(c => ({ value: c.value, label: c.label }))}
                                 value={category}
-                                onChange={(e) => updateFilters({ category: e.target.value })}
-                                className="filter-select !py-1.5 !px-3 !text-xs h-9 min-w-[120px] rounded-full bg-[var(--card)] text-[var(--foreground)]"
-                            >
-                                {CATEGORY_OPTIONS.map((c) => (<option key={c.value} value={c.value}>{c.label}</option>))}
-                            </select>
+                                onChange={(val) => updateFilters({ category: val })}
+                                placeholder="Loại nhà đất"
+                                variant="filter"
+                                className="min-w-[120px] !text-xs h-9"
+                            />
 
                             <SearchableSelect
                                 options={provinces.map(p => ({ value: p.code || p.id, label: p.name }))}
@@ -232,35 +281,29 @@ export function ClientFilters({
                                 />
                             )}
 
-                            <select
-                                value={`${priceMin}-${priceMax}`}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    if (val === "-") updateFilters({ priceMin: null, priceMax: null });
+                            <SearchableSelect
+                                options={PRICE_PRESETS.map(p => ({ value: p.min === "" && p.max === "" ? "" : `${p.min}-${p.max}`, label: p.label }))}
+                                value={priceMin === "" && priceMax === "" ? "" : `${priceMin}-${priceMax}`}
+                                onChange={(val) => {
+                                    if (val === "") updateFilters({ priceMin: null, priceMax: null });
                                     else { const [min, max] = val.split("-"); updateFilters({ priceMin: min, priceMax: max }); }
                                 }}
-                                className="filter-select !py-1.5 !px-3 !text-xs h-9 min-w-[120px] rounded-full bg-[var(--card)] text-[var(--foreground)]"
-                            >
-                                <option value="-">Mức giá</option>
-                                {PRICE_PRESETS.filter(p => p.label !== "Tất cả").map((p) => (
-                                    <option key={p.label} value={`${p.min}-${p.max}`}>{p.label}</option>
-                                ))}
-                            </select>
+                                placeholder="Mức giá"
+                                variant="filter"
+                                className="min-w-[120px] !text-xs h-9"
+                            />
 
-                            <select
-                                value={`${areaMin}-${areaMax}`}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    if (val === "-") updateFilters({ areaMin: null, areaMax: null });
+                            <SearchableSelect
+                                options={AREA_PRESETS.map(a => ({ value: a.min === "" && a.max === "" ? "" : `${a.min}-${a.max}`, label: a.label }))}
+                                value={areaMin === "" && areaMax === "" ? "" : `${areaMin}-${areaMax}`}
+                                onChange={(val) => {
+                                    if (val === "") updateFilters({ areaMin: null, areaMax: null });
                                     else { const [min, max] = val.split("-"); updateFilters({ areaMin: min, areaMax: max }); }
                                 }}
-                                className="filter-select !py-1.5 !px-3 !text-xs h-9 min-w-[120px] rounded-full bg-[var(--card)] text-[var(--foreground)]"
-                            >
-                                <option value="-">Diện tích</option>
-                                {AREA_PRESETS.filter(p => p.label !== "Tất cả").map((a) => (
-                                    <option key={a.label} value={`${a.min}-${a.max}`}>{a.label}</option>
-                                ))}
-                            </select>
+                                placeholder="Diện tích"
+                                variant="filter"
+                                className="min-w-[120px] !text-xs h-9"
+                            />
                         </div>
 
                         <button

@@ -34,9 +34,30 @@ export async function GET(req: Request) {
   }
 
   // Build where clause
-  const where: any = { isActive: true };
-  if (status === "dang-ban") where.isActive = true;
-  // Add more status filters as needed
+  const where: any = {};
+  const andConditions: any[] = [];
+
+  const keyword = searchParams.get("keyword")?.trim();
+  if (keyword) {
+    const keywordParts = keyword.split(/\s+/).filter(Boolean);
+    const orConditions: any[] = [
+      { name: { contains: keyword, mode: "insensitive" } },
+      { description: { contains: keyword, mode: "insensitive" } },
+      { address: { contains: keyword, mode: "insensitive" } },
+      { developer: { contains: keyword, mode: "insensitive" } },
+    ];
+    if (keywordParts.length > 1) {
+      orConditions.push({
+        AND: keywordParts.map((p) => ({ name: { contains: p, mode: "insensitive" } })),
+      });
+    }
+    andConditions.push({ OR: orConditions });
+  }
+
+  if (status === "dang-ban") andConditions.push({ isActive: true });
+  if (provinceId) andConditions.push({ provinceCode: provinceId.trim() });
+
+  if (andConditions.length > 0) where.AND = andConditions;
 
   // Get real projects from database
   const projects = await prisma.project.findMany({

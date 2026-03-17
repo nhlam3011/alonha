@@ -788,12 +788,16 @@
   }
 
   .ss-trigger-filter {
-    @apply h-9 px-4 py-1.5 rounded-full border border-[var(--border)] text-sm font-medium shadow-sm shrink-0 max-w-[200px];
+    @apply h-9 px-4 py-1.5 rounded-full border border-gray-300 text-sm font-semibold shadow-sm shrink-0 max-w-[200px];
     background: var(--card);
   }
 
   .ss-trigger-filter:hover {
-    @apply border-[var(--primary)];
+    @apply border-gray-400;
+  }
+
+  .ss-trigger-filter.ss-open {
+    @apply border-[var(--primary)] ring-1 ring-[var(--primary)]/30;
   }
 
   .ss-disabled {
@@ -815,10 +819,11 @@
 
   /* Dropdown Panel */
   .ss-dropdown {
-    @apply absolute left-0 right-0 mt-1 rounded-xl border border-[var(--border)] shadow-xl overflow-hidden z-50;
-    background: var(--card);
+    @apply absolute left-0 right-0 mt-1 rounded-lg border border-gray-200 shadow-lg overflow-hidden z-50;
+    background: white;
     min-width: 220px;
     animation: ss-in 0.15s ease-out;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
   }
 
   @keyframes ss-in {
@@ -835,65 +840,68 @@
 
   /* Search Input */
   .ss-search-wrap {
-    @apply flex items-center gap-2 px-3 py-2.5 border-b border-[var(--border)];
+    @apply flex items-center gap-2 px-3 py-2.5 border-b border-gray-100;
+    background: #fafafa;
   }
 
   .ss-search-icon {
-    @apply w-4 h-4 shrink-0;
-    color: var(--muted-foreground);
+    @apply w-4 h-4 shrink-0 text-gray-400;
   }
 
   .ss-search-input {
     @apply flex-1 bg-transparent text-sm outline-none min-w-0;
-    color: var(--foreground);
+    color: #1f2937;
   }
 
   .ss-search-input::placeholder {
-    color: var(--muted-foreground);
+    color: #9ca3af;
   }
 
   .ss-search-clear {
     @apply w-5 h-5 flex items-center justify-center rounded-full text-xs transition-colors shrink-0;
-    color: var(--muted-foreground);
-    background: var(--muted);
+    color: #6b7280;
+    background: #f3f4f6;
   }
 
   .ss-search-clear:hover {
-    color: var(--foreground);
+    @apply bg-gray-300;
+    color: #374151;
   }
 
   /* Options */
   .ss-options {
     @apply overflow-y-auto;
-    max-height: 220px;
+    max-height: 260px;
+    padding: 4px 0;
   }
 
   .ss-option {
-    @apply w-full flex items-center justify-between px-3 py-2 text-sm text-left transition-colors cursor-pointer;
-    color: var(--foreground);
+    @apply w-full flex items-center justify-between px-4 py-2.5 text-sm text-left transition-colors cursor-pointer font-medium;
+    color: #374151;
   }
 
   .ss-option:hover {
-    background: var(--muted);
+    background: #f3f4f6;
   }
 
   .ss-option-active {
+    @apply bg-blue-50;
     color: var(--primary);
     font-weight: 600;
   }
 
   .ss-option-active:hover {
-    background: rgba(59, 130, 246, 0.08);
+    background: #eff6ff;
   }
 
   .ss-check {
     @apply w-4 h-4 shrink-0;
-    color: var(--primary);
+    color: #ea580c;
   }
 
   .ss-empty {
-    @apply px-3 py-6 text-center text-sm;
-    color: var(--muted-foreground);
+    @apply px-4 py-6 text-center text-sm;
+    color: #9ca3af;
   }
 }
 
