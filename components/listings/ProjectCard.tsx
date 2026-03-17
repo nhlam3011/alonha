@@ -62,24 +62,22 @@ export function ProjectCard({ project, viewMode = "grid" }: Props) {
 
                     {/* Address */}
                     {project.address && (
-                        <p className="text-xs sm:text-sm text-[var(--muted-foreground)] mt-2 flex items-start gap-1.5 line-clamp-1">
-                            <svg className="shrink-0 mt-0.5 text-[var(--primary)]" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
-                                <circle cx="12" cy="10" r="3" />
+                        <p className="text-xs sm:text-sm text-[var(--muted-foreground)] line-clamp-1 mt-2">
+                            <svg className="inline-block mr-1.5 h-4 w-4 text-[var(--primary)] align-middle" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
-                            <span>{project.address}</span>
+                            {project.address}
                         </p>
                     )}
 
                     {/* Developer */}
                     {project.developer && (
-                        <p className="text-xs sm:text-sm text-[var(--muted-foreground)] mt-1.5 flex items-start gap-1.5 line-clamp-1">
-                            <svg className="shrink-0 mt-0.5 text-[var(--primary)]" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M3 21h18" />
-                                <path d="M5 21V7l8-4 8 4v14" />
-                                <path d="M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4" />
+                        <p className="text-xs sm:text-sm text-[var(--muted-foreground)] line-clamp-1 mt-1.5">
+                            <svg className="inline-block mr-1.5 h-4 w-4 text-[var(--primary)] align-middle" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                             </svg>
-                            <span>{project.developer}</span>
+                            {project.developer}
                         </p>
                     )}
                 </div>
@@ -96,7 +94,7 @@ export function ProjectCard({ project, viewMode = "grid" }: Props) {
 
                     {project.totalArea && (
                         <span className="flex items-center gap-1.5 font-medium text-[var(--foreground)] bg-[var(--muted)] px-2.5 py-1 rounded-md">
-                            {project.totalArea.toLocaleString()} m²
+                            {project.totalArea.toLocaleString()} ha
                         </span>
                     )}
                 </div>

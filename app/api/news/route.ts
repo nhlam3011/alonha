@@ -4,27 +4,33 @@ import { prisma } from "@/lib/prisma";
 // RSS feed sources for Vietnamese real estate news
 const RSS_SOURCES = [
     {
+        id: "vietnamplus",
+        name: "VietnamPlus",
+        url: "https://www.vietnamplus.vn/rss/kinhte/batdongsan-372.rss",
+        category: "thi-truong",
+    },
+    {
         id: "vnexpress",
-        name: "VnExpress Bất động sản",
+        name: "VnExpress",
         url: "https://vnexpress.net/rss/bat-dong-san.rss",
         category: "thi-truong",
     },
     {
         id: "cafef",
-        name: "CafeF Bất động sản",
+        name: "CafeF",
         url: "https://cafef.vn/bat-dong-san.rss",
         category: "thi-truong",
     },
     {
-        id: "batdongsanbiz",
-        name: "BatdongsanBiz",
-        url: "https://batdongsanbiz.vn/feed.rss",
+        id: "vnbusiness",
+        name: "VNBusiness",
+        url: "https://vnbusiness.vn/rss/bat-dong-san.rss",
         category: "thi-truong",
     },
 ];
 
 // Auto-crawl interval in minutes (4 hours)
-const AUTO_CRAWL_INTERVAL_MINUTES = 240;
+const AUTO_CRAWL_INTERVAL_MINUTES = 1;
 
 type RSSItem = {
     title: string;
@@ -39,69 +45,79 @@ type RSSItem = {
 };
 
 // Enhanced image extraction with multiple methods
-function extractImages(itemContent: string, description?: string): { mainImage: string | undefined; allImages: string[] } {
+function extractImages(itemContent: string, description?: string, sourceUrl?: string): { mainImage: string | undefined; allImages: string[] } {
     const images: string[] = [];
     let mainImage: string | undefined;
+    const baseUrl = sourceUrl || "https://vietnamplus.vn";
+
+    // Helper to add image with URL resolution
+    const addImage = (url: string) => {
+        if (!url) return;
+        const resolvedUrl = resolveImageUrl(baseUrl, url);
+        if (resolvedUrl && isValidImageUrl(resolvedUrl)) {
+            images.push(resolvedUrl);
+            if (!mainImage) mainImage = resolvedUrl;
+        }
+    };
 
     // Method 1: Extract from media:content
     const mediaContentRegex = /<media:content[^>]+url=["']([^"']+)["'][^>]*>/gi;
     let match;
     while ((match = mediaContentRegex.exec(itemContent)) !== null) {
-        const url = match[1];
-        if (url && isValidImageUrl(url)) {
-            images.push(url);
-            if (!mainImage) mainImage = url;
-        }
+        addImage(match[1]);
     }
 
-    // Method 2: Extract from enclosure
+    // Method 2: Extract from media:thumbnail
+    const mediaThumbRegex = /<media:thumbnail[^>]+url=["']([^"']+)["'][^>]*>/gi;
+    while ((match = mediaThumbRegex.exec(itemContent)) !== null) {
+        addImage(match[1]);
+    }
+
+    // Method 3: Extract from enclosure
     const enclosureRegex = /<enclosure[^>]+url=["']([^"']+)["'][^>]*type=["']image\//gi;
     while ((match = enclosureRegex.exec(itemContent)) !== null) {
-        const url = match[1];
-        if (url && isValidImageUrl(url)) {
-            images.push(url);
-            if (!mainImage) mainImage = url;
-        }
+        addImage(match[1]);
     }
 
-    // Method 3: Extract from description HTML (img tags)
+    // Method 4: Extract from description HTML (img tags)
     const descContent = description || "";
     const imgRegex = /<img[^>]+src=["']([^"']+)["']/gi;
     while ((match = imgRegex.exec(descContent)) !== null) {
-        const url = match[1];
-        if (url && isValidImageUrl(url)) {
-            images.push(url);
-            if (!mainImage) mainImage = url;
-        }
+        addImage(match[1]);
     }
 
-    // Method 4: Extract from description (background-image or data-src)
+    // Method 5: Extract from description (background-image or data-src)
     const dataSrcRegex = /data-src=["']([^"']+)["']|background-image:url\(["']?([^"')]+)["']?\)/gi;
     while ((match = dataSrcRegex.exec(descContent)) !== null) {
-        const url = match[1] || match[2];
-        if (url && isValidImageUrl(url)) {
-            images.push(url);
-            if (!mainImage) mainImage = url;
-        }
+        addImage(match[1] || match[2]);
     }
 
-    // Method 5: Extract og:image from description meta tags
+    // Method 6: Extract og:image from description meta tags
     const ogImageRegex = /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']|<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/gi;
     while ((match = ogImageRegex.exec(descContent)) !== null) {
-        const url = match[1] || match[2];
-        if (url && isValidImageUrl(url)) {
-            images.push(url);
-            if (!mainImage) mainImage = url;
-        }
+        addImage(match[1] || match[2]);
     }
 
-    // Method 6: Extract thumbnail from itunes:image
+    // Method 7: Extract thumbnail from itunes:image
     const itunesImageRegex = /<itunes:image[^>]+href=["']([^"']+)["']/gi;
     while ((match = itunesImageRegex.exec(itemContent)) !== null) {
-        const url = match[1];
-        if (url && isValidImageUrl(url)) {
-            images.push(url);
-            if (!mainImage) mainImage = url;
+        addImage(match[1]);
+    }
+
+    // Method 8: Extract from src attribute in content:encoded
+    const contentEncodedRegex = /<content:encoded>([\s\S]*?)<\/content:encoded>/gi;
+    const contentMatch = contentEncodedRegex.exec(itemContent);
+    if (contentMatch) {
+        const contentHtml = contentMatch[1];
+        // Extract images from content:encoded
+        const contentImgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+        while ((match = contentImgRegex.exec(contentHtml)) !== null) {
+            addImage(match[1]);
+        }
+        // Extract from data-src in content
+        const contentDataSrcRegex = /data-src=["']([^"']+)["']/gi;
+        while ((match = contentDataSrcRegex.exec(contentHtml)) !== null) {
+            addImage(match[1]);
         }
     }
 
@@ -114,15 +130,34 @@ function extractImages(itemContent: string, description?: string): { mainImage: 
 // Validate image URL
 function isValidImageUrl(url: string): boolean {
     if (!url) return false;
-    // Must be http or https
-    if (!url.startsWith("http://") && !url.startsWith("https://")) return false;
+    // Must be http or https or protocol-relative (//)
+    if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("//")) return false;
     // Must have image extension or be from known image CDN
     const validExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif"];
     const hasExtension = validExtensions.some(ext => url.toLowerCase().includes(ext));
-    const isFromCDN = url.includes("Unsplash") || url.includes("cloudfront") || url.includes("akamai") || url.includes("imgproxy");
+    const isFromCDN = url.includes("Unsplash") || url.includes("cloudfront") || url.includes("akamai") || url.includes("imgproxy") || url.includes("vietnamplus") || url.includes("vnecdn");
     // Filter out placeholder/spacer images
     const isNotPlaceholder = !url.includes("spacer") && !url.includes("blank") && !url.includes("1x1");
     return (hasExtension || isFromCDN) && isNotPlaceholder;
+}
+
+// Resolve relative URLs
+function resolveImageUrl(baseUrl: string, imageUrl: string): string {
+    if (!imageUrl) return "";
+    // Already absolute URL
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+        return imageUrl;
+    }
+    // Protocol-relative URL (//domain.com/image.jpg)
+    if (imageUrl.startsWith("//")) {
+        return "https:" + imageUrl;
+    }
+    // Relative URL - resolve against base
+    try {
+        return new URL(imageUrl, baseUrl).href;
+    } catch {
+        return "";
+    }
 }
 
 // Parse RSS XML to extract items
@@ -165,7 +200,7 @@ function parseRSS(xml: string, source: typeof RSS_SOURCES[0]): RSSItem[] {
         description = description.replace(/<[^>]*>/g, "").trim();
 
         // Extract images using enhanced method
-        const { mainImage, allImages } = extractImages(itemContent, description);
+        const { mainImage, allImages } = extractImages(itemContent, description, source.url);
 
         // Extract pubDate
         const pubDateMatch = /<pubDate>([\s\S]*?)<\/pubDate>/i.exec(itemContent);
@@ -217,7 +252,47 @@ function getDefaultImage(index: number): string {
     return images[index % images.length];
 }
 
-// Category labels
+// Auto-categorize article based on content keywords
+function autoCategorize(title: string, description: string): string {
+    const content = `${title} ${description}`.toLowerCase();
+
+    const categoryKeywords: Record<string, string[]> = {
+        "thi-truong": ["thị trường", "giá bán", "giá thuê", "xu hướng", "dự báo", "tăng trưởng", "biến động", "điều chỉnh", "sụt giảm", "hồi phục", "nhu cầu", "cung cầu"],
+        "doanh-nghiep": ["doanh nghiệp", "công ty", "ceo", "lãnh đạo", "đầu tư", "niêm yết", "ipo", "cổ phần", "lợi nhuận", "doanh thu"],
+        "du-an": ["dự án", "quy hoạch", "khu đô thị", "khu dân cư", "khu phức hợp", "cao ốc", "xây dựng", "khởi công", "hoàn thành", "bàn giao", "mở bán"],
+        "tai-chinh": ["tài chính", "ngân hàng", "lãi suất", "vay mua", "thế chấp", "tín dụng", "huy động", "cho vay", "trái phiếu"],
+        "ha-tang": ["hạ tầng", "giao thông", "đường cao tốc", "cầu", "hầm", "sân bay", "cảng", "metro", "bến xe", "nâng cấp", "mở rộng"],
+        "chinh-sach": ["chính sách", "luật", "quy định", "thủ tục", "pháp lý", "giấy phép", "sổ đỏ", "sổ hồng", "thuế", "phí"],
+        "cam-nang": ["cẩm nang", "hướng dẫn", "mua nhà", "bán nhà", "cho thuê", "đầu tư", "kinh nghiệm", "thủ thuật", "mẹo", "lưu ý", "cần biết"],
+        "phong-thuy": ["phong thủy", "hướng nhà", "hướng cửa", "tọa độ", "bài trí", "màu sắc", "ngũ hành", "sinh khí"],
+    };
+
+    const scores: Record<string, number> = {};
+
+    for (const [category, keywords] of Object.entries(categoryKeywords)) {
+        scores[category] = 0;
+        for (const keyword of keywords) {
+            if (content.includes(keyword)) {
+                const titleMatches = title.toLowerCase().includes(keyword) ? 2 : 1;
+                scores[category] += titleMatches;
+            }
+        }
+    }
+
+    let maxScore = 0;
+    let bestCategory = "thi-truong";
+
+    for (const [category, score] of Object.entries(scores)) {
+        if (score > maxScore) {
+            maxScore = score;
+            bestCategory = category;
+        }
+    }
+
+    return maxScore > 0 ? bestCategory : "thi-truong";
+}
+
+// Category labels - matching property listing categories
 function getCategoryLabel(category: string): string {
     const labels: Record<string, string> = {
         "thi-truong": "Thị trường",
@@ -280,6 +355,9 @@ async function crawlAndSaveNews(): Promise<number> {
                             },
                         });
                     } else {
+                        // Auto-categorize article based on content
+                        const autoCategory = autoCategorize(item.title, item.description);
+
                         // Create new article
                         await prisma.news.create({
                             data: {
@@ -291,8 +369,8 @@ async function crawlAndSaveNews(): Promise<number> {
                                 excerpt: item.description,
                                 imageUrl: item.imageUrl,
                                 imageUrls: item.allImages || [],
-                                category: item.category,
-                                categoryLabel: getCategoryLabel(item.category),
+                                category: autoCategory,
+                                categoryLabel: getCategoryLabel(autoCategory),
                                 sourceUrl: item.link,
                                 publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
                                 views: Math.floor(Math.random() * 1000) + 100,

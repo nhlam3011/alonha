@@ -16,6 +16,18 @@ const STATUS_OPTIONS = [
     { value: "dang-cho-thue", label: "Đang cho thuê" },
 ];
 
+// Options cho area filter
+const AREA_PRESETS = [
+    { value: "", label: "Tất cả" },
+    { value: "0-1", label: "< 1 ha" },
+    { value: "1-5", label: "1-5 ha" },
+    { value: "5-10", label: "5-10 ha" },
+    { value: "10-20", label: "10-20 ha" },
+    { value: "20-50", label: "20-50 ha" },
+    { value: "50-100", label: "50-100 ha" },
+    { value: "100-", label: "> 100 ha" },
+];
+
 const SORT_OPTIONS = [
     { value: "newest", label: "Mới nhất" },
     { value: "oldest", label: "Cũ nhất" },
@@ -42,9 +54,13 @@ export function ProjectClientFilters({
     const status = searchParams.get("status") ?? "";
     const sort = searchParams.get("sort") ?? "newest";
     const provinceId = searchParams.get("provinceId") ?? "";
+    const areaMin = searchParams.get("areaMin") ?? "";
+    const areaMax = searchParams.get("areaMax") ?? "";
+    const developer = searchParams.get("developer") ?? "";
 
     const [viewMode, setViewMode] = useState<"grid" | "list">(initialViewMode);
     const [aiLoading, setAiLoading] = useState(false);
+    const [filtersOpen, setFiltersOpen] = useState(false);
 
     const updateFilters = (updates: Record<string, string | null>) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -104,6 +120,11 @@ export function ProjectClientFilters({
     const selectedProvince = provinces.find((p) => p.id === provinceId || p.code === provinceId);
     if (selectedProvince) activeChips.push({ label: selectedProvince.name, onClear: () => updateFilters({ provinceId: null }) });
     if (status) activeChips.push({ label: STATUS_OPTIONS.find((s) => s.value === status)?.label ?? status, onClear: () => updateFilters({ status: null }) });
+    if (areaMin || areaMax) {
+        const areaLabel = areaMin && areaMax ? `${areaMin}-${areaMax} ha` : areaMin ? `> ${areaMin} ha` : `< ${areaMax} ha`;
+        activeChips.push({ label: areaLabel, onClear: () => updateFilters({ areaMin: null, areaMax: null }) });
+    }
+    if (developer) activeChips.push({ label: developer, onClear: () => updateFilters({ developer: null }) });
 
     return (
         <>
@@ -130,38 +151,19 @@ export function ProjectClientFilters({
                         searchPlaceholder="Tìm kiếm dự án bất động sản..."
                     />
 
-                    <UnifiedFilterBar
-                        sortOptions={SORT_OPTIONS}
-                        activeSort={sort}
-                        onSortChange={(val) => updateFilters({ sort: val })}
-                        appendRight={
-                            <button
-                                onClick={() => {
-                                    const newMode = viewMode === "grid" ? "list" : "grid";
-                                    setViewMode(newMode);
-                                    document.cookie = `project_viewMode=${newMode}; path=/; max-age=31536000`;
-                                    router.refresh();
-                                }}
-                                className="md:hidden ml-auto flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)]"
-                            >
-                                {viewMode === "grid" ? (
-                                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
-                                ) : (
-                                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-                                )}
-                            </button>
-                        }
-                    >
+                    <UnifiedFilterBar>
                         <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 w-full">
+                            {/* Trạng thái */}
                             <SearchableSelect
                                 options={STATUS_OPTIONS.map(s => ({ value: s.value, label: s.label }))}
                                 value={status}
                                 onChange={(val) => updateFilters({ status: val })}
                                 placeholder="Trạng thái"
                                 variant="filter"
-                                className="min-w-[120px] !text-xs h-9"
+                                className="min-w-[110px] !text-xs h-9"
                             />
 
+                            {/* Tỉnh/thành */}
                             <SearchableSelect
                                 options={provinces.map(p => ({ value: p.code || p.id, label: p.name }))}
                                 value={provinceId}
@@ -170,8 +172,80 @@ export function ProjectClientFilters({
                                 variant="filter"
                                 className="min-w-[120px] !text-xs h-9"
                             />
+
+                            {/* Sắp xếp */}
+                            <select
+                                value={sort}
+                                onChange={(e) => updateFilters({ sort: e.target.value })}
+                                className="filter-select !shadow-none !border-none bg-transparent hover:!border-none focus:!border-none focus:!ring-0 min-w-[120px]"
+                            >
+                                {SORT_OPTIONS.map((o) => (
+                                    <option key={o.value} value={o.value}>
+                                        {o.label}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {/* Nút Lọc thêm */}
+                            <button
+                                onClick={() => setFiltersOpen((o) => !o)}
+                                className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-9 px-4 text-xs font-medium transition ${filtersOpen || areaMin || areaMax || developer
+                                    ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                                    : "border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)] hover:border-[var(--primary)]/50"
+                                    }`}
+                            >
+                                <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                                Lọc thêm
+                            </button>
                         </div>
                     </UnifiedFilterBar>
+
+                    {/* Panel lọc mở rộng */}
+                    {filtersOpen && (
+                        <div className="border-t border-[var(--border)] py-3 animate-fade-in-up">
+                            <div className="flex flex-wrap items-end gap-4">
+                                {/* Diện tích */}
+                                <div>
+                                    <label className="mb-1.5 block text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Diện tích</label>
+                                    <SearchableSelect
+                                        options={AREA_PRESETS.map(a => ({ value: a.value, label: a.label }))}
+                                        value={areaMin === "" && areaMax === "" ? "" : `${areaMin}-${areaMax}`}
+                                        onChange={(val) => {
+                                            if (val === "") {
+                                                updateFilters({ areaMin: null, areaMax: null });
+                                            } else {
+                                                const [min, max] = val.split("-");
+                                                updateFilters({ areaMin: min || null, areaMax: max || null });
+                                            }
+                                        }}
+                                        placeholder="Diện tích"
+                                        variant="filter"
+                                        className="min-w-[120px] !text-xs h-9"
+                                    />
+                                </div>
+
+                                {/* Chủ đầu tư */}
+                                <div>
+                                    <label className="mb-1.5 block text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Chủ đầu tư</label>
+                                    <input
+                                        type="text"
+                                        value={developer}
+                                        onChange={(e) => updateFilters({ developer: e.target.value || null })}
+                                        placeholder="Tìm chủ đầu tư..."
+                                        className="min-w-[160px] text-xs h-9 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
+                                    />
+                                </div>
+
+                                {/* Nút reset */}
+                                <button
+                                    onClick={resetAll}
+                                    className="mb-0.5 rounded-lg px-4 py-2 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors"
+                                >
+                                    Xoá tất cả
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

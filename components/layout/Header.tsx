@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import React, { useState, useRef, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { ThemeToggle } from "./ThemeToggle";
@@ -20,6 +21,7 @@ function canPostListing(role?: string) {
 }
 
 export function Header() {
+  const pathname = usePathname();
   const { data: session, status } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -95,7 +97,10 @@ export function Header() {
                 <Link
                   key={href}
                   href={href}
-                  className="px-4 py-1.5 text-[15px] font-semibold text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card)] rounded-full transition-all duration-200 whitespace-nowrap"
+                  className={`px-4 py-1.5 text-[15px] font-semibold rounded-full transition-all duration-200 whitespace-nowrap ${pathname === href || pathname.startsWith(href + "/")
+                      ? "bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white shadow-md shadow-[var(--primary)]/25"
+                      : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card)]"
+                    }`}
                 >
                   {label}
                 </Link>
@@ -243,7 +248,10 @@ export function Header() {
                   key={href}
                   href={href}
                   onClick={() => setMobileOpen(false)}
-                  className="flex items-center px-4 py-3 text-[15px] font-semibold text-[var(--foreground)] rounded-xl hover:bg-[var(--muted)] transition-colors"
+                  className={`flex items-center px-4 py-3 text-[15px] font-semibold rounded-xl transition-colors ${pathname === href || pathname.startsWith(href + "/")
+                      ? "bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white shadow-md shadow-[var(--primary)]/20"
+                      : "text-[var(--foreground)] hover:bg-[var(--muted)]"
+                    }`}
                 >
                   {label}
                 </Link>

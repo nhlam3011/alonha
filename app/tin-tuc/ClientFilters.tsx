@@ -5,6 +5,8 @@ import { useState } from "react";
 
 const NEWS_CATEGORIES = [
     { value: "", label: "Tất cả" },
+    // Categories matching property listings
+    // News categories
     { value: "thi-truong", label: "Thị trường" },
     { value: "doanh-nghiep", label: "Doanh nghiệp" },
     { value: "du-an", label: "Dự án" },
@@ -12,6 +14,7 @@ const NEWS_CATEGORIES = [
     { value: "ha-tang", label: "Hạ tầng" },
     { value: "chinh-sach", label: "Chính sách" },
     { value: "cam-nang", label: "Cẩm nang" },
+    { value: "phong-thuy", label: "Phong thủy" },
 ];
 
 const SORT_OPTIONS = [

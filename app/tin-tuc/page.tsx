@@ -10,8 +10,10 @@ export const metadata: Metadata = {
 
 // --- RSS Logic ---
 const RSS_SOURCES = [
+  { id: "vietnamplus", name: "VietnamPlus", url: "https://www.vietnamplus.vn/rss/kinhte/batdongsan-372.rss", category: "thi-truong" },
   { id: "vnexpress", name: "VnExpress", url: "https://vnexpress.net/rss/bat-dong-san.rss", category: "thi-truong" },
   { id: "cafef", name: "CafeF", url: "https://cafef.vn/bat-dong-san.rss", category: "thi-truong" },
+  { id: "vnbusiness", name: "VNBusiness", url: "https://vnbusiness.vn/rss/bat-dong-san.rss", category: "thi-truong" },
 ];
 
 type RSSItem = { title: string; link: string; description: string; pubDate: string; source: string; sourceId: string; category: string; imageUrl?: string; };
@@ -56,7 +58,13 @@ function generateId(link: string) {
   return Math.abs(hash).toString(36);
 }
 function getCategoryLabel(category: string) {
-  const labels: Record<string, string> = { "thi-truong": "Thị trường", "chinh-sach": "Chính sách", "cam-nang": "Cẩm nang", "du-an": "Dự án", "phong-thuy": "Phong thủy" };
+  const labels: Record<string, string> = {
+    "thi-truong": "Thị trường",
+    "chinh-sach": "Chính sách",
+    "cam-nang": "Cẩm nang",
+    "du-an": "Dự án",
+    "phong-thuy": "Phong thủy",
+  };
   return labels[category] || "Tin tức";
 }
 const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&q=80";
