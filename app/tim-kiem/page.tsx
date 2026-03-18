@@ -210,49 +210,79 @@ function SearchContent() {
     setAiExplanation("");
     setFlyToLocation(null);
     try {
-      const res = await fetch("/api/ai/search-intent", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: q }),
+      // Use AI search-parse endpoint for natural language understanding
+      const res = await fetch("/api/ai/search-parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: q, mode: "listing" }),
       });
       const data = await res.json().catch(() => ({}));
-      const filters = data?.filters || {};
+
+      // Build params from AI parsed results
       const params = new URLSearchParams();
+      params.set("loaiHinh", data.loaiHinh || "sale");
 
-      let baseKeyword = typeof filters.keyword === "string" ? filters.keyword.trim() : "";
-      if (filters.district) {
-        const nd = normalizeText(filters.district);
-        if (!normalizeText(baseKeyword).includes(nd)) baseKeyword = `${baseKeyword} ${filters.district}`.trim();
+      if (data.keyword) {
+        params.set("keyword", data.keyword);
       }
-      if (baseKeyword) params.set("keyword", baseKeyword);
-      if (filters.loaiHinh) params.set("loaiHinh", filters.loaiHinh);
-      if (filters.category) params.set("category", filters.category);
-      if (filters.priceMin) params.set("priceMin", String(filters.priceMin));
-      if (filters.priceMax) params.set("priceMax", String(filters.priceMax));
-      if (filters.areaMin) params.set("areaMin", String(filters.areaMin));
-      if (filters.areaMax) params.set("areaMax", String(filters.areaMax));
-      if (filters.bedrooms) params.set("bedrooms", String(filters.bedrooms));
-
-      if (filters.province) {
-        const np = normalizeText(filters.province);
-        const match = provinces.find(p => { const n = normalizeText(p.name); return n.includes(np) || np.includes(n); });
-        if (match) params.set("provinceId", match.id);
-        else if (!normalizeText(baseKeyword).includes(np)) params.set("keyword", `${baseKeyword} ${filters.province}`.trim());
+      if (data.category) {
+        params.set("category", data.category);
       }
-      if (data.explanation) setAiExplanation(data.explanation);
+      if (data.bedrooms != null) {
+        params.set("bedrooms", String(data.bedrooms));
+      }
+      if (data.priceMin != null) {
+        params.set("priceMin", String(data.priceMin));
+      }
+      if (data.priceMax != null) {
+        params.set("priceMax", String(data.priceMax));
+      }
+      if (data.areaMin != null) {
+        params.set("areaMin", String(data.areaMin));
+      }
+      if (data.areaMax != null) {
+        params.set("areaMax", String(data.areaMax));
+      }
 
+      // Handle province - map provinceName to provinceId
+      if (data.provinceName) {
+        const matched = provinces.find(
+          (p) =>
+            p.name.toLowerCase().includes(data.provinceName.toLowerCase()) ||
+            data.provinceName.toLowerCase().includes(p.name.toLowerCase())
+        );
+        if (matched) {
+          params.set("provinceId", matched.code || matched.id);
+        }
+      }
+
+      // Try to get location for map fly-to
       const locationParts: string[] = [];
-      if (filters.district) locationParts.push(filters.district);
-      if (filters.province) locationParts.push(filters.province);
+      if (data.keyword && data.provinceName) {
+        locationParts.push(data.keyword, data.provinceName, "Vietnam");
+      } else if (data.provinceName) {
+        locationParts.push(data.provinceName, "Vietnam");
+      }
+
       if (locationParts.length > 0) {
-        locationParts.push("Vietnam");
         try {
-          const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=vi&q=${encodeURIComponent(locationParts.join(", "))}`, { headers: { "User-Agent": "alonha-app" } });
+          const geoRes = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=vi&q=${encodeURIComponent(
+              locationParts.join(", ")
+            )}`,
+            { headers: { "User-Agent": "alonha-app" } }
+          );
           const geoData = await geoRes.json();
           if (Array.isArray(geoData) && geoData.length > 0) {
-            setFlyToLocation({ lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon), zoom: filters.district ? 14 : 11 });
+            setFlyToLocation({
+              lat: parseFloat(geoData[0].lat),
+              lng: parseFloat(geoData[0].lon),
+              zoom: 14,
+            });
           }
         } catch { }
       }
+
       router.push(`/tim-kiem?${params.toString()}`);
     } catch { } finally { setAiLoading(false); }
   };
