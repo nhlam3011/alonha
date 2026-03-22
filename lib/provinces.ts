@@ -75,30 +75,40 @@ export function normalizeVietnamese(text: string): string {
 // Fetch helpers
 // ---------------------------------------------------------------------------
 
+import FALLBACK_PROVINCES from "./provinces_fallback.json";
+
 /**
  * Lấy danh sách tỉnh/thành phố từ API v2 (có cache 1 giờ).
  */
 export async function getProvinces(): Promise<V2Province[]> {
   if (isFresh(provincesCache)) return provincesCache!.data;
 
-  const res = await fetch(V2_PROVINCES_URL, {
-    headers: FETCH_HEADERS,
-    next: { revalidate: 3600 },
-  });
+  try {
+    const res = await fetch(V2_PROVINCES_URL, {
+      headers: FETCH_HEADERS,
+      next: { revalidate: 3600 },
+      // Thêm timeout ngắn hơn để không treo build quá lâu nếu network lỗi
+      signal: AbortSignal.timeout(5000), 
+    });
 
-  if (!res.ok) {
-    // Nếu đã có cache cũ thì trả về, dù hết hạn còn hơn lỗi
-    const stale = provincesCache;
-    if (stale) return stale.data;
-    throw new Error(`Failed to fetch provinces: ${res.status}`);
+    if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
+    const data: V2Province[] = await res.json();
+    provincesCache = { data, ts: Date.now() };
+    aliasMapCache = null;
+    return data;
+  } catch (error) {
+    console.warn("Using fallback provinces due to fetch error:", error);
+    // Trả về dữ liệu fallback thay vì crash ứng dụng
+    const data = FALLBACK_PROVINCES as V2Province[];
+    provincesCache = { data, ts: Date.now() };
+    return data;
   }
-
-  const data: V2Province[] = await res.json();
-  provincesCache = { data, ts: Date.now() };
-  // Reset alias map vì dữ liệu gốc đã thay đổi
-  aliasMapCache = null;
-  return data;
 }
+
+import FALLBACK_WARDS from "./wards_fallback.json";
 
 /**
  * Lấy danh sách phường/xã từ API v2 (có cache 1 giờ).
@@ -106,18 +116,24 @@ export async function getProvinces(): Promise<V2Province[]> {
  */
 export async function getWards(provinceCode?: string | number | null): Promise<V2Ward[]> {
   if (!isFresh(wardsCache)) {
-    const res = await fetch(V2_WARDS_URL, {
-      headers: FETCH_HEADERS,
-      next: { revalidate: 3600 },
-    });
+    try {
+      const res = await fetch(V2_WARDS_URL, {
+        headers: FETCH_HEADERS,
+        next: { revalidate: 3600 },
+        signal: AbortSignal.timeout(5000),
+      });
 
-    if (!res.ok) {
-      if (wardsCache) return filterWards(wardsCache.data, provinceCode);
-      throw new Error(`Failed to fetch wards: ${res.status}`);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const data: V2Ward[] = await res.json();
+      wardsCache = { data, ts: Date.now() };
+    } catch (error) {
+      console.warn("Using fallback wards due to fetch error:", error);
+      const data = FALLBACK_WARDS as V2Ward[];
+      wardsCache = { data, ts: Date.now() };
     }
-
-    const data: V2Ward[] = await res.json();
-    wardsCache = { data, ts: Date.now() };
   }
 
   return filterWards(wardsCache!.data, provinceCode);
