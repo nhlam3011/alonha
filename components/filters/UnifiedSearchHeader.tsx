@@ -94,35 +94,41 @@ export function UnifiedSearchHeader({
             </div>
 
             {/* ─── Right: Search & View Modes ─── */}
-            <div className="flex flex-1 items-center justify-end gap-3 min-w-0 md:max-w-md lg:max-w-max">
+            <div className="flex flex-1 items-center justify-end gap-3 min-w-0 md:max-w-xl lg:max-w-max">
                 {onSearch && (
-                    <div className="relative flex-1 min-w-0 md:max-w-md lg:max-w-lg">
+                    <div className="flex h-11 flex-1 items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--card)] px-2 transition-all focus-within:border-[var(--primary)] focus-within:ring-2 focus-within:ring-[var(--primary)]/20 md:max-w-xl lg:max-w-lg shadow-sm">
+                        <div className="pl-2 pr-1 text-[var(--muted-foreground)] shrink-0">
+                            <svg
+                                className="h-5 w-5"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                            >
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="m21 21-4.3-4.3" />
+                            </svg>
+                        </div>
                         <input
                             type="text"
                             placeholder={searchPlaceholder}
                             defaultValue={keyword}
                             onKeyDown={handleKeyDown}
-                            className="h-10 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] pl-10 pr-16 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20"
+                            className="h-full min-w-0 flex-1 bg-transparent border-none text-base sm:text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted-foreground)]/60 font-medium"
                         />
-                        <svg
-                            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--muted-foreground)]"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                        >
-                            <circle cx="11" cy="11" r="8" />
-                            <path d="m21 21-4.3-4.3" />
-                        </svg>
                         <button
                             disabled={aiLoading}
                             onClick={() => {
                                 const input = document.querySelector('input[placeholder="' + searchPlaceholder + '"]') as HTMLInputElement;
                                 if (input) onSearch(input.value);
                             }}
-                            className="absolute right-1.5 top-1/2 -translate-y-1/2 h-7 rounded-lg bg-[var(--primary)] px-3 text-xs font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+                            className="h-8 shrink-0 rounded-xl bg-[var(--primary)] px-4 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50 flex items-center justify-center min-w-[60px] shadow-sm shadow-[var(--primary)]/20"
                         >
-                            {aiLoading ? "..." : "Tìm"}
+                            {aiLoading ? (
+                                <span className="h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
+                            ) : (
+                                "Tìm"
+                            )}
                         </button>
                     </div>
                 )}

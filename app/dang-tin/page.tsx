@@ -321,13 +321,28 @@ export default function CreateListingPage() {
         try {
             const newUrls: string[] = [];
             for (const file of Array.from(e.target.files)) {
+                // Check size (max 10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    setNotice({ type: 'error', message: `File ${file.name} quá lớn (tối đa 10MB)` });
+                    continue;
+                }
+
                 const fd = new FormData(); fd.append("file", file);
                 const res = await fetch("/api/uploads", { method: "POST", body: fd });
+                
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({}));
+                    throw new Error(errorData.error || `Lỗi server (${res.status})`);
+                }
+
                 const d = await res.json();
                 if (d.url) newUrls.push(d.url);
             }
             if (newUrls.length) setForm(f => ({ ...f, imageUrls: [...f.imageUrls, ...newUrls].slice(0, 10) }));
-        } catch { setNotice({ type: 'error', message: "Lỗi tải ảnh" }); }
+        } catch (err: any) { 
+            console.error("Upload error:", err);
+            setNotice({ type: 'error', message: err.message || "Lỗi tải ảnh" }); 
+        }
         finally { setUploading(false); e.target.value = ""; }
     };
 
