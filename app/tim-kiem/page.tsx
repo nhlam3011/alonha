@@ -353,10 +353,6 @@ function SearchContent() {
             loading={loading}
             unitLabel="tin đăng"
             viewMode={viewMode === "split" ? "list" : viewMode} // Mapping view mode for header
-            onViewChange={(mode) => {
-              if (mode === "grid" || mode === "list") setViewMode(isMobile ? "list" : "split");
-              else if (mode as string === "map") setViewMode("map");
-            }}
             showMapButton={false}
             keyword={displayQuery}
             onSearch={handleAiSearchSubmit}

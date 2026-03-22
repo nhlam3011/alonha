@@ -37,6 +37,28 @@ export async function POST(req: Request) {
       },
     });
 
+    // Nếu là user đã đăng nhập, tạo cuộc hội thoại và tin nhắn đầu tiên
+    if (customerId && listing.ownerId && customerId !== listing.ownerId) {
+      const pair = [customerId, listing.ownerId].sort();
+      let conversation = await prisma.conversation.findFirst({
+        where: { user1Id: pair[0], user2Id: pair[1] },
+      });
+
+      if (!conversation) {
+        conversation = await prisma.conversation.create({
+          data: { user1Id: pair[0], user2Id: pair[1] },
+        });
+      }
+
+      await prisma.chatMessage.create({
+        data: {
+          conversationId: conversation.id,
+          senderId: customerId,
+          content: message ? `[Từ tin đăng: ${listingId}] ${message}` : `Tôi quan tâm đến tin đăng: ${listingId}. Vui lòng tư vấn giúp tôi.`,
+        },
+      });
+    }
+
     // Gửi thông báo cho môi giới
     await notifyNewLead(lead.id, name, listing.id, listing.ownerId);
 

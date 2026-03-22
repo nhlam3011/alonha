@@ -21,6 +21,7 @@ export async function GET() {
       source: true,
       isRead: true,
       createdAt: true,
+      customerId: true,
       listing: { select: { title: true, slug: true } },
     },
   });
@@ -36,6 +37,7 @@ export async function GET() {
     createdAt: l.createdAt.toISOString(),
     listingTitle: l.listing?.title,
     listingSlug: l.listing?.slug,
+    customerId: l.customerId,
   }));
 
   return NextResponse.json({ data });
@@ -95,6 +97,7 @@ export async function POST(req: Request) {
       createdAt: lead.createdAt.toISOString(),
       listingTitle: listing.title,
       listingSlug: listing.slug,
+      customerId: lead.customerId,
     },
   });
 }

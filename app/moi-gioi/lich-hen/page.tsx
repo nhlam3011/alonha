@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 
 type Item = {
   id: string; listingTitle?: string; listingSlug?: string;
-  customerName: string; customerPhone: string; scheduledAt: string;
+  customerName: string; customerPhone: string; userId?: string | null; scheduledAt: string;
   status: string; note: string | null;
 };
 
@@ -120,6 +120,11 @@ export default function MoiGioiLichHenPage() {
                 <div className="flex items-center gap-2 text-sm">
                   <span className="font-medium text-[var(--foreground)]">{a.customerName}</span>
                   <a href={`tel:${a.customerPhone}`} className="text-blue-600 text-xs">{a.customerPhone}</a>
+                  {a.userId && (
+                    <Link href={`/moi-gioi/tin-nhan?userId=${a.userId}`} className="ml-auto text-blue-600 hover:text-blue-800" title="Nhắn tin">
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+                    </Link>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   {a.status === "PENDING" && <button disabled={savingId === a.id} onClick={() => updateStatus(a.id, "CONFIRMED")} className="btn btn-primary btn-sm flex-1">Xác nhận</button>}
@@ -165,6 +170,15 @@ export default function MoiGioiLichHenPage() {
                       </td>
                       <td className="text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {a.userId && (
+                            <Link
+                              href={`/moi-gioi/tin-nhan?userId=${a.userId}`}
+                              className="btn btn-outline btn-sm p-2"
+                              title="Nhắn tin cho khách"
+                            >
+                              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+                            </Link>
+                          )}
                           {a.status === "PENDING" && <button disabled={savingId === a.id} onClick={() => updateStatus(a.id, "CONFIRMED")} className="btn btn-primary btn-sm">Xác nhận</button>}
                           {(a.status === "PENDING" || a.status === "CONFIRMED") && <button disabled={savingId === a.id} onClick={() => updateStatus(a.id, "COMPLETED")} className="btn btn-outline btn-sm">Hoàn thành</button>}
                           {a.status !== "CANCELLED" && a.status !== "COMPLETED" && <button disabled={savingId === a.id} onClick={() => updateStatus(a.id, "CANCELLED")} className="btn btn-outline btn-sm text-rose-600 border-rose-200 hover:bg-rose-50">Hủy</button>}

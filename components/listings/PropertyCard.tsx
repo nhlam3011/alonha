@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { CompareButton } from "@/components/listings/CompareButton";
+import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 
 export type ListingCardData = {
   id: string;
@@ -118,7 +119,7 @@ export function PropertyCard({ listing, viewMode = "grid", onHover, onHoverEnd }
           href={href}
           className="relative shrink-0 overflow-hidden bg-[var(--muted)] aspect-square w-28 sm:w-[132px]"
         >
-          <img
+          <ImageWithFallback
             src={img}
             alt={listing.title}
             className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
@@ -198,7 +199,7 @@ export function PropertyCard({ listing, viewMode = "grid", onHover, onHoverEnd }
     >
       {/* Image Container */}
       <Link href={href} className="relative aspect-[4/3] shrink-0 overflow-hidden bg-[var(--muted)]">
-        <img
+        <ImageWithFallback
           src={img}
           alt={listing.title}
           className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"

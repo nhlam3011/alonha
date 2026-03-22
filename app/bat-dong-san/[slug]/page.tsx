@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { PropertyCard } from "@/components/listings/PropertyCard";
 import { toListingCard } from "@/lib/listings";
 import { PhoneContact, ActionButtons, ContactSidebar, AIFeatures } from "./ClientComponents";
+import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 
 const PLACEHOLDER_IMG = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=80";
 
@@ -156,7 +157,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               <div className="relative col-span-4 row-span-2 min-h-[240px] sm:col-span-2 sm:row-span-2 sm:aspect-auto sm:h-full group">
                 <div className="relative aspect-[4/3] h-full min-h-[240px] sm:absolute sm:inset-0 overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <ImageWithFallback
                     src={images[0]?.url ?? PLACEHOLDER_IMG}
                     alt={listing.title}
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -172,7 +173,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="relative aspect-[4/3] hidden sm:block overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <ImageWithFallback
                     src={images[i]?.url ?? PLACEHOLDER_IMG}
                     alt=""
                     className="h-full w-full object-cover transition-transform duration-700 hover:scale-110 cursor-pointer"
@@ -285,8 +286,12 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] text-white overflow-hidden ring-2 ring-[var(--border)] shadow-md">
                   {listing.owner?.avatar ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={listing.owner.avatar} alt={listing.owner?.name || listing.contactName} className="h-full w-full object-cover" />
+                    <ImageWithFallback
+                      src={listing.owner.avatar}
+                      alt={listing.owner?.name || listing.contactName}
+                      className="h-full w-full object-cover"
+                      fallbackSrc={`https://ui-avatars.com/api/?name=${encodeURIComponent(listing.owner?.name || listing.contactName)}&background=random`}
+                    />
                   ) : (
                     <span className="text-lg font-semibold">{(listing.owner?.name || listing.contactName).charAt(0).toUpperCase()}</span>
                   )}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 
 export type ProjectCardData = {
     id: string;
@@ -36,7 +37,7 @@ export function ProjectCard({ project, viewMode = "grid" }: Props) {
                 className={`relative overflow-hidden bg-[var(--muted)] ${viewMode === "list" ? "w-32 sm:w-48 shrink-0 aspect-auto" : "aspect-video"
                     }`}
             >
-                <img
+                <ImageWithFallback
                     src={img}
                     alt={project.name}
                     className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"

@@ -52,16 +52,23 @@ Phân tích câu sau và trả về JSON. Chỉ trả về JSON hợp lệ, khô
 
 Câu: "${query}"
 
-Quy tắc:
+Quy tắc trích xuất Giá (priceMin, priceMax):
+1. Nếu người dùng nhập "dưới X": priceMax = X, priceMin = null.
+2. Nếu người dùng nhập "trên X" hoặc "từ X": priceMin = X, priceMax = null.
+3. Nếu người dùng nhập "khoảng X", "tầm X", "loanh quanh X" hoặc chỉ nhắc đến một mức giá X duy nhất không kèm từ so sánh:
+   Hãy tự động tạo một khoảng giá linh hoạt (±1 tỷ% giá trị X) để kết quả đa dạng hơn.
+   Ví dụ: "khoảng 5 tỷ" hoặc "5 tỷ" -> priceMin: 4000000000, priceMax: 6000000000.
+4. "priceMin", "priceMax" phải là số nguyên (VNĐ).
+5. Nếu người dùng nhập "X tỷ X triệu" (ví dụ: 5 tỷ 200 triệu), thì priceMin = X-1 tỷ , priceMax = X+1 tỷ.
+
+Quy tắc khác:
 - "loaiHinh": "sale" (mua bán) hoặc "rent" (cho thuê). null nếu không rõ.
-- "category": một trong các giá trị sau (hoặc null nếu không rõ):
-  "can-ho-chung-cu" | "nha-rieng" | "nha-mat-phong" | "dat-nen" | "kho-nha-xuong" | "bds-khac"
-  Lưu ý: "căn hộ", "chung cư" → "can-ho-chung-cu"; "nhà riêng", "nhà phố" → "nha-rieng"; "đất nền" → "dat-nen"
-- "provinceName": Tên tỉnh/thành phố đầy đủ tiếng Việt có dấu (ví dụ "Hà Nội", "TP. Hồ Chí Minh"), hoặc null.
+- "category": một trong các giá trị sau: "can-ho-chung-cu" | "nha-rieng" | "nha-mat-phong" | "dat-nen" | "kho-nha-xuong" | "biet-thu" | "bds-khac". null nếu không rõ.
+  Lưu ý: "căn hộ", "chung cư" → "can-ho-chung-cu"; "nhà phố", "nhà mặt phố" → "nha-mat-phong"; "đất nền" → "dat-nen"; "biệt thự" → "biet-thu".
+- "provinceName": Tên tỉnh/thành phố đầy đủ tiếng Việt có dấu, hoặc null.
 - "bedrooms": số phòng ngủ (số nguyên), hoặc null.
-- "priceMin", "priceMax": giá bằng VNĐ (số nguyên). Ví dụ: "dưới 3 tỷ" → priceMax: 3000000000. null nếu không rõ.
 - "areaMin", "areaMax": diện tích m² (số nguyên), hoặc null.
-- "keyword": Phần từ khóa còn lại sau khi đã trích xuất các thông tin trên (tên tòa nhà, khu vực, dự án...). Nếu không còn gì rõ ràng thì để "".
+- "keyword": Phần từ khóa còn lại sau khi đã trích xuất các thông tin trên. Nếu không còn gì rõ ràng thì để "".
 
 JSON Template:
 {

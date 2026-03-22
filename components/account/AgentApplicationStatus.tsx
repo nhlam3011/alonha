@@ -32,36 +32,36 @@ const statusConfig: Record<string, {
 }> = {
     PENDING: {
         label: "Đang chờ duyệt",
-        color: "text-amber-600 dark:text-amber-400",
-        bgGradient: "from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30",
+        color: "text-amber-600 dark:text-amber-400 font-bold",
+        bgGradient: "from-amber-500/10 to-orange-500/10 dark:from-amber-400/10 dark:to-orange-400/10",
         icon: "⏳",
         description: "Hồ sơ của bạn đang được xem xét"
     },
     REVIEWING: {
         label: "Đang xem xét",
-        color: "text-blue-600 dark:text-blue-400",
-        bgGradient: "from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30",
+        color: "text-blue-600 dark:text-blue-400 font-bold",
+        bgGradient: "from-blue-500/10 to-indigo-500/10 dark:from-blue-400/10 dark:to-indigo-400/10",
         icon: "🔍",
         description: "Quản trị viên đang xem xét hồ sơ"
     },
     INTERVIEW: {
         label: "Hẹn phỏng vấn",
-        color: "text-indigo-600 dark:text-indigo-400",
-        bgGradient: "from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30",
+        color: "text-indigo-600 dark:text-indigo-400 font-bold",
+        bgGradient: "from-indigo-500/10 to-purple-500/10 dark:from-indigo-400/10 dark:to-purple-400/10",
         icon: "📅",
         description: "Vui lòng đến địa điểm phỏng vấn đúng hẹn"
     },
     APPROVED: {
         label: "Đã duyệt",
-        color: "text-emerald-600 dark:text-emerald-400",
-        bgGradient: "from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30",
+        color: "text-emerald-600 dark:text-emerald-400 font-bold",
+        bgGradient: "from-emerald-500/10 to-teal-500/10 dark:from-emerald-400/10 dark:to-teal-400/10",
         icon: "✅",
         description: "Chúc mừng! Bạn đã trở thành môi giới"
     },
     REJECTED: {
         label: "Từ chối",
-        color: "text-red-600 dark:text-red-400",
-        bgGradient: "from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/30",
+        color: "text-red-600 dark:text-red-400 font-bold",
+        bgGradient: "from-red-500/10 to-rose-500/10 dark:from-red-400/10 dark:to-rose-400/10",
         icon: "❌",
         description: "Hồ sơ không được chấp nhận. Bạn có thể đăng ký lại."
     },

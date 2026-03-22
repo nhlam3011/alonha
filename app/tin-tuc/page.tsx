@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { NewsClientFilters, NewsPagination } from "./ClientFilters";
+import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 
 export const metadata: Metadata = {
   title: "Tin tức Bất động sản | AloNha",
@@ -191,7 +192,7 @@ function ArticleCard({
     <>
       <div className={`relative overflow-hidden bg-[var(--muted)] shrink-0 ${isFeatured ? "h-64 sm:h-80" : isListMode ? "w-40 h-full min-h-[120px] md:w-56 md:min-h-[140px]" : "aspect-video"}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <ImageWithFallback
           src={article.imageUrl || DEFAULT_IMAGE}
           alt={article.title}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

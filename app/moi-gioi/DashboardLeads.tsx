@@ -14,6 +14,7 @@ type LeadRow = {
     createdAt: string;
     listingTitle?: string;
     listingSlug?: string;
+    customerId?: string | null;
 };
 
 type ListingOption = {
@@ -220,6 +221,15 @@ export function DashboardLeads({ initialLeads, listings }: { initialLeads: LeadR
                                             >
                                                 <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                                             </a>
+                                            {l.customerId && (
+                                                <Link
+                                                    href={`/moi-gioi/tin-nhan?userId=${l.customerId}`}
+                                                    className="flex items-center justify-center h-7 w-7 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
+                                                    title="Nhắn tin"
+                                                >
+                                                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+                                                </Link>
+                                            )}
                                             <button
                                                 onClick={() => toggleLeadRead(l)}
                                                 className={`text-[10px] font-medium px-2 py-1.5 rounded-lg border transition-colors ${l.isRead ? 'border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--muted)]' : 'border-blue-200 bg-white text-blue-600 hover:bg-blue-50'}`}

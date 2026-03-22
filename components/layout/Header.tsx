@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import React, { useState, useRef, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { ThemeToggle } from "./ThemeToggle";
+import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 
 const navLinks = [
   { href: "/bat-dong-san", label: "Bất động sản" },
@@ -141,7 +142,12 @@ export function Header() {
                   >
                     <div className="w-7 h-7 lg:w-8 lg:h-8 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] text-white flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden ring-2 ring-[var(--border)]">
                       {session.user.image ? (
-                        <img src={session.user.image} alt={session.user.name ?? ""} className="w-full h-full object-cover" />
+                        <ImageWithFallback
+                          src={session.user.image}
+                          alt={session.user.name ?? ""}
+                          className="w-full h-full object-cover"
+                          fallbackSrc={`https://ui-avatars.com/api/?name=${encodeURIComponent(session.user.name ?? "U")}&background=random`}
+                        />
                       ) : (
                         session.user.name?.[0]?.toUpperCase() ?? "U"
                       )}
@@ -160,7 +166,12 @@ export function Header() {
                       <div className="flex items-center gap-3 px-4 py-3 mx-2 mb-1 rounded-xl bg-gradient-to-r from-[var(--primary)]/5 to-[var(--secondary)]/5 border border-[var(--border)]/50">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] text-white overflow-hidden ring-2 ring-[var(--border)]">
                           {session.user.image ? (
-                            <img src={session.user.image} alt={session.user.name ?? ""} className="h-full w-full object-cover" />
+                            <ImageWithFallback
+                              src={session.user.image}
+                              alt={session.user.name ?? ""}
+                              className="h-full w-full object-cover"
+                              fallbackSrc={`https://ui-avatars.com/api/?name=${encodeURIComponent(session.user.name ?? "U")}&background=random`}
+                            />
                           ) : (
                             <span className="text-sm font-semibold">{session.user.name?.[0]?.toUpperCase() ?? "U"}</span>
                           )}

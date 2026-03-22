@@ -57,8 +57,6 @@ model User {
   listings             Listing[]                 @relation("ListingOwner")
   notifications        Notification[]
   otpCodes             OtpCode[]
-  reports              Report[]                  @relation("ReportReporter")
-  savedSearches        SavedSearch[]
   sessions             Session[]
   userBehaviors        UserBehavior[]
   notificationSettings UserNotificationSettings?
@@ -176,8 +174,6 @@ model Listing {
   project         Project?             @relation(fields: [projectId], references: [id])
   images          ListingImage[]
   listingServices ListingService[]
-  reports         Report[]
-  savedIn         SavedSearchListing[]
   appointments    ViewingAppointment[]
 }
 
@@ -202,30 +198,6 @@ model Favorite {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, listingId])
-}
-
-model SavedSearch {
-  id        String               @id @default(cuid())
-  userId    String
-  name      String?
-  criteria  Json
-  notify    Boolean              @default(true)
-  createdAt DateTime             @default(now())
-  updatedAt DateTime             @updatedAt
-  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  listings  SavedSearchListing[]
-}
-
-model SavedSearchListing {
-  id            String      @id @default(cuid())
-  savedSearchId String
-  listingId     String
-  notifiedAt    DateTime?
-  createdAt     DateTime    @default(now())
-  listing       Listing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  savedSearch   SavedSearch @relation(fields: [savedSearchId], references: [id], onDelete: Cascade)
-
-  @@unique([savedSearchId, listingId])
 }
 
 model Conversation {
@@ -358,64 +330,11 @@ model Lead {
   listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
 }
 
-model Report {
-  id         String       @id @default(cuid())
-  listingId  String
-  reporterId String
-  reason     ReportReason
-  note       String?
-  status     ReportStatus @default(PENDING)
-  reviewedBy String?
-  reviewedAt DateTime?
-  createdAt  DateTime     @default(now())
-  listing    Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  reporter   User         @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
-}
-
-model Content {
-  id              String    @id @default(cuid())
-  slug            String    @unique
-  title           String
-  excerpt         String?
-  body            String?
-  type            String
-  imageUrl        String?
-  isPublished     Boolean   @default(false)
-  publishedAt     DateTime?
-  metaTitle       String?
-  metaDescription String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-}
-
-model Banner {
-  id        String    @id @default(cuid())
-  title     String?
-  imageUrl  String
-  linkUrl   String?
-  position  String
-  sortOrder Int       @default(0)
-  isActive  Boolean   @default(true)
-  startAt   DateTime?
-  endAt     DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-}
-
 model SystemConfig {
   id    String  @id @default(cuid())
   key   String  @unique
   value String?
   type  String  @default("string")
-}
-
-model ModerationLog {
-  id        String   @id @default(cuid())
-  listingId String
-  action    String
-  reason    String?
-  adminId   String?
-  createdAt DateTime @default(now())
 }
 
 model UserBehavior {
@@ -494,8 +413,8 @@ model News {
   category      String
   categoryLabel String?
   author        String?
-  sourceUrl     String
   publishedAt   DateTime?
+  sourceUrl     String
   views         Int       @default(0)
   isFeatured    Boolean   @default(false)
   isActive      Boolean   @default(true)
@@ -559,21 +478,6 @@ enum AppointmentStatus {
   CONFIRMED
   COMPLETED
   CANCELLED
-}
-
-enum ReportStatus {
-  PENDING
-  REVIEWED
-  RESOLVED
-  DISMISSED
-}
-
-enum ReportReason {
-  SPAM
-  FRAUD
-  DUPLICATE
-  INAPPROPRIATE
-  OTHER
 }
 
 enum AgentApplicationStatus {

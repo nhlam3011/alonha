@@ -5,6 +5,7 @@ import { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { PropertyCard } from "@/components/listings/PropertyCard";
 import { toListingCard } from "@/lib/listings";
+import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 
 const DEFAULT_PROJECT_IMAGE = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&q=80";
 
@@ -103,7 +104,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             <div className="mb-8">
                 <div className="relative aspect-video rounded-2xl overflow-hidden bg-[var(--muted)]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <ImageWithFallback
                         src={project.imageUrl || DEFAULT_PROJECT_IMAGE}
                         alt={project.name}
                         className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"

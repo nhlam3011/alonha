@@ -29,9 +29,9 @@ export default async function UpgradeAccountPage() {
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
         <Link
           href="/dang-ky-moi-gioi"
-          className="rounded-xl bg-[var(--primary)] px-6 py-3 text-center font-semibold text-white hover:bg-[var(--primary-hover)]"
+          className="rounded-xl bg-[var(--primary)] px-6 py-3 text-center font-semibold text-white transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-[var(--primary)]/25 active:scale-[0.98]"
         >
-          Đăng ký tài khoản Môi giới (email khác)
+          Đăng ký tài khoản Môi giới (Email khác)
         </Link>
         <Link
           href="/bat-dong-san"

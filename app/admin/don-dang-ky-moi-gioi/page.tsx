@@ -73,6 +73,15 @@ export default function AdminAgentApplicationsPage() {
 
     async function handleAction(action: string) {
         if (!selected) return;
+
+        // Confirmation for sensitive actions
+        const confirmMsg: Record<string, string> = {
+            approve: "Xác nhận DUYỆT ứng viên này và cấp quyền Môi giới?",
+            reject: "Xác nhận TỪ CHỐI đơn đăng ký này?",
+            interview: "Xác nhận đặt LỊCH HẸN phỏng vấn?",
+        };
+        if (confirmMsg[action] && !window.confirm(confirmMsg[action])) return;
+
         setProcessing(true);
         setMessage("");
         try {
@@ -128,54 +137,72 @@ export default function AdminAgentApplicationsPage() {
                 <span className="ml-auto text-sm text-[var(--muted-foreground)]">{total} đơn</span>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
+            <div className="grid gap-6 lg:grid-cols-[1fr_450px]">
                 {/* List */}
                 <div className="card-container overflow-hidden">
-                    <table className="data-table">
-                        <thead>
-                            <tr>
-                                <th>Ứng viên</th>
-                                <th>SĐT</th>
-                                <th>CCCD</th>
-                                <th>Kinh nghiệm</th>
-                                <th>Trạng thái</th>
-                                <th>Ngày gửi</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading ? (
-                                <tr><td colSpan={7} className="py-12 text-center text-[var(--muted-foreground)]">Đang tải...</td></tr>
-                            ) : apps.length === 0 ? (
-                                <tr><td colSpan={7} className="py-12 text-center text-[var(--muted-foreground)]">Không có đơn nào</td></tr>
-                            ) : apps.map(app => (
-                                <tr key={app.id} className={selected?.id === app.id ? "bg-[var(--muted)]/50" : ""}>
-                                    <td>
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
-                                                {app.fullName.charAt(0).toUpperCase()}
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-sm text-[var(--foreground)]">{app.fullName}</p>
-                                                <p className="text-xs text-[var(--muted-foreground)]">{app.email}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="text-sm">{app.phone}</td>
-                                    <td className="text-sm font-mono text-[var(--muted-foreground)]">{app.idCardNumber}</td>
-                                    <td className="text-sm">{app.experience || "—"}</td>
-                                    <td><span className={STATUS_MAP[app.status]?.class || "badge"}>{STATUS_MAP[app.status]?.label || app.status}</span></td>
-                                    <td className="text-sm text-[var(--muted-foreground)]">{new Date(app.createdAt).toLocaleDateString("vi-VN")}</td>
-                                    <td>
-                                        <button onClick={() => { setSelected(app); setAdminNote(app.adminNote || ""); setInterviewDate(app.interviewDate?.slice(0, 16) || ""); setInterviewLocation(app.interviewLocation || ""); }}
-                                            className="text-sm font-medium text-[var(--primary)] hover:underline">
-                                            Xem
-                                        </button>
-                                    </td>
+                    <div className="overflow-x-auto">
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th className="w-1/3 px-6 py-4 text-left">Ứng viên</th>
+                                    <th className="px-6 py-4 text-left">SĐT</th>
+                                    <th className="px-6 py-4 text-left">CCCD</th>
+                                    <th className="px-6 py-4 text-left text-center">Kinh nghiệm</th>
+                                    <th className="px-6 py-4 text-left text-center">Trạng thái</th>
+                                    <th className="px-6 py-4 text-right"></th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-[var(--border)]/50">
+                                {loading ? (
+                                    <tr><td colSpan={6} className="py-16 text-center text-[var(--muted-foreground)]">Đang tải...</td></tr>
+                                ) : apps.length === 0 ? (
+                                    <tr><td colSpan={6} className="py-16 text-center text-[var(--muted-foreground)]">Không có đơn nào</td></tr>
+                                ) : apps.map(app => (
+                                    <tr 
+                                        key={app.id} 
+                                        className={`cursor-pointer transition-all duration-200 group ${selected?.id === app.id ? "bg-[var(--primary)]/10 shadow-[inset_4px_0_0_0_var(--primary)]" : "hover:bg-slate-50 dark:hover:bg-white/5"}`}
+                                        onClick={() => { 
+                                            setSelected(app); 
+                                            setAdminNote(app.adminNote || ""); 
+                                            setInterviewDate(app.interviewDate?.slice(0, 16) || ""); 
+                                            setInterviewLocation(app.interviewLocation || ""); 
+                                        }}
+                                    >
+                                        <td className="px-6 py-5">
+                                            <div className="flex items-center gap-4">
+                                                <div className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
+                                                    {app.fullName.charAt(0).toUpperCase()}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="font-bold text-[15px] text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors truncate">{app.fullName}</p>
+                                                    <p className="text-xs text-[var(--muted-foreground)] truncate">{app.email}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5 text-sm font-medium whitespace-nowrap">{app.phone}</td>
+                                        <td className="px-6 py-5 text-sm font-mono text-[var(--muted-foreground)] whitespace-nowrap">{app.idCardNumber}</td>
+                                        <td className="px-6 py-5 text-sm text-center whitespace-nowrap">{app.experience || "—"}</td>
+                                        <td className="px-6 py-5 text-center">
+                                            <span className={`inline-flex px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${
+                                                app.status === 'PENDING' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' :
+                                                app.status === 'REVIEWING' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
+                                                app.status === 'INTERVIEW' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' :
+                                                app.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                                                'bg-red-500/10 text-red-600 dark:text-red-400'
+                                            }`}>
+                                                {STATUS_MAP[app.status]?.label || app.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-5 text-right">
+                                            <div className={`inline-flex w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${selected?.id === app.id ? "bg-[var(--primary)] border-[var(--primary)] shadow-md shadow-blue-500/20" : "border-[var(--border)] group-hover:border-[var(--primary)]/50"}`}>
+                                                {selected?.id === app.id && <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
 
                     {total > 10 && (
                         <div className="p-4 border-t border-[var(--border)] flex justify-center gap-2">
@@ -190,33 +217,44 @@ export default function AdminAgentApplicationsPage() {
                 <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm overflow-hidden h-fit sticky top-4">
                     {selected ? (
                         <div>
-                            <div className="p-5 border-b border-[var(--border)] bg-[var(--muted)]/30">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
+                            <div className="p-6 border-b border-[var(--border)] bg-gradient-to-br from-[var(--muted)]/50 to-[var(--background)]">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-14 w-14 shrink-0 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-xl shadow-blue-500/20">
                                         {selected.fullName.charAt(0).toUpperCase()}
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-[var(--foreground)]">{selected.fullName}</h3>
-                                        <p className="text-sm text-[var(--muted-foreground)]">{selected.email}</p>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="font-bold text-lg text-[var(--foreground)] truncate">{selected.fullName}</h3>
+                                        <p className="text-sm text-[var(--muted-foreground)] truncate">{selected.email}</p>
                                     </div>
-                                    <span className={`ml-auto ${STATUS_MAP[selected.status]?.class || "badge"}`}>{STATUS_MAP[selected.status]?.label}</span>
+                                    <div className="flex flex-col items-end gap-1">
+                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                            selected.status === 'PENDING' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' :
+                                            selected.status === 'REVIEWING' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
+                                            selected.status === 'INTERVIEW' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' :
+                                            selected.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                                            'bg-red-500/10 text-red-600 dark:text-red-400'
+                                        }`}>
+                                            {STATUS_MAP[selected.status]?.label}
+                                        </span>
+                                        <p className="text-[10px] text-[var(--muted-foreground)]">ID: {selected.id.slice(-8).toUpperCase()}</p>
+                                    </div>
                                 </div>
                             </div>
 
                             <div className="p-5 space-y-4 text-sm max-h-[60vh] overflow-y-auto">
                                 {/* Thông tin tài khoản người dùng */}
-                                <div className="rounded-xl bg-blue-50 dark:bg-blue-900/20 p-4 border border-blue-100 dark:border-blue-800">
-                                    <h4 className="font-bold text-blue-700 dark:text-blue-300 mb-3 flex items-center gap-2">
+                                <div className="rounded-xl bg-[var(--primary)]/10 p-4 border border-[var(--primary)]/20 shadow-sm">
+                                    <h4 className="font-bold text-[var(--primary)] mb-3 flex items-center gap-2">
                                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                                         Thông tin tài khoản
                                     </h4>
                                     <div className="grid grid-cols-2 gap-3 text-xs">
-                                        <div><span className="text-blue-600 dark:text-blue-400">Tên đăng nhập:</span><p className="font-medium">{selected.user.name}</p></div>
-                                        <div><span className="text-blue-600 dark:text-blue-400">Email:</span><p className="font-medium">{selected.user.email || "—"}</p></div>
-                                        <div><span className="text-blue-600 dark:text-blue-400">SĐT tài khoản:</span><p className="font-medium">{selected.user.phone || "—"}</p></div>
-                                        <div><span className="text-blue-600 dark:text-blue-400">Vai trò hiện tại:</span><p className="font-medium">{selected.user.role}</p></div>
-                                        <div><span className="text-blue-600 dark:text-blue-400">Ngày tạo:</span><p className="font-medium">{new Date(selected.user.createdAt).toLocaleDateString("vi-VN")}</p></div>
-                                        <div><span className="text-blue-600 dark:text-blue-400">Đăng nhập cuối:</span><p className="font-medium">{selected.user.lastLoginAt ? new Date(selected.user.lastLoginAt).toLocaleDateString("vi-VN") : "—"}</p></div>
+                                        <div><span className="text-[var(--muted-foreground)]">Tên đăng nhập:</span><p className="font-bold">{selected.user.name}</p></div>
+                                        <div><span className="text-[var(--muted-foreground)]">Email:</span><p className="font-bold">{selected.user.email || "—"}</p></div>
+                                        <div><span className="text-[var(--muted-foreground)]">SĐT tài khoản:</span><p className="font-bold">{selected.user.phone || "—"}</p></div>
+                                        <div><span className="text-[var(--muted-foreground)]">Vai trò hiện tại:</span><p className="font-bold">{selected.user.role}</p></div>
+                                        <div><span className="text-[var(--muted-foreground)]">Ngày tạo:</span><p className="font-bold">{new Date(selected.user.createdAt).toLocaleDateString("vi-VN")}</p></div>
+                                        <div><span className="text-[var(--muted-foreground)]">Đăng nhập cuối:</span><p className="font-bold">{selected.user.lastLoginAt ? new Date(selected.user.lastLoginAt).toLocaleDateString("vi-VN") : "—"}</p></div>
                                     </div>
                                 </div>
 
@@ -296,24 +334,24 @@ export default function AdminAgentApplicationsPage() {
                                     )}
 
                                     {/* Action Buttons */}
-                                    <div className="flex flex-wrap gap-2 pt-2">
+                                    <div className="flex flex-wrap gap-2 pt-4 border-t border-[var(--border)] mt-4">
                                         {selected.status === "PENDING" && (
-                                            <button onClick={() => handleAction("review")} disabled={processing} className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-colors disabled:opacity-50">
+                                            <button onClick={() => handleAction("review")} disabled={processing} className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold shadow-md shadow-blue-500/20 hover:bg-blue-700 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50">
                                                 Xem xét
                                             </button>
                                         )}
                                         {(selected.status === "PENDING" || selected.status === "REVIEWING") && (
-                                            <button onClick={() => handleAction("interview")} disabled={processing || !interviewDate} className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 transition-colors disabled:opacity-50">
+                                            <button onClick={() => handleAction("interview")} disabled={processing || !interviewDate} className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold shadow-md shadow-indigo-500/20 hover:bg-indigo-700 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50">
                                                 Hẹn PV
                                             </button>
                                         )}
                                         {(selected.status === "REVIEWING" || selected.status === "INTERVIEW") && (
-                                            <button onClick={() => handleAction("approve")} disabled={processing} className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50">
+                                            <button onClick={() => handleAction("approve")} disabled={processing} className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-bold shadow-md shadow-emerald-500/20 hover:bg-emerald-700 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50">
                                                 ✓ Duyệt
                                             </button>
                                         )}
                                         {selected.status !== "APPROVED" && selected.status !== "REJECTED" && (
-                                            <button onClick={() => handleAction("reject")} disabled={processing} className="py-2.5 px-4 rounded-xl border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50">
+                                            <button onClick={() => handleAction("reject")} disabled={processing} className="py-2.5 px-4 rounded-xl border-2 border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 text-sm font-bold hover:bg-red-50 dark:hover:bg-red-900/10 transition-all hover:border-red-300 disabled:opacity-50">
                                                 Từ chối
                                             </button>
                                         )}

@@ -26,6 +26,7 @@ export async function GET() {
     listingSlug: a.listing?.slug,
     customerName: a.fullName,
     customerPhone: a.phone,
+    userId: a.userId,
     scheduledAt: a.schedule.toISOString(),
     status: a.status,
     note: a.note,

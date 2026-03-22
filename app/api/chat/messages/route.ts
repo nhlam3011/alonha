@@ -12,6 +12,43 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const otherUserId = searchParams.get("userId")?.trim() || null;
   const conversationId = searchParams.get("conversationId")?.trim() || null;
+  const isList = searchParams.get("list") === "true";
+
+  const currentUserId = session.user.id;
+
+  if (isList) {
+    // Lấy danh sách cuộc hội thoại của user hiện tại
+    const conversations = await prisma.conversation.findMany({
+      where: {
+        OR: [{ user1Id: currentUserId }, { user2Id: currentUserId }],
+      },
+      orderBy: { updatedAt: "desc" },
+      include: {
+        user1: { select: { id: true, name: true, avatar: true, role: true } },
+        user2: { select: { id: true, name: true, avatar: true, role: true } },
+        messages: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { content: true, createdAt: true },
+        },
+      },
+    });
+
+    const data = conversations.map((conv) => {
+      const otherUser = conv.user1Id === currentUserId ? conv.user2 : conv.user1;
+      const lastMsg = conv.messages[0];
+      return {
+        id: otherUser.id,
+        name: otherUser.name || "Người dùng",
+        avatar: otherUser.avatar,
+        role: otherUser.role,
+        lastMessage: lastMsg?.content || null,
+        lastMessageAt: lastMsg?.createdAt.toISOString() || conv.updatedAt.toISOString(),
+      };
+    });
+
+    return NextResponse.json({ data });
+  }
 
   if (!otherUserId && !conversationId) {
     return NextResponse.json(
@@ -19,8 +56,6 @@ export async function GET(req: Request) {
       { status: 400 },
     );
   }
-
-  const currentUserId = session.user.id;
 
   let conversation = null as
     | {

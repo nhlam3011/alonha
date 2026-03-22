@@ -22,12 +22,6 @@ CREATE TYPE "TransactionStatus" AS ENUM ('PENDING', 'COMPLETED', 'FAILED', 'CANC
 -- CreateEnum
 CREATE TYPE "AppointmentStatus" AS ENUM ('PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED');
 
--- CreateEnum
-CREATE TYPE "ReportStatus" AS ENUM ('PENDING', 'REVIEWED', 'RESOLVED', 'DISMISSED');
-
--- CreateEnum
-CREATE TYPE "ReportReason" AS ENUM ('SPAM', 'FRAUD', 'DUPLICATE', 'INAPPROPRIATE', 'OTHER');
-
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -220,30 +214,6 @@ CREATE TABLE "Favorite" (
 );
 
 -- CreateTable
-CREATE TABLE "SavedSearch" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "name" TEXT,
-    "criteria" JSONB NOT NULL,
-    "notify" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "SavedSearch_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "SavedSearchListing" (
-    "id" TEXT NOT NULL,
-    "savedSearchId" TEXT NOT NULL,
-    "listingId" TEXT NOT NULL,
-    "notifiedAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "SavedSearchListing_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "Conversation" (
     "id" TEXT NOT NULL,
     "user1Id" TEXT NOT NULL,
@@ -382,57 +352,6 @@ CREATE TABLE "Lead" (
 );
 
 -- CreateTable
-CREATE TABLE "Report" (
-    "id" TEXT NOT NULL,
-    "listingId" TEXT NOT NULL,
-    "reporterId" TEXT NOT NULL,
-    "reason" "ReportReason" NOT NULL,
-    "note" TEXT,
-    "status" "ReportStatus" NOT NULL DEFAULT 'PENDING',
-    "reviewedBy" TEXT,
-    "reviewedAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "Report_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Content" (
-    "id" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
-    "excerpt" TEXT,
-    "body" TEXT,
-    "type" TEXT NOT NULL,
-    "imageUrl" TEXT,
-    "isPublished" BOOLEAN NOT NULL DEFAULT false,
-    "publishedAt" TIMESTAMP(3),
-    "metaTitle" TEXT,
-    "metaDescription" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "Content_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Banner" (
-    "id" TEXT NOT NULL,
-    "title" TEXT,
-    "imageUrl" TEXT NOT NULL,
-    "linkUrl" TEXT,
-    "position" TEXT NOT NULL,
-    "sortOrder" INTEGER NOT NULL DEFAULT 0,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "startAt" TIMESTAMP(3),
-    "endAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "Banner_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "SystemConfig" (
     "id" TEXT NOT NULL,
     "key" TEXT NOT NULL,
@@ -440,18 +359,6 @@ CREATE TABLE "SystemConfig" (
     "type" TEXT NOT NULL DEFAULT 'string',
 
     CONSTRAINT "SystemConfig_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "ModerationLog" (
-    "id" TEXT NOT NULL,
-    "listingId" TEXT NOT NULL,
-    "action" TEXT NOT NULL,
-    "reason" TEXT,
-    "adminId" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "ModerationLog_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -512,22 +419,10 @@ CREATE UNIQUE INDEX "Project_slug_key" ON "Project"("slug");
 CREATE UNIQUE INDEX "Listing_slug_key" ON "Listing"("slug");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Favorite_userId_listingId_key" ON "Favorite"("userId", "listingId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "SavedSearchListing_savedSearchId_listingId_key" ON "SavedSearchListing"("savedSearchId", "listingId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "CompareGroupItem_compareGroupId_listingId_key" ON "CompareGroupItem"("compareGroupId", "listingId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Wallet_userId_key" ON "Wallet"("userId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "ServicePackage_code_key" ON "ServicePackage"("code");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Content_slug_key" ON "Content"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "SystemConfig_key_key" ON "SystemConfig"("key");
@@ -575,18 +470,6 @@ ALTER TABLE "ListingImage" ADD CONSTRAINT "ListingImage_listingId_fkey" FOREIGN 
 ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_listingId_fkey" FOREIGN KEY ("listingId") REFERENCES "Listing"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "SavedSearch" ADD CONSTRAINT "SavedSearch_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "SavedSearchListing" ADD CONSTRAINT "SavedSearchListing_savedSearchId_fkey" FOREIGN KEY ("savedSearchId") REFERENCES "SavedSearch"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "SavedSearchListing" ADD CONSTRAINT "SavedSearchListing_listingId_fkey" FOREIGN KEY ("listingId") REFERENCES "Listing"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Conversation" ADD CONSTRAINT "Conversation_user1Id_fkey" FOREIGN KEY ("user1Id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -630,14 +513,6 @@ ALTER TABLE "Lead" ADD CONSTRAINT "Lead_customerId_fkey" FOREIGN KEY ("customerI
 
 -- AddForeignKey
 ALTER TABLE "Lead" ADD CONSTRAINT "Lead_agentId_fkey" FOREIGN KEY ("agentId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Report" ADD CONSTRAINT "Report_listingId_fkey" FOREIGN KEY ("listingId") REFERENCES "Listing"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Report" ADD CONSTRAINT "Report_reporterId_fkey" FOREIGN KEY ("reporterId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "UserBehavior" ADD CONSTRAINT "UserBehavior_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
