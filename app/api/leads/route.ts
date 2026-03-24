@@ -37,7 +37,6 @@ export async function POST(req: Request) {
       },
     });
 
-    // Nếu là user đã đăng nhập, tạo cuộc hội thoại và tin nhắn đầu tiên
     if (customerId && listing.ownerId && customerId !== listing.ownerId) {
       const pair = [customerId, listing.ownerId].sort();
       let conversation = await prisma.conversation.findFirst({
@@ -59,7 +58,6 @@ export async function POST(req: Request) {
       });
     }
 
-    // Gửi thông báo cho môi giới
     await notifyNewLead(lead.id, name, listing.id, listing.ownerId);
 
     return NextResponse.json({ id: lead.id, ok: true });

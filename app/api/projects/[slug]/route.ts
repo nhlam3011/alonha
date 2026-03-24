@@ -7,8 +7,6 @@ export async function GET(
 ) {
     const { slug } = await params;
 
-    // Check if it's a fallback province-based project
-    // Check for project ID format or existence if needed, but remove the province logic
     if (slug.startsWith("province-")) {
         return NextResponse.json(
             { error: "Dự án không tồn tại" },
@@ -16,7 +14,6 @@ export async function GET(
         );
     }
 
-    // Get actual project from database
     const project = await prisma.project.findUnique({
         where: { slug },
         include: {

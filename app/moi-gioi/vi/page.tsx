@@ -183,7 +183,6 @@ export default function WalletPage() {
   const monthNow = new Date().getMonth();
   const now = new Date();
 
-  // Calculate stats securely
   const depositThisMonth = transactions
     .filter((t) => t.type === "DEPOSIT" && new Date(t.createdAt).getMonth() === now.getMonth() && t.status === 'COMPLETED')
     .reduce((sum, t) => sum + t.amount, 0);

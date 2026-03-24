@@ -61,19 +61,16 @@ function TinNhanContent() {
   const selectedRecipientRef = useRef<{ id: string, name: string, isSupport?: boolean } | null>(null);
   const conversationIdRef = useRef<string | null>(null);
 
-  // Sync ref with state
   useEffect(() => {
     selectedRecipientRef.current = selectedRecipient;
   }, [selectedRecipient]);
 
-  // Fetch leads
   useEffect(() => {
     fetch("/api/moi-gioi/leads")
       .then((r) => r.json())
       .then((res) => {
         if (Array.isArray(res.data)) {
           setItems(res.data);
-          // If deep linked, select that lead
           if (initialUserId) {
             const lead = res.data.find((l: LeadItem) => l.customerId === initialUserId);
             if (lead) {
@@ -86,7 +83,6 @@ function TinNhanContent() {
       .finally(() => setLoading(false));
   }, [initialUserId]);
 
-  // Fetch support admin
   useEffect(() => {
     fetch("/api/chat/support-admin")
       .then((r) => r.json())
@@ -95,7 +91,6 @@ function TinNhanContent() {
           const adminData = res.data;
           setSupportAdmin(adminData);
           const admin = { id: adminData.id, name: "Hỗ trợ đối tác", isSupport: true };
-          // Only select support if no other recipient is selected
           if (!initialUserId) {
             setSelectedRecipient(admin);
           }
@@ -104,7 +99,6 @@ function TinNhanContent() {
       .catch(() => { });
   }, [initialUserId]);
 
-  // Load messages when recipient changes
   useEffect(() => {
     if (!selectedRecipient) return;
 
@@ -124,7 +118,6 @@ function TinNhanContent() {
       .finally(() => setChatLoading(false));
   }, [selectedRecipient]);
 
-  // Polling mỗi 3s để nhận tin nhắn mới (realtime)
   useEffect(() => {
     const interval = setInterval(async () => {
       const recipientId = selectedRecipientRef.current?.id;
@@ -138,7 +131,6 @@ function TinNhanContent() {
         if (data.conversationId) conversationIdRef.current = data.conversationId;
         if (Array.isArray(data.data)) {
           setChatMessages((prev) => {
-            // Chỉ cập nhật nếu có tin mới
             if (data.data.length !== prev.length || (data.data.length > 0 && data.data[data.data.length - 1].id !== prev[prev.length - 1]?.id)) {
               return data.data.map((m: any) => ({ ...m, isMe: m.isMe ?? false }));
             }
@@ -150,7 +142,6 @@ function TinNhanContent() {
     return () => clearInterval(interval);
   }, []);
 
-  // Auto scroll
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages, chatLoading]);
@@ -161,7 +152,6 @@ function TinNhanContent() {
     if (!content) return;
     setChatSending(true);
 
-    // Optimistic UI
     const tempId = Date.now().toString();
     const newMsg: ChatMessage = { id: tempId, content, createdAt: new Date().toISOString(), isMe: true };
     setChatMessages(prev => [...prev, newMsg]);
@@ -177,16 +167,13 @@ function TinNhanContent() {
       if (!res.ok || !data.data) {
         throw new Error(data.error || "Không thể gửi tin nhắn.");
       }
-      // Lưu conversationId cho polling
       if (data.conversationId) conversationIdRef.current = data.conversationId;
     } catch {
-      // Rollback in real app
     } finally {
       setChatSending(false);
     }
   }
 
-  // Upload hình ảnh
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !selectedRecipient) return;
@@ -203,7 +190,6 @@ function TinNhanContent() {
 
     setUploadingImage(true);
     try {
-      // Upload ảnh lên server
       const formData = new FormData();
       formData.append('file', file);
 
@@ -223,7 +209,6 @@ function TinNhanContent() {
         throw new Error('Không lấy được URL ảnh');
       }
 
-      // Gửi tin nhắn với hình ảnh
       const tempId = Date.now().toString();
       const newMsg: ChatMessage = { id: tempId, content: '', imageUrl, createdAt: new Date().toISOString(), isMe: true };
       setChatMessages(prev => [...prev, newMsg]);
@@ -246,7 +231,6 @@ function TinNhanContent() {
     }
   }
 
-  // Xóa lịch sử trò chuyện
   async function handleClearHistory() {
     if (!conversationIdRef.current) {
       alert('Chưa có cuộc trò chuyện nào');

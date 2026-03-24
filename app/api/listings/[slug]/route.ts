@@ -69,7 +69,6 @@ export async function GET(
     has360Tour: d.has360Tour,
     viewCount: d.status === "APPROVED" ? d.viewCount + 1 : d.viewCount,
     images: d.images.map((i) => ({ url: i.url, caption: i.caption, isPrimary: i.isPrimary })),
-    // Map lại theo schema mới: chỉ còn provinceCode/provinceName, wardCode/wardName
     province: (d as any).provinceName
       ? { id: (d as any).provinceCode ?? "", name: (d as any).provinceName }
       : null,

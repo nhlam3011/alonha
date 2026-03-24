@@ -35,12 +35,10 @@ export function HeroSearch({ embedded = false }: { embedded?: boolean }) {
   const [priceRange, setPriceRange] = useState("");
   const [showAiSearch, setShowAiSearch] = useState(true);
 
-  // Voice & AI States
   const [isListening, setIsListening] = useState(false);
   const [aiQuery, setAiQuery] = useState("");
   const [isAiLoading, setIsAiLoading] = useState(false);
 
-  // Simple Speech Recognition init
   const startListening = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       alert("Trình duyệt của bạn không hỗ trợ tìm kiếm bằng giọng nói.");

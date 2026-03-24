@@ -46,7 +46,6 @@ export default function AdminTinNhanPage() {
     const [uploadingImage, setUploadingImage] = useState(false);
     const chatEndRef = useRef<HTMLDivElement>(null);
 
-    // Fetch agents
     useEffect(() => {
         fetch("/api/admin/users?role=AGENT")
             .then((r) => r.json())
@@ -59,7 +58,6 @@ export default function AdminTinNhanPage() {
             .catch(() => setLoading(false));
     }, []);
 
-    // Fetch conversations
     useEffect(() => {
         fetch("/api/admin/chat/conversations")
             .then((r) => r.json())
@@ -73,7 +71,6 @@ export default function AdminTinNhanPage() {
 
     const conversationIdRef = useRef<string | null>(null);
 
-    // Fetch messages when agent is selected
     useEffect(() => {
         if (!selectedAgentId) {
             setChatMessages([]);
@@ -98,7 +95,6 @@ export default function AdminTinNhanPage() {
             .catch(() => setChatLoading(false));
     }, [selectedAgentId]);
 
-    // Polling mỗi 3s để nhận tin nhắn mới (realtime)
     useEffect(() => {
         if (!selectedAgentId) return;
         const interval = setInterval(async () => {
@@ -154,7 +150,6 @@ export default function AdminTinNhanPage() {
         }
     };
 
-    // Upload hình ảnh
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file || !selectedAgentId) return;
@@ -215,7 +210,6 @@ export default function AdminTinNhanPage() {
         }
     };
 
-    // Xóa lịch sử trò chuyện
     const handleClearHistory = async () => {
         if (!conversationIdRef.current) {
             alert('Chưa có cuộc trò chuyện nào');
@@ -259,7 +253,6 @@ export default function AdminTinNhanPage() {
         return date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
     };
 
-    // Get agent info from agents list or conversations
     const getAgentInfo = (agentId: string) => {
         const agent = agents.find(a => a.id === agentId);
         if (agent) return agent;

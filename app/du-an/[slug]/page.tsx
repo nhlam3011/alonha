@@ -52,7 +52,6 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         notFound();
     }
 
-    // Lấy các bài đăng thuộc dự án
     const listingsDb = await prisma.listing.findMany({
         where: { projectId: project.id, status: "APPROVED", publishedAt: { not: null } },
         take: 12,

@@ -42,16 +42,13 @@ export function ProjectsClient({ initialProjects }: { initialProjects: ProjectRo
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Location State
     const [provinces, setProvinces] = useState<any[]>([]);
     const [wards, setWards] = useState<any[]>([]);
 
-    // Load Provinces
     useEffect(() => {
         fetch("/api/provinces").then(r => r.json()).then(data => Array.isArray(data) && setProvinces(data)).catch(() => { });
     }, []);
 
-    // Load Wards when Province changes
     useEffect(() => {
         if (!form.provinceCode) { setWards([]); return; }
         fetch(`/api/wards?provinceCode=${form.provinceCode}`)

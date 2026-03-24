@@ -74,7 +74,6 @@ export default function AdminAgentApplicationsPage() {
     async function handleAction(action: string) {
         if (!selected) return;
 
-        // Confirmation for sensitive actions
         const confirmMsg: Record<string, string> = {
             approve: "Xác nhận DUYỆT ứng viên này và cấp quyền Môi giới?",
             reject: "Xác nhận TỪ CHỐI đơn đăng ký này?",

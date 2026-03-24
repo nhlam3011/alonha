@@ -32,7 +32,6 @@ export default async function AdminUsersPage(props: {
     ];
   }
 
-  // Get users for table
   const dbUsers = await prisma.user.findMany({
     where: whereClause,
     orderBy: { createdAt: "desc" },
@@ -50,7 +49,6 @@ export default async function AdminUsersPage(props: {
     isLocked: !!u.isLocked,
   }));
 
-  // Get stats
   const [totalCount, brokerCount, adminCount] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { role: "AGENT" } }),

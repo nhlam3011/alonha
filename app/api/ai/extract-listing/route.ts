@@ -61,7 +61,6 @@ JSON Template:
             { maxTokens: 1000, temperature: 0.2 }
         );
 
-        // Clean markdown code blocks if present
         const cleanJson = responseText.replace(/```json\n?|\n?```/g, "").trim();
         const data = JSON.parse(cleanJson);
 

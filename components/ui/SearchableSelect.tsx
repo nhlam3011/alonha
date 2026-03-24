@@ -34,11 +34,9 @@ export function SearchableSelect({
     const inputRef = useRef<HTMLInputElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // Close on click outside
     useEffect(() => {
         const handler = (e: MouseEvent) => {
             if (!containerRef.current || !dropdownRef.current) return;
-            // NextJS Portal renders node outside containerRef
             const isOutsideContainer = !containerRef.current.contains(e.target as Node);
             const isOutsideDropdown = !dropdownRef.current.contains(e.target as Node);
 
@@ -51,7 +49,6 @@ export function SearchableSelect({
         return () => document.removeEventListener("mousedown", handler);
     }, [open]);
 
-    // Focus input when opened
     useEffect(() => {
         if (open && inputRef.current) {
             inputRef.current.focus();

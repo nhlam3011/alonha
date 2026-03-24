@@ -131,7 +131,6 @@ export async function PATCH(req: Request) {
     },
   });
 
-  // Gửi thông báo khi duyệt hoặc từ chối tin
   if (body.status === "APPROVED" && previousStatus !== "APPROVED") {
     await notifyListingApproved(id, existing.title);
   } else if (body.status === "REJECTED" && previousStatus !== "REJECTED") {

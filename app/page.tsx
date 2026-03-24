@@ -5,7 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { getProvinces } from "@/lib/provinces";
 import { toListingCard, listingSelectCard } from "@/lib/listings";
 
-// Inline SVG Icons
 const SparklesIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /></svg>
 );
@@ -85,7 +84,6 @@ const POPULAR_CITIES = [
 export const revalidate = 60; // SSR with ISR cache (revalidate every 60s)
 
 export default async function HomePage() {
-  // 1. Fetch Featured Listings
   const featuredDb = await prisma.listing.findMany({
     where: { status: "APPROVED", publishedAt: { not: null } },
     orderBy: [{ isVip: "desc" }, { publishedAt: "desc" }, { createdAt: "desc" }],
@@ -94,7 +92,6 @@ export default async function HomePage() {
   });
   const featuredListings = featuredDb.map(row => toListingCard(row as any));
 
-  // 2. Fetch VIP Listings
   const vipDb = await prisma.listing.findMany({
     where: { status: "APPROVED", publishedAt: { not: null }, isVip: true },
     orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
@@ -103,7 +100,6 @@ export default async function HomePage() {
   });
   const vipListings = vipDb.map(row => toListingCard(row as any));
 
-  // 3. Fetch Projects
   const projectsDb = await prisma.project.findMany({
     where: { isActive: true },
     orderBy: { createdAt: "desc" },
@@ -122,7 +118,6 @@ export default async function HomePage() {
     province: p.provinceName ? { name: p.provinceName } : undefined
   }));
 
-  // 4. Fetch Provinces
   const externalProvinces = await getProvinces();
   const listingsByProvince = await prisma.listing.groupBy({
     by: ["provinceCode"],

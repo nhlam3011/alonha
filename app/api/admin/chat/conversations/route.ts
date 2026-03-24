@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// Lấy danh sách cuộc hội thoại giữa admin và các agent
 export async function GET() {
     const session = await auth();
     if (!session?.user?.id) {
@@ -16,7 +15,6 @@ export async function GET() {
 
     const adminId = session.user.id;
 
-    // Lấy tất cả các cuộc hội thoại có sự tham gia của admin
     const conversations = await prisma.conversation.findMany({
         where: {
             OR: [{ user1Id: adminId }, { user2Id: adminId }],
@@ -36,7 +34,6 @@ export async function GET() {
         },
     });
 
-    // Lọc chỉ lấy các cuộc hội thoại với AGENT
     const agentConversations = conversations
         .filter((conv) => {
             const otherUser = conv.user1Id === adminId ? conv.user2 : conv.user1;

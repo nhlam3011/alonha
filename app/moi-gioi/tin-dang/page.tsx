@@ -13,7 +13,6 @@ export default async function TinDangPage() {
 
   const userId = session.user.id;
 
-  // Fetch db directly on server
   const dbListings = await prisma.listing.findMany({
     where: { ownerId: userId },
     select: {

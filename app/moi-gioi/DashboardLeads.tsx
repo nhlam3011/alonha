@@ -82,7 +82,6 @@ export function DashboardLeads({ initialLeads, listings }: { initialLeads: LeadR
     async function toggleLeadRead(lead: LeadRow) {
         const newStatus = !lead.isRead;
         try {
-            // Optimistic update
             setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, isRead: newStatus } : l));
 
             await fetch(`/api/moi-gioi/leads/${lead.id}`, {
@@ -91,7 +90,6 @@ export function DashboardLeads({ initialLeads, listings }: { initialLeads: LeadR
                 body: JSON.stringify({ isRead: newStatus }),
             });
         } catch (err) {
-            // Revert on error
             setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, isRead: !newStatus } : l));
         }
     }

@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// Admin: Lấy danh sách đơn đăng ký môi giới
 export async function GET(req: Request) {
     const session = await auth();
     if (!session?.user?.id || String((session.user as any).role) !== "ADMIN") {
@@ -44,7 +43,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ data, total, page, limit });
 }
 
-// Admin: Cập nhật trạng thái đơn đăng ký
 export async function PATCH(req: Request) {
     const session = await auth();
     if (!session?.user?.id || String((session.user as any).role) !== "ADMIN") {
@@ -63,10 +61,8 @@ export async function PATCH(req: Request) {
         return NextResponse.json({ error: "Không tìm thấy đơn đăng ký." }, { status: 404 });
     }
 
-    // Xử lý từng action
     switch (action) {
         case "review": {
-            // Chuyển sang trạng thái đang xem xét
             const updated = await prisma.agentApplication.update({
                 where: { id: applicationId },
                 data: {
@@ -79,7 +75,6 @@ export async function PATCH(req: Request) {
         }
 
         case "interview": {
-            // Hẹn phỏng vấn
             if (!interviewDate) {
                 return NextResponse.json({ error: "Vui lòng chọn ngày hẹn phỏng vấn." }, { status: 400 });
             }
@@ -97,7 +92,6 @@ export async function PATCH(req: Request) {
         }
 
         case "approve": {
-            // Duyệt & chuyển role user → AGENT
             const [updated] = await prisma.$transaction([
                 prisma.agentApplication.update({
                     where: { id: applicationId },
@@ -112,7 +106,6 @@ export async function PATCH(req: Request) {
                     where: { id: app.userId },
                     data: { role: "AGENT" },
                 }),
-                // Tạo ví cho agent mới
                 prisma.wallet.upsert({
                     where: { userId: app.userId },
                     update: {},

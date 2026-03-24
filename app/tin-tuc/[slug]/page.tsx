@@ -19,7 +19,6 @@ type NewsArticle = {
     tags: string[];
 };
 
-// Dữ liệu mock (tương lai sẽ thay bằng gọi DB/API thực tế)
 const SAMPLE_ARTICLE: NewsArticle = {
     id: "1",
     slug: "xu-huong-gia-bat-dong-san-2024",
@@ -108,7 +107,6 @@ function formatDate(dateStr: string): string {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const { slug } = await params;
 
-    // Tương lai: const article = await getArticleBySlug(slug);
     const article = SAMPLE_ARTICLE.slug === slug ? SAMPLE_ARTICLE : null;
 
     if (!article) return { title: "Không tìm thấy bài viết | AloNha" };
@@ -127,14 +125,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     };
 }
 
-
 export default async function NewsDetailPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
 
-    // Giả lập delay server fetch, thay vì useEffect ở client
     await new Promise(resolve => setTimeout(resolve, 300));
 
-    // Tương lai: fetch DB thực tế
     const article = SAMPLE_ARTICLE.slug === slug ? SAMPLE_ARTICLE : null;
 
     if (!article) {

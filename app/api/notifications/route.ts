@@ -3,7 +3,6 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { createNotification, getUserNotifications, markNotificationAsRead, markAllNotificationsAsRead, deleteNotification, getUserNotificationSettings, updateUserNotificationSettings } from '@/lib/notifications';
 
-// GET /api/notifications - Get user's notifications
 export async function GET(request: NextRequest) {
     try {
         const session = await auth();
@@ -30,7 +29,6 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// POST /api/notifications - Create a notification (for testing or admin)
 export async function POST(request: NextRequest) {
     try {
         const session = await auth();
@@ -67,7 +65,6 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// PUT /api/notifications - Mark notifications as read
 export async function PUT(request: NextRequest) {
     try {
         const session = await auth();
@@ -96,7 +93,6 @@ export async function PUT(request: NextRequest) {
     }
 }
 
-// DELETE /api/notifications - Delete a notification
 export async function DELETE(request: NextRequest) {
     try {
         const session = await auth();

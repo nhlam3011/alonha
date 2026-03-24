@@ -1,6 +1,5 @@
 import { Resend } from 'resend';
 
-// Define NotificationType locally (will be imported from @prisma/client after regeneration)
 export enum NotificationType {
   LISTING_APPROVED = 'LISTING_APPROVED',
   LISTING_REJECTED = 'LISTING_REJECTED',
@@ -19,15 +18,12 @@ export enum NotificationType {
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-// Get app URL for links
 const getAppUrl = () => process.env.NEXTAUTH_URL || 'http://localhost:3000';
 
-// Check if we're in test mode (no domain configured)
 const isTestMode = !process.env.RESEND_FROM_EMAIL?.includes('@') ||
   process.env.RESEND_FROM_EMAIL?.endsWith('@resend.dev') ||
   process.env.NODE_ENV === 'development';
 
-// Get sender email - use resend.dev in test mode
 const getSenderEmail = () => {
   if (!process.env.RESEND_FROM_EMAIL) {
     return 'onboarding@resend.dev'; // Resend test mode email
@@ -35,7 +31,6 @@ const getSenderEmail = () => {
   return process.env.RESEND_FROM_EMAIL;
 };
 
-// Format notification type to Vietnamese
 const formatNotificationType = (type: NotificationType): string => {
   const typeMap: Record<NotificationType, string> = {
     LISTING_APPROVED: 'Tin đăng được duyệt',
@@ -119,8 +114,6 @@ export async function sendWelcomeEmail(email: string, name?: string) {
     return { success: false, error };
   }
 }
-
-// ============ NOTIFICATION EMAIL FUNCTIONS ============
 
 interface SendNotificationEmailParams {
   email: string;
@@ -233,7 +226,6 @@ export async function sendNotificationEmail({
   }
 }
 
-// Batch send notification emails (for multiple notifications)
 export async function sendBatchNotificationEmails(
   notifications: Array<{
     email: string;

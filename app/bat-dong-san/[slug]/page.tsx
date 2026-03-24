@@ -56,7 +56,6 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     notFound();
   }
 
-  // Auth check cho tin chưa duyệt
   if (listing.status !== "APPROVED") {
     const session = await auth();
     const role = session?.user?.role as string | undefined;
@@ -66,14 +65,12 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
       notFound();
     }
   } else {
-    // Tăng lượt xem cho tin duyệt
     await prisma.listing.update({
       where: { id: listing.id },
       data: { viewCount: { increment: 1 } },
     });
   }
 
-  // Lấy các tin đăng tương tự
   const similarListingsDb = await prisma.listing.findMany({
     where: {
       status: "APPROVED",
@@ -154,7 +151,6 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           <div className="lg:col-span-2">
             {/* Mosaic gallery */}
             <ImageGallery images={images as any} title={listing.title} />
-
 
             {/* Title, price, address */}
             <h1 className="mt-6 text-xl font-bold text-[var(--foreground)] sm:text-2xl">{listing.title}</h1>

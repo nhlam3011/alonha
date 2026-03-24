@@ -16,7 +16,6 @@ const STATUS_OPTIONS = [
     { value: "dang-cho-thue", label: "Đang cho thuê" },
 ];
 
-// Options cho area filter
 const AREA_PRESETS = [
     { value: "", label: "Tất cả" },
     { value: "0-1", label: "< 1 ha" },
@@ -68,7 +67,6 @@ export function ProjectClientFilters({
             if (v === null || v === "") params.delete(k);
             else params.set(k, v);
         });
-        // Reset page on filter change
         if (!updates.page) params.delete("page");
 
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
@@ -77,7 +75,6 @@ export function ProjectClientFilters({
     const handleSearch = async (val: string) => {
         const q = val.trim();
         if (!q) {
-            // Xoá hết filter cũ khi search rỗng
             router.push(pathname, { scroll: false });
             return;
         }
@@ -90,7 +87,6 @@ export function ProjectClientFilters({
             });
             const data = await res.json();
 
-            // Tạo params mới từ đầu (xoá sạch filter cũ)
             const params = new URLSearchParams();
             if (data.keyword) params.set("keyword", data.keyword);
             if (data.provinceName) {

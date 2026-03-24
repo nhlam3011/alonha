@@ -12,7 +12,6 @@ export async function GET() {
     select: { id: true, email: true, name: true, phone: true, avatar: true, role: true, passwordHash: true, createdAt: true },
   });
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  // Không trả passwordHash ra ngoài
   const { passwordHash, ...rest } = user;
   return NextResponse.json({ ...rest, hasPassword: !!passwordHash });
 }
@@ -24,7 +23,6 @@ export async function PATCH(req: Request) {
   const parsed = updateProfileSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Dữ liệu không hợp lệ" }, { status: 400 });
 
-  // Kiểm tra phone trùng
   if (parsed.data.phone) {
     const existing = await prisma.user.findFirst({
       where: { phone: parsed.data.phone, id: { not: session.user.id } },
@@ -44,7 +42,6 @@ export async function PATCH(req: Request) {
   return NextResponse.json({ message: "Cập nhật thành công", user });
 }
 
-// PUT: đổi mật khẩu
 export async function PUT(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

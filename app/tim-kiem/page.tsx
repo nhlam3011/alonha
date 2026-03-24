@@ -31,7 +31,6 @@ function normalizeText(text: string): string {
   return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").trim();
 }
 
-// ── Filter options ──
 const CATEGORY_OPTIONS = [
   { value: "", label: "Tất cả" },
   { value: "can-ho-chung-cu", label: "Căn hộ" },
@@ -142,7 +141,6 @@ function SearchContent() {
   const direction = searchParams.get("direction") ?? "";
   const legalStatus = searchParams.get("legalStatus") ?? "";
 
-  // ── Responsive ──
   useEffect(() => {
     const check = () => {
       const mobile = window.innerWidth < 768;
@@ -168,7 +166,6 @@ function SearchContent() {
       .catch(() => setWards([]));
   }, [provinceId, provinces]);
 
-  // ── Fetch listings ──
   useEffect(() => {
     const fetchListings = async () => {
       setLoading(true);
@@ -186,7 +183,6 @@ function SearchContent() {
       } catch { setListings([]); setTotal(0); }
       finally { setLoading(false); }
     };
-    // Debounce the fetch slightly to prevent rapid flickering on filter changes
     const timeoutId = setTimeout(() => {
       fetchListings();
     }, 100);
@@ -202,7 +198,6 @@ function SearchContent() {
     }
   }, []);
 
-  // ── AI Search ──
   const handleAiSearch = async (term: string) => {
     const q = term.trim();
     if (!q) return;
@@ -210,7 +205,6 @@ function SearchContent() {
     setAiExplanation("");
     setFlyToLocation(null);
     try {
-      // Use AI search-parse endpoint for natural language understanding
       const res = await fetch("/api/ai/search-parse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -218,7 +212,6 @@ function SearchContent() {
       });
       const data = await res.json().catch(() => ({}));
 
-      // Build params from AI parsed results
       const params = new URLSearchParams();
       params.set("loaiHinh", data.loaiHinh || "sale");
 
@@ -244,7 +237,6 @@ function SearchContent() {
         params.set("areaMax", String(data.areaMax));
       }
 
-      // Handle province - map provinceName to provinceId
       if (data.provinceName) {
         const matched = provinces.find(
           (p) =>
@@ -256,7 +248,6 @@ function SearchContent() {
         }
       }
 
-      // Try to get location for map fly-to
       const locationParts: string[] = [];
       if (data.keyword && data.provinceName) {
         locationParts.push(data.keyword, data.provinceName, "Vietnam");
@@ -287,7 +278,6 @@ function SearchContent() {
     } catch { } finally { setAiLoading(false); }
   };
 
-  // ── Map data ──
   const mapListings: MapListingPoint[] = useMemo(
     () => listings
       .map(l => ({
@@ -316,7 +306,6 @@ function SearchContent() {
     }
   };
 
-  // Active filter chips 
   const activeChips: { label: string; onClear: () => void }[] = [];
   const selectedProvince = provinces.find((p) => p.id === provinceId || p.code === provinceId);
   if (selectedProvince) activeChips.push({ label: selectedProvince.name, onClear: () => { const p = new URLSearchParams(searchParams.toString()); p.delete("provinceId"); p.delete("wardId"); router.push(`/tim-kiem?${p.toString()}`); } });

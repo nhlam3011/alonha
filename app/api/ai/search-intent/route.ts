@@ -334,16 +334,13 @@ async function inferProvinceAndDistrict(query: string): Promise<{ province: stri
   let province: string | null = null;
   let district: string | null = null;
 
-  // Tỉnh/thành: detect qua lib chung
   const detection = await detectProvinceFromLib(query);
   if (detection) {
-    // Bỏ prefix "Tỉnh "/"Thành phố " để trả về tên ngắn cho AI search
     province = detection.provinceName
       .replace(/^(Tỉnh|Thành phố)\s+/i, "")
       .trim();
   }
 
-  // Quận/huyện: vẫn dùng hardcode vì API v2 không có district
   const sortedDistricts = Object.entries(DISTRICT_ALIAS_MAP).sort(
     (a, b) => b[0].length - a[0].length,
   );
@@ -618,7 +615,6 @@ STRUCT JSON ĐẦU RA (ví dụ, bạn phải giữ đúng key):
 
     return NextResponse.json({ filters, explanation });
   } catch {
-    // Fallback: dùng heuristic local nếu AI lỗi/chưa cấu hình
     const hasStructuredFallback = Boolean(
       heuristicFilters.loaiHinh ||
       heuristicFilters.category ||

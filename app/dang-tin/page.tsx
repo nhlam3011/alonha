@@ -8,8 +8,6 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 
-// --- Constants & Types ---
-
 const STEPS = [
     { id: 'basic', label: 'Thông tin cơ bản' },
     { id: 'location', label: 'Vị trí' },
@@ -60,34 +58,26 @@ const LocationPickerMap = dynamic(() => import("@/components/maps/LocationPicker
     loading: () => <div className="h-full w-full bg-slate-100 dark:bg-slate-800 animate-pulse rounded-lg flex items-center justify-center text-slate-400">Đang tải bản đồ...</div>
 });
 
-// --- Helper Functions ---
-
 function normalizeCoordinate(value: number, min: number, max: number) {
     if (!Number.isFinite(value)) return null;
     return Number(Math.min(max, Math.max(min, value)).toFixed(7));
 }
-
-// --- Main Component ---
 
 export default function CreateListingPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    // URL Params
     const draftIdInput = searchParams.get("draftId");
     const editIdInput = searchParams.get("editId");
 
-    // Layout State
     const [currentStep, setCurrentStep] = useState<string>('basic');
     const [isMobile, setIsMobile] = useState(false);
 
-    // Data State
     const [provinces, setProvinces] = useState<Province[]>([]);
     const [wards, setWards] = useState<Ward[]>([]);
     const [projects, setProjects] = useState<any[]>([]);
 
-    // Form State
     const [form, setForm] = useState({
         title: "", description: "", listingType: "SALE", category: "CAN_HO_CHUNG_CU",
         price: "" as string, priceUnit: "total" as "total" | "per_sqm", pricePerSqm: "" as string,
@@ -98,18 +88,15 @@ export default function CreateListingPage() {
         imageUrls: [] as string[], amenities: [] as string[],
     });
 
-    // Loading & UI State
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isPinning, setIsPinning] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [notice, setNotice] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
 
-    // ID State
     const [draftId, setDraftId] = useState<string>("");
     const [editId, setEditId] = useState<string>("");
 
-    // AI Modal State
     const [showAi, setShowAi] = useState(false);
     const [aiTone, setAiTone] = useState("chuyên nghiệp");
     const [aiTarget, setAiTarget] = useState("gia đình trẻ");
@@ -118,16 +105,12 @@ export default function CreateListingPage() {
     const [aiTitle, setAiTitle] = useState("");
     const [aiGenerating, setAiGenerating] = useState(false);
 
-    // Smart Fill State
     const [smartFillText, setSmartFillText] = useState("");
     const [isSmartFilling, setIsSmartFilling] = useState(false);
     const [showSmartFill, setShowSmartFill] = useState(true);
 
-    // Voice Recording State
     const [isRecording, setIsRecording] = useState(false);
     const [recognition, setRecognition] = useState<any>(null);
-
-    // --- Effects ---
 
     useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth < 1024);
@@ -136,7 +119,6 @@ export default function CreateListingPage() {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    // Auth Check
     useEffect(() => {
         if (status === "unauthenticated") {
             router.replace("/dang-nhap?callbackUrl=/dang-tin");
@@ -147,7 +129,6 @@ export default function CreateListingPage() {
         }
     }, [status, session, router]);
 
-    // Auto-dismiss notification
     useEffect(() => {
         if (notice) {
             const timer = setTimeout(() => setNotice(null), 3000);
@@ -155,13 +136,11 @@ export default function CreateListingPage() {
         }
     }, [notice]);
 
-    // Load Provinces
     useEffect(() => {
         fetch("/api/provinces").then(r => r.json()).then(data => Array.isArray(data) && setProvinces(data)).catch(() => { });
         fetch("/api/projects?limit=100").then(r => r.json()).then(res => Array.isArray(res.data) && setProjects(res.data)).catch(() => { });
     }, []);
 
-    // Load Wards when Province changes
     useEffect(() => {
         if (!form.provinceId) { setWards([]); return; }
         const p = provinces.find(x => x.id === form.provinceId);
@@ -169,7 +148,6 @@ export default function CreateListingPage() {
         fetch(`/api/wards?provinceCode=${p.code}`).then(r => r.json()).then(d => setWards(Array.isArray(d) ? d : [])).catch(() => setWards([]));
     }, [form.provinceId, provinces]);
 
-    // Initialize Speech Recognition
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -201,7 +179,6 @@ export default function CreateListingPage() {
         }
     }, []);
 
-    // Voice Recording Handler
     const handleVoiceRecording = () => {
         if (!recognition) {
             setNotice({ type: 'error', message: 'Trình duyệt không hỗ trợ ghi âm giọng nói.' });
@@ -216,7 +193,6 @@ export default function CreateListingPage() {
         }
     };
 
-    // Load Draft/Edit
     useEffect(() => {
         const id = editIdInput || draftIdInput;
         if (!id || status !== "authenticated") return;
@@ -258,11 +234,8 @@ export default function CreateListingPage() {
             .finally(() => setIsLoading(false));
     }, [editIdInput, draftIdInput, status]);
 
-    // --- Computed ---
     const selectedProvinceName = provinces.find(p => p.id === form.provinceId)?.name ?? "";
     const selectedWardName = wards.find(w => String(w.code) === form.wardId)?.name ?? "";
-
-    // --- Actions ---
 
     const handleSave = async (isDraft = true) => {
         setIsSaving(true);
@@ -321,7 +294,6 @@ export default function CreateListingPage() {
         try {
             const newUrls: string[] = [];
             for (const file of Array.from(e.target.files)) {
-                // Check size (max 10MB)
                 if (file.size > 10 * 1024 * 1024) {
                     setNotice({ type: 'error', message: `File ${file.name} quá lớn (tối đa 10MB)` });
                     continue;
@@ -410,17 +382,14 @@ export default function CreateListingPage() {
                     address: data.address || prev.address,
                 }));
 
-                // Auto-select Province & Ward
                 if (data.provinceName) {
                     const normalize = (str: string) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/tinh|thanh pho|tp/g, "").trim();
                     const provinceName = normalize(data.provinceName);
                     const foundProvince = provinces.find(p => normalize(p.name).includes(provinceName) || provinceName.includes(normalize(p.name)));
 
                     if (foundProvince) {
-                        // Update province immediately
                         setForm(prev => ({ ...prev, provinceId: foundProvince.id }));
 
-                        // Fetch wards using the same API as useEffect
                         if (foundProvince.code) {
                             try {
                                 const resWards = await fetch(`/api/wards?provinceCode=${foundProvince.code}`);
@@ -431,7 +400,6 @@ export default function CreateListingPage() {
                                         const normalize = (str: string) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
                                         const wardName = normalize(data.wardName).replace(/phuong|xa|thi tran|p\.|x\.|tt\./g, "").trim();
 
-                                        // Simple inclusion check as requested
                                         const foundWard = wardsData.find((w: Ward) => {
                                             const wName = normalize(w.name).replace(/phuong|xa|thi tran|p\.|x\.|tt\./g, "").trim();
                                             return wName.includes(wardName) || wardName.includes(wName);
@@ -458,8 +426,6 @@ export default function CreateListingPage() {
             setIsSmartFilling(false);
         }
     }
-
-    // --- Render Helpers ---
 
     const renderInput = (label: string, field: keyof typeof form, type = "text", placeholder = "", required = false, suffix?: React.ReactNode) => (
         <div className="space-y-3">
@@ -884,7 +850,6 @@ export default function CreateListingPage() {
                     </div>
                 </div>
             </div>
-
 
             {/* AI Modal (Description Generator) */}
             {showAi && (

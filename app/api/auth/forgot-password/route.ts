@@ -26,7 +26,6 @@ export async function POST(req: Request) {
         expiresAt: new Date(Date.now() + OTP_EXIRY_MINUTES * 60 * 1000),
       },
     });
-    // TODO: Gửi email thật (Resend, SendGrid...). Hiện trả code về cho dev.
     if (process.env.NODE_ENV === "development") {
       return NextResponse.json({ message: "Mã OTP (chỉ dev)", code });
     }

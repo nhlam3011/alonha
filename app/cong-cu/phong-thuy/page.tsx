@@ -30,7 +30,6 @@ const BAT_TRACH: Record<CungMenh, Record<string, HuongInfo>> = {
   Cấn: { "Đông Bắc": { sao: "Phục Vị", loai: "Cát", desc: "Bản mệnh" }, "Tây Nam": { sao: "Sinh Khí", loai: "Cát", desc: "Tài lộc" }, "Tây Bắc": { sao: "Thiên Y", loai: "Cát", desc: "Sức khỏe" }, "Tây": { sao: "Diên Niên", loai: "Cát", desc: "Hôn nhân" }, "Nam": { sao: "Họa Hại", loai: "Hung", desc: "Tiểu nhân" }, "Đông": { sao: "Lục Sát", loai: "Hung", desc: "Tình cảm" }, "Bắc": { sao: "Ngũ Quỷ", loai: "Hung", desc: "Tai họa" }, "Đông Nam": { sao: "Tuyệt Mệnh", loai: "Hung", desc: "Hung nhất" } },
 };
 
-// Lunar calendar utilities
 function jdFromDate(dd: number, mm: number, yy: number): number {
   const a = Math.floor((14 - mm) / 12); const y = yy + 4800 - a; const m = mm + 12 * a - 3;
   let jd = dd + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;

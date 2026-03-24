@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// RSS feed sources for Vietnamese real estate news
 const RSS_SOURCES = [
     {
         id: "vietnamplus",
@@ -41,32 +40,24 @@ type RSSItem = {
     allImages?: string[];
 };
 
-// Validate image URL
 function isValidImageUrl(url: string): boolean {
     if (!url) return false;
-    // Must be http or https or protocol-relative (//)
     if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("//")) return false;
-    // Must have image extension or be from known image CDN
     const validExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif"];
     const hasExtension = validExtensions.some(ext => url.toLowerCase().includes(ext));
     const isFromCDN = url.includes("Unsplash") || url.includes("cloudfront") || url.includes("akamai") || url.includes("imgproxy") || url.includes("vietnamplus") || url.includes("vnecdn");
-    // Filter out placeholder/spacer images
     const isNotPlaceholder = !url.includes("spacer") && !url.includes("blank") && !url.includes("1x1");
     return (hasExtension || isFromCDN) && isNotPlaceholder;
 }
 
-// Resolve relative URLs
 function resolveImageUrl(baseUrl: string, imageUrl: string): string {
     if (!imageUrl) return "";
-    // Already absolute URL
     if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
         return imageUrl;
     }
-    // Protocol-relative URL (//domain.com/image.jpg)
     if (imageUrl.startsWith("//")) {
         return "https:" + imageUrl;
     }
-    // Relative URL - resolve against base
     try {
         return new URL(imageUrl, baseUrl).href;
     } catch {
@@ -74,13 +65,11 @@ function resolveImageUrl(baseUrl: string, imageUrl: string): string {
     }
 }
 
-// Enhanced image extraction with multiple methods
 function extractImages(itemContent: string, description?: string, sourceUrl?: string): { mainImage: string | undefined; allImages: string[] } {
     const images: string[] = [];
     let mainImage: string | undefined;
     const baseUrl = sourceUrl || "https://vietnamplus.vn";
 
-    // Helper to add image with URL resolution
     const addImage = (url: string) => {
         if (!url) return;
         const resolvedUrl = resolveImageUrl(baseUrl, url);
@@ -90,74 +79,62 @@ function extractImages(itemContent: string, description?: string, sourceUrl?: st
         }
     };
 
-    // Method 1: Extract from media:content
     const mediaContentRegex = /<media:content[^>]+url=["']([^"']+)["'][^>]*>/gi;
     let match;
     while ((match = mediaContentRegex.exec(itemContent)) !== null) {
         addImage(match[1]);
     }
 
-    // Method 2: Extract from media:thumbnail
     const mediaThumbRegex = /<media:thumbnail[^>]+url=["']([^"']+)["'][^>]*>/gi;
     while ((match = mediaThumbRegex.exec(itemContent)) !== null) {
         addImage(match[1]);
     }
 
-    // Method 3: Extract from enclosure
     const enclosureRegex = /<enclosure[^>]+url=["']([^"']+)["'][^>]*type=["']image\//gi;
     while ((match = enclosureRegex.exec(itemContent)) !== null) {
         addImage(match[1]);
     }
 
-    // Method 4: Extract from description HTML (img tags)
     const descContent = description || "";
     const imgRegex = /<img[^>]+src=["']([^"']+)["']/gi;
     while ((match = imgRegex.exec(descContent)) !== null) {
         addImage(match[1]);
     }
 
-    // Method 5: Extract from description (background-image or data-src)
     const dataSrcRegex = /data-src=["']([^"']+)["']|background-image:url\(["']?([^"')]+)["']?\)/gi;
     while ((match = dataSrcRegex.exec(descContent)) !== null) {
         addImage(match[1] || match[2]);
     }
 
-    // Method 6: Extract og:image from description meta tags
     const ogImageRegex = /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']|<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/gi;
     while ((match = ogImageRegex.exec(descContent)) !== null) {
         addImage(match[1] || match[2]);
     }
 
-    // Method 7: Extract thumbnail from itunes:image
     const itunesImageRegex = /<itunes:image[^>]+href=["']([^"']+)["']/gi;
     while ((match = itunesImageRegex.exec(itemContent)) !== null) {
         addImage(match[1]);
     }
 
-    // Method 8: Extract from src attribute in content:encoded
     const contentEncodedRegex = /<content:encoded>([\s\S]*?)<\/content:encoded>/gi;
     const contentMatch = contentEncodedRegex.exec(itemContent);
     if (contentMatch) {
         const contentHtml = contentMatch[1];
-        // Extract images from content:encoded
         const contentImgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
         while ((match = contentImgRegex.exec(contentHtml)) !== null) {
             addImage(match[1]);
         }
-        // Extract from data-src in content
         const contentDataSrcRegex = /data-src=["']([^"']+)["']/gi;
         while ((match = contentDataSrcRegex.exec(contentHtml)) !== null) {
             addImage(match[1]);
         }
     }
 
-    // Remove duplicates and limit to 10 images
     const uniqueImages = [...new Set(images)].slice(0, 10);
 
     return { mainImage, allImages: uniqueImages };
 }
 
-// Parse RSS XML to extract items
 function parseRSS(xml: string, source: typeof RSS_SOURCES[0]): RSSItem[] {
     const items: RSSItem[] = [];
     const itemRegex = /<item>([\s\S]*?)<\/item>/gi;
@@ -202,7 +179,6 @@ function parseRSS(xml: string, source: typeof RSS_SOURCES[0]): RSSItem[] {
     return items;
 }
 
-// Generate a slug from title
 function generateSlug(title: string): string {
     return title
         .toLowerCase()
@@ -214,7 +190,6 @@ function generateSlug(title: string): string {
         .substring(0, 100);
 }
 
-// Category labels - matching property listing categories
 function getCategoryLabel(category: string): string {
     const labels: Record<string, string> = {
         "thi-truong": "Thị trường",
@@ -226,7 +201,6 @@ function getCategoryLabel(category: string): string {
     return labels[category] || "Tin tức";
 }
 
-// Auto-categorize article based on content keywords
 function autoCategorize(title: string, description: string): string {
     const content = `${title} ${description}`.toLowerCase();
 
@@ -266,7 +240,6 @@ function autoCategorize(title: string, description: string): string {
     return maxScore > 0 ? bestCategory : "thi-truong";
 }
 
-// Main crawl function
 async function crawlAndSaveNews(): Promise<{ newArticles: number; updatedArticles: number }> {
     let newCount = 0;
     let updateCount = 0;
@@ -314,7 +287,6 @@ async function crawlAndSaveNews(): Promise<{ newArticles: number; updatedArticle
                         });
                         updateCount++;
                     } else {
-                        // Auto-categorize article based on content
                         const autoCategory = autoCategorize(item.title, item.description);
 
                         await prisma.news.create({
@@ -349,9 +321,7 @@ async function crawlAndSaveNews(): Promise<{ newArticles: number; updatedArticle
     return { newArticles: newCount, updatedArticles: updateCount };
 }
 
-// Cron job endpoint - can be called by Vercel Cron or external scheduler
 export async function GET(request: NextRequest) {
-    // Verify cron secret to prevent unauthorized access
     const authHeader = request.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET;
 
@@ -372,7 +342,6 @@ export async function GET(request: NextRequest) {
 
         console.log(`News crawl completed in ${duration}ms. New: ${result.newArticles}, Updated: ${result.updatedArticles}`);
 
-        // Clean up old articles (older than 90 days, preserve featured and high-view articles)
         const ninetyDaysAgo = new Date();
         ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 

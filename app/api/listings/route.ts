@@ -26,7 +26,6 @@ function normalizeToSlug(text: string): string {
  * Kiểm tra text có chứa ký tự có dấu tiếng Việt không
  */
 function hasVietnameseDiacritics(text: string): boolean {
-  // Check if the normalized version differs from the original (lowercased)
   const lower = text.toLowerCase();
   const normalized = normalizeToSlug(text);
   return lower !== normalized;
@@ -37,7 +36,6 @@ function mapCategoryParamToEnum(category: string | null | undefined): PropertyCa
   const value = category.trim();
   if (!value) return null;
 
-  // Hỗ trợ cả enum trực tiếp từ DB (CAN_HO_CHUNG_CU, ...) và slug trên FE (can-ho-chung-cu, ...).
   const upper = value.toUpperCase() as PropertyCategory;
   const enumValues: PropertyCategory[] = [
     "CAN_HO_CHUNG_CU",
@@ -61,7 +59,6 @@ function mapCategoryParamToEnum(category: string | null | undefined): PropertyCa
       return "DAT_NEN";
     case "kho-nha-xuong":
       return "KHO_NHA_XUONG";
-    // Một số loại chi tiết hơn được gom vào nhóm BDS_KHAC trong DB.
     case "biet-thu":
     case "van-phong":
     case "mat-bang":
@@ -105,16 +102,11 @@ export async function GET(req: Request) {
 
     const andConditions: Prisma.ListingWhereInput[] = [];
 
-    // Từ khóa: tìm trong tiêu đề, mô tả, địa chỉ và slug.
-    // Hỗ trợ tìm không dấu: nếu keyword không có dấu tiếng Việt,
-    // chuyển thành dạng slug và tìm trong trường slug (đã được slugify khi tạo tin).
-    // Ngoài ra, nhận diện tên tỉnh/thành trong keyword để lọc theo provinceName.
     const effectiveKeyword = (keyword || "").trim();
     if (effectiveKeyword) {
       const keywordHasDiacritics = hasVietnameseDiacritics(effectiveKeyword);
 
       if (keywordHasDiacritics) {
-        // Keyword có dấu: tìm trực tiếp trong title, description, address, provinceName, wardName
         const orConditions: Prisma.ListingWhereInput[] = [
           { title: { contains: effectiveKeyword, mode: "insensitive" } },
           { description: { contains: effectiveKeyword, mode: "insensitive" } },
@@ -149,17 +141,13 @@ export async function GET(req: Request) {
 
         andConditions.push({ OR: orConditions });
       } else {
-        // Keyword không dấu (VD: "ha noi", "ho chi minh", "da nang")
-        // 1. Phát hiện tên tỉnh/thành trong keyword
         const provinceDetection = await detectProvinceInKeyword(effectiveKeyword);
 
         if (provinceDetection) {
-          // Tìm thấy tên tỉnh/thành -> lọc theo provinceName
           andConditions.push({
             provinceName: { contains: provinceDetection.provinceName, mode: "insensitive" },
           });
 
-          // Nếu còn keyword phụ (ví dụ "can ho" từ "can ho ha noi") -> tìm trong slug/title
           const remaining = provinceDetection.remainingKeyword;
           if (remaining && remaining.length >= 2) {
             const remainingSlug = remaining.replace(/\s+/g, "-");
@@ -191,19 +179,15 @@ export async function GET(req: Request) {
             andConditions.push({ OR: orConditions });
           }
         } else {
-          // Không phát hiện tỉnh/thành -> tìm bằng slug thông thường
           const slugKeyword = normalizeToSlug(effectiveKeyword).replace(/\s+/g, "-");
           const keywordParts: string[] = normalizeToSlug(effectiveKeyword).split(/\s+/).filter(Boolean);
 
           const orConditions: Prisma.ListingWhereInput[] = [
-            // Tìm trực tiếp (trường hợp data không có dấu)
             { title: { contains: effectiveKeyword, mode: "insensitive" } },
             { address: { contains: effectiveKeyword, mode: "insensitive" } },
-            // Tìm trong slug (slug đã được normalize không dấu)
             { slug: { contains: slugKeyword, mode: "insensitive" } },
           ];
 
-          // Nếu keyword có nhiều từ, tìm từng phần trong slug
           if (keywordParts.length > 1) {
             orConditions.push({
               AND: keywordParts.map((part) => ({
@@ -215,7 +199,6 @@ export async function GET(req: Request) {
                 title: { contains: part, mode: "insensitive" as const },
               })),
             });
-            // Tìm trong provinceName + wardName (normalized)
             orConditions.push({
               AND: keywordParts.map((part) => ({
                 OR: [
@@ -231,20 +214,17 @@ export async function GET(req: Request) {
       }
     }
 
-    // Loại hình: mua bán / cho thuê
     if (loaiHinh === "sale") {
       andConditions.push({ listingType: "SALE" });
     } else if (loaiHinh === "rent") {
       andConditions.push({ listingType: "RENT" });
     }
 
-    // Loại BĐS
     const categoryEnum = mapCategoryParamToEnum(category);
     if (categoryEnum) {
       andConditions.push({ category: categoryEnum });
     }
 
-    // Lọc theo tỉnh/phường theo đúng mã code từ API v2
     if (wardId) {
       andConditions.push({ wardCode: String(wardId).trim() } as any);
     } else {
@@ -256,12 +236,10 @@ export async function GET(req: Request) {
       }
     }
 
-    // Dự án
     if (projectId) {
       andConditions.push({ projectId: String(projectId).trim() });
     }
 
-    // Giá
     if (priceMin != null || priceMax != null) {
       const priceFilter: { gte?: number; lte?: number } = {};
       if (typeof priceMin === "number") priceFilter.gte = priceMin;
@@ -269,7 +247,6 @@ export async function GET(req: Request) {
       andConditions.push({ price: priceFilter });
     }
 
-    // Diện tích
     if (areaMin != null || areaMax != null) {
       const areaFilter: { gte?: number; lte?: number } = {};
       if (typeof areaMin === "number") areaFilter.gte = areaMin;
@@ -277,7 +254,6 @@ export async function GET(req: Request) {
       andConditions.push({ area: areaFilter });
     }
 
-    // Phòng ngủ / tắm
     if (typeof bedrooms === "number") {
       andConditions.push({ bedrooms: { gte: bedrooms } });
     }
@@ -285,14 +261,12 @@ export async function GET(req: Request) {
       andConditions.push({ bathrooms: { gte: bathrooms } });
     }
 
-    // Hướng
     if (direction) {
       andConditions.push({
         direction: { contains: direction.trim(), mode: "insensitive" },
       });
     }
 
-    // Pháp lý
     if (legalStatus) {
       andConditions.push({
         legalStatus: { contains: legalStatus.trim(), mode: "insensitive" },
@@ -315,7 +289,6 @@ export async function GET(req: Request) {
     } else if (sort === "area-desc") {
       orderBy.push({ isVip: "desc" }, { area: "desc" }, { publishedAt: "desc" });
     } else {
-      // Tin VIP và mới nhất ưu tiên
       orderBy.push({ isVip: "desc" }, { publishedAt: "desc" }, { createdAt: "desc" });
     }
 
@@ -397,7 +370,6 @@ export async function POST(req: Request) {
       direction: body.direction ?? null,
       legalStatus: body.legalStatus ?? null,
       furniture: body.furniture ?? null,
-      // BỎ amenities khỏi data để tránh lỗi Unknown argument nếu DB chưa sync cột này
       address: body.address ?? null,
       provinceCode,
       provinceName,

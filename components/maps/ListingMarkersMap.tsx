@@ -162,7 +162,6 @@ function PanToHovered({ listingId, listings }: { listingId: string | null | unde
     if (!listing) return;
     prevId.current = listingId;
 
-    // Chỉ pan nếu marker ngoài viewport, không thay đổi zoom
     const pos = L.latLng(listing.latitude, listing.longitude);
     if (!map.getBounds().contains(pos)) {
       map.panTo(pos, { animate: true, duration: 0.4 });
@@ -185,7 +184,6 @@ function FocusSelected({ listingId, listings }: { listingId: string | null; list
     if (!listing) return;
     prevId.current = listingId;
 
-    // Bay đến và zoom vào marker được chọn
     const t = setTimeout(() => {
       try {
         map.flyTo([listing.latitude, listing.longitude], 16, { duration: 0.5 });
@@ -259,7 +257,6 @@ export default function ListingMarkersMap({
       ? ([listings[0].latitude, listings[0].longitude] as [number, number])
       : DEFAULT_CENTER;
 
-  // Theme-aware colors for popup
   const popupBg = theme === "dark" ? "#1e293b" : "#ffffff";
   const popupText = theme === "dark" ? "#f1f5f9" : "#0f172a";
   const popupMuted = theme === "dark" ? "#94a3b8" : "#64748b";

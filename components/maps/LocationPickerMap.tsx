@@ -5,7 +5,6 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
 
-// Fix for default marker icon in Next.js/Webpack
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -34,7 +33,6 @@ function CenterOnMarker({ markerPosition }: { markerPosition: [number, number] |
   const map = useMap();
 
   useEffect(() => {
-    // Invalidate size on mount to ensure tiles load correctly
     map.invalidateSize();
     if (markerPosition) {
       map.flyTo(markerPosition, Math.max(map.getZoom(), 15), { duration: 0.6 });
@@ -55,7 +53,6 @@ export default function LocationPickerMap({
       : null;
   const center = markerPosition ?? DEFAULT_CENTER;
 
-  // Memoize custom icon
   const markerBlue = useMemo(() => L.icon({
     iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
     shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",

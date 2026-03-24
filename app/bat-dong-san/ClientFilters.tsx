@@ -124,7 +124,6 @@ export function ClientFilters({
             if (v === null || v === "") params.delete(k);
             else params.set(k, v);
         });
-        // Reset page whenever filters change
         if (!updates.page) params.delete("page");
 
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
@@ -133,7 +132,6 @@ export function ClientFilters({
     const handleAiSearch = async (val: string) => {
         const q = val.trim();
         if (!q) {
-            // Xoá tất cả filter khi search rỗng
             router.push(pathname, { scroll: false });
             return;
         }
@@ -146,9 +144,7 @@ export function ClientFilters({
             });
             const data = await res.json();
 
-            // Tạo params mới từ đầu (xoá sạch filter cũ)
             const params = new URLSearchParams();
-            // Giữ lại loaiHinh mặc định nếu AI không phân tích được
             params.set("loaiHinh", data.loaiHinh || "sale");
             if (data.keyword) params.set("keyword", data.keyword);
             params.set("aiQuery", q);
@@ -158,7 +154,6 @@ export function ClientFilters({
             if (data.priceMax != null) params.set("priceMax", String(data.priceMax));
             if (data.areaMin != null) params.set("areaMin", String(data.areaMin));
             if (data.areaMax != null) params.set("areaMax", String(data.areaMax));
-            // provinceId: map provinceName -> provinceCode
             if (data.provinceName) {
                 const matched = provinces.find(
                     (p) => p.name.toLowerCase().includes(data.provinceName.toLowerCase()) ||
@@ -168,7 +163,6 @@ export function ClientFilters({
             }
             router.push(`${pathname}?${params.toString()}`, { scroll: false });
         } catch {
-            // Fallback: xoá cũ, chỉ set keyword thô
             const params = new URLSearchParams();
             params.set("keyword", q);
             params.set("loaiHinh", "sale");
@@ -215,8 +209,6 @@ export function ClientFilters({
                         onViewChange={(mode) => {
                             if (mode === "grid" || mode === "list") {
                                 setViewMode(mode);
-                                // Dispatch event để Server Component biết viewMode hiện tại (mặc dù hơi hacky, cách tốt nhất là dùng cookie hoặc searchParams cho viewMode)
-                                // Tuy nhiên view mode thường chỉ là client state nội bộ để style danh sách
                                 document.cookie = `viewMode=${mode}; path=/; max-age=31536000`;
                                 router.refresh(); // Gọi lại RSC để render PropertyCard với viewMode chuẩn (nếu ta pass viewMode từ cookie vào)
                             }

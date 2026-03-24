@@ -56,7 +56,6 @@ export function UsersAdminClient({
     const [savingId, setSavingId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    // Chat
     const [chatOpen, setChatOpen] = useState(false);
     const [chatUser, setChatUser] = useState<UserRow | null>(null);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -68,7 +67,6 @@ export function UsersAdminClient({
         setRows(initialUsers);
     }, [initialUsers]);
 
-    // Handle URL updates when filters change
     useEffect(() => {
         if (keyword === initialKeyword && roleFilter === initialRole) return;
         const timeout = setTimeout(() => {
@@ -119,7 +117,6 @@ export function UsersAdminClient({
         }
     }
 
-    // --- Chat Logic ---
     async function openChat(user: UserRow) {
         setChatUser(user);
         setChatOpen(true);
@@ -161,7 +158,6 @@ export function UsersAdminClient({
             });
             if (!res.ok) throw new Error();
         } catch {
-            // Handle error quietly
         }
     }
 

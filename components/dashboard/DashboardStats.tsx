@@ -73,7 +73,6 @@ const colorStyles: Record<StatColor, {
     },
 };
 
-// Dark mode styles using CSS variables
 const darkColorStyles: Record<StatColor, { bg: string; text: string; border: string }> = {
     blue: {
         bg: "[&]:bg-blue-950/50",

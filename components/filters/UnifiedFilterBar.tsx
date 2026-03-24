@@ -7,7 +7,6 @@ type UnifiedFilterBarProps = {
     sortOptions?: { value: string; label: string }[];
     activeSort?: string;
     onSortChange?: (val: string) => void;
-    // Cho phép đẩy vào thêm children ở cuối (nút Reset filter v.v.)
     appendRight?: ReactNode;
 };
 

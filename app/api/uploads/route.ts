@@ -30,7 +30,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "File trống." }, { status: 400 });
     }
 
-    // Cloudinary upload if configured
     if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
       console.log("Attempting Cloudinary upload...");
       try {
@@ -66,7 +65,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // Local fallback
     console.log("Handling local fallback...");
     const uploadsDir = path.join(process.cwd(), "public", "uploads");
     console.log("Ensuring directory exists:", uploadsDir);

@@ -21,7 +21,6 @@ export default async function AgentDashboardPage() {
 
   const userId = session.user.id;
 
-  // 1. Fetch Stats
   const [wallet, activeListings, totalViewsResult, unreadLeads] = await Promise.all([
     prisma.wallet.findUnique({ where: { userId } }),
     prisma.listing.count({
@@ -43,7 +42,6 @@ export default async function AgentDashboardPage() {
     newLeadsCount: unreadLeads,
   };
 
-  // 2. Fetch Leads
   const dbLeads = await prisma.lead.findMany({
     where: { agentId: userId },
     orderBy: { createdAt: "desc" },
@@ -66,7 +64,6 @@ export default async function AgentDashboardPage() {
     listingSlug: l.listing?.slug,
   }));
 
-  // 3. Fetch Listings for Dropdown
   const activeListingsDropdown = await prisma.listing.findMany({
     where: { ownerId: userId, status: "APPROVED" },
     select: { id: true, title: true },

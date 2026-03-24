@@ -74,7 +74,6 @@ export async function callGeminiChat(messages: ChatMessage[], options?: { maxTok
   return reply;
 }
 
-// Backwards-compatible alias name used across API routes
 export async function callOpenAIChat(messages: ChatMessage[], options?: { maxTokens?: number }) {
   return callGeminiChat(messages, options);
 }

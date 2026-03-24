@@ -161,12 +161,10 @@ export function ListingsAdminClient({ initialListings }: { initialListings: List
     const [savingId, setSavingId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    // Sync state when props change
     useEffect(() => {
         setRows(initialListings);
     }, [initialListings]);
 
-    // Handle URL updates when filters change
     useEffect(() => {
         if (keyword === initialKeyword && status === initialStatus) return;
         const timeout = setTimeout(() => {

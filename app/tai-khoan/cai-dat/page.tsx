@@ -5,7 +5,6 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-// ---- Icons ----
 const UserIcon = (p: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
 );
@@ -75,14 +74,12 @@ export default function AccountSettingsPage() {
     const [success, setSuccess] = useState("");
     const [error, setError] = useState("");
 
-    // Profile fields
     const [name, setName] = useState("");
     const [phone, setPhone] = useState("");
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Password fields
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -140,12 +137,10 @@ export default function AccountSettingsPage() {
             setError("Ảnh tối đa 5MB");
             return;
         }
-        // Preview ngay
         const reader = new FileReader();
         reader.onload = (ev) => setAvatarPreview(ev.target?.result as string);
         reader.readAsDataURL(file);
 
-        // Upload
         setUploading(true);
         try {
             const formData = new FormData();

@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-// --- Types ---
 interface ChatMessage {
   id: string;
   content: string;
@@ -49,17 +48,14 @@ function UserTinNhanContent() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const conversationIdRef = useRef<string | null>(null);
 
-  // Sync ref with state
   useEffect(() => {
     selectedRecipientRef.current = selectedRecipient;
   }, [selectedRecipient]);
 
-  // Cuộn xuống cuối chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages, loadingChat]);
 
-  // Lấy danh sách những người đã nhắn tin (môi giới/admin)
   const fetchRecipients = useCallback(async () => {
     if (!session?.user?.id) return;
     try {
@@ -68,12 +64,10 @@ function UserTinNhanContent() {
       if (data.data) {
         setRecipients(data.data);
         
-        // Nếu có deep link, ưu tiên chọn người đó
         if (deepLinkId) {
             const found = data.data.find((r: Recipient) => r.id === deepLinkId);
             if (found) setSelectedRecipient(found);
             else {
-                // Nếu chưa có hội thoại nhưng có deepLink, fetch thông tin user đó
                 fetchUserInfo(deepLinkId);
             }
         }
@@ -113,7 +107,6 @@ function UserTinNhanContent() {
     }
   }, [status, fetchRecipients]);
 
-  // Lấy tin nhắn khi chọn một người
   useEffect(() => {
     if (!selectedRecipient) return;
 
@@ -133,7 +126,6 @@ function UserTinNhanContent() {
       .finally(() => setLoadingChat(false));
   }, [selectedRecipient]);
 
-  // Polling mỗi 3s (realtime)
   useEffect(() => {
     const interval = setInterval(async () => {
       const recipientId = selectedRecipientRef.current?.id;
@@ -198,7 +190,6 @@ function UserTinNhanContent() {
     formData.append("file", file);
 
     try {
-      // Dùng endpoint /api/uploads như trang môi giới
       const uploadRes = await fetch("/api/uploads", { method: "POST", body: formData });
       if (!uploadRes.ok) throw new Error("Upload failed");
       const uploadData = await uploadRes.json();

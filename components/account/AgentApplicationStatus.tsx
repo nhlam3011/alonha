@@ -95,7 +95,6 @@ export function AgentApplicationStatus() {
     }
 
     if (!app) {
-        // Show registration CTA
         return (
             <Link
                 href="/dang-ky-moi-gioi"
@@ -125,7 +124,6 @@ export function AgentApplicationStatus() {
         );
     }
 
-    // Show application status
     const status = statusConfig[app.status] || statusConfig.PENDING;
 
     return (

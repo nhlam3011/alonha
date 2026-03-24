@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// User gửi đơn đăng ký trở thành môi giới
 export async function POST(req: Request) {
     const session = await auth();
     if (!session?.user?.id) {
@@ -14,7 +13,6 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Bạn đã là môi giới rồi." }, { status: 400 });
     }
 
-    // Kiểm tra đã có đơn pending
     const existing = await prisma.agentApplication.findFirst({
         where: {
             userId: session.user.id,
@@ -64,7 +62,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ data: app, message: "Đơn đăng ký đã được gửi thành công!" });
 }
 
-// User xem trạng thái đơn đăng ký của mình
 export async function GET() {
     const session = await auth();
     if (!session?.user?.id) {

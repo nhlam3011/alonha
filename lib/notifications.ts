@@ -32,7 +32,6 @@ export async function createNotification({
     metadata,
 }: CreateNotificationParams): Promise<NotificationResult> {
     try {
-        // Get user information for email
         const user = await prisma.user.findUnique({
             where: { id: userId },
             select: { email: true, name: true },
@@ -42,7 +41,6 @@ export async function createNotification({
             return { success: false, error: 'User not found' };
         }
 
-        // Create notification in database
         const notification = await prisma.notification.create({
             data: {
                 userId,
@@ -56,7 +54,6 @@ export async function createNotification({
 
         let emailSent = false;
 
-        // Send email if enabled and user has email
         if (sendEmail && user.email) {
             const emailResult = await sendNotificationEmail({
                 email: user.email,
@@ -69,7 +66,6 @@ export async function createNotification({
 
             emailSent = emailResult.success;
 
-            // Update notification to mark email as sent
             if (emailSent) {
                 await prisma.notification.update({
                     where: { id: notification.id },
@@ -266,8 +262,6 @@ export async function updateUserNotificationSettings(
         return { success: false, error };
     }
 }
-
-// ============ HELPER FUNCTIONS FOR SPECIFIC NOTIFICATION TYPES ============
 
 /**
  * Send notification when a listing is approved

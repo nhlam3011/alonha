@@ -61,7 +61,6 @@ export async function GET(req: Request) {
   const id = searchParams.get("id")?.trim();
   if (!id) return NextResponse.json({ error: "Thiếu id nháp." }, { status: 400 });
 
-  // Cho phép lấy cả tin đã đăng để edit (APPROVED, PENDING, REJECTED, HIDDEN)
   const listing = await prisma.listing.findFirst({
     where: {
       id,
@@ -77,7 +76,6 @@ export async function GET(req: Request) {
   });
   if (!listing) return NextResponse.json({ error: "Không tìm thấy tin đăng." }, { status: 404 });
 
-  // Trả về thêm status để FE biết đây là tin đã đăng hay nháp
   const isEditMode = listing.status !== "DRAFT";
 
   return NextResponse.json({
@@ -93,15 +91,12 @@ export async function GET(req: Request) {
       bathrooms: listing.bathrooms,
       direction: listing.direction,
       legalStatus: listing.legalStatus,
-      // amenities được lưu tạm trong JSON, nhưng nếu schema DB chưa có sẽ luôn là undefined
-      // nên chỉ đọc an toàn qua cast Record.
       amenities: Array.isArray((listing as Record<string, unknown>).amenities)
         ? (listing as Record<string, unknown>).amenities
         : [],
       address: listing.address,
       latitude: listing.latitude,
       longitude: listing.longitude,
-      // Gán lại cho FE theo đúng cấu trúc form hiện tại
       provinceId: listing.provinceCode,
       districtId: null,
       wardId: listing.wardCode,
@@ -185,11 +180,9 @@ export async function POST(req: Request) {
       bathrooms: normalizeOptionalInt(body.bathrooms),
       direction: normalizeString(body.direction, 100),
       legalStatus: normalizeString(body.legalStatus, 200),
-      // Không set fields 'amenities' để tránh lỗi Unknown argument nếu DB schema chưa có cột này.
       address: normalizeString(body.address, 500),
       latitude: latitude != null && longitude != null ? latitude : null,
       longitude: latitude != null && longitude != null ? longitude : null,
-      // Lưu trực tiếp mã tỉnh/thành & phường/xã theo API v2
       provinceCode:
         typeof body.provinceId === "string" && body.provinceId.trim()
           ? body.provinceId.trim().slice(0, 20)

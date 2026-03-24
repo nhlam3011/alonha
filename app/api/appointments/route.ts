@@ -51,7 +51,6 @@ export async function POST(req: Request) {
     },
   });
 
-  // Gửi thông báo cho môi giới
   await notifyNewAppointment(appointment.id);
 
   return NextResponse.json({ ok: true });

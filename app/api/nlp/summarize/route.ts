@@ -36,7 +36,6 @@ Viết đoạn văn ngắn hoàn chỉnh, có ý nghĩa. Không cần JSON hay m
 
     console.log("Raw AI response:", summary);
 
-    // Clean up response - remove any markdown formatting
     const cleanedSummary = summary
       .replace(/```json/g, "")
       .replace(/```/g, "")

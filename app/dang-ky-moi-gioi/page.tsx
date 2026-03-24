@@ -38,7 +38,6 @@ export default function RegisterAgentPage() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  // Form data
   const [form, setForm] = useState({
     fullName: "", phone: "", email: "", idCardNumber: "", dateOfBirth: "",
     address: "", currentAddress: "", education: "", experience: "",
@@ -47,7 +46,6 @@ export default function RegisterAgentPage() {
 
   const set = (key: string, val: any) => setForm(p => ({ ...p, [key]: val }));
 
-  // Check existing application
   useEffect(() => {
     if (authStatus !== "authenticated") { setLoading(false); return; }
     fetch("/api/agent-application")
@@ -61,7 +59,6 @@ export default function RegisterAgentPage() {
       .catch(() => { })
       .finally(() => setLoading(false));
 
-    // Prefill from session
     if (session?.user) {
       setForm(p => ({
         ...p,
@@ -158,7 +155,6 @@ export default function RegisterAgentPage() {
     );
   }
 
-  // Có đơn đang chờ
   if (existingApp) {
     const statusMap: Record<string, { label: string; color: string; icon: string }> = {
       PENDING: { label: "Đang chờ duyệt", color: "text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-800", icon: "⏳" },
@@ -256,7 +252,6 @@ export default function RegisterAgentPage() {
     );
   }
 
-  // Đã gửi thành công
   if (success) {
     return (
       <div className="mx-auto max-w-lg px-4 py-16 text-center">

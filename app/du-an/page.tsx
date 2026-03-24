@@ -25,7 +25,6 @@ export default async function ProjectsPage(props: {
   const page = typeof params.page === "string" ? Math.max(1, Number(params.page)) : 1;
   const skip = (page - 1) * limit;
 
-  // Build orderBy
   let orderBy: Prisma.ProjectOrderByWithRelationInput | Prisma.ProjectOrderByWithRelationInput[] = { createdAt: "desc" };
   switch (sort) {
     case "oldest":
@@ -45,10 +44,8 @@ export default async function ProjectsPage(props: {
       break;
   }
 
-  // Build where clause
   const andConditions: Prisma.ProjectWhereInput[] = [];
 
-  // Keyword search
   if (keyword) {
     const keywordParts = keyword.split(/\s+/).filter(Boolean);
     const orConditions: Prisma.ProjectWhereInput[] = [
@@ -73,19 +70,15 @@ export default async function ProjectsPage(props: {
     andConditions.push({ OR: orConditions });
   }
 
-  // Mặc định chỉ lấy các dự án đang active (theo api cũ)
   if (status === "dang-ban") andConditions.push({ isActive: true });
   else if (status === "sap-ban") andConditions.push({ isActive: false });
-  // Bổ sung các status khác nếu Project schema có hỗ trợ cột status tương ứng
 
   if (provinceId) {
-    // Tìm province code
     andConditions.push({ provinceCode: provinceId.trim() } as any);
   }
 
   const where: Prisma.ProjectWhereInput = andConditions.length > 0 ? { AND: andConditions } : {};
 
-  // Fetch Provinces cho Filter
   const headersList = await headers();
   const host = headersList.get("host") || "localhost:3000";
   const protocol = process.env.NODE_ENV === "development" ? "http" : "https";

@@ -29,7 +29,6 @@ Trả về JSON (không markdown, không code block) với cấu trúc:
             { maxTokens: 1500, temperature: 0.3 }
         );
 
-        // Parse JSON from response
         const cleaned = response.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
         const data = JSON.parse(cleaned);
 

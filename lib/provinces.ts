@@ -8,10 +8,6 @@
  * hoặc detect tên tỉnh/quận trong keyword đều import từ file này.
  */
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
 /** Raw shape from https://provinces.open-api.vn/api/v2/p/ */
 export type V2Province = {
   name: string;
@@ -30,10 +26,6 @@ export type V2Ward = {
   province_code: number;
 };
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
 const V2_PROVINCES_URL = "https://provinces.open-api.vn/api/v2/p/";
 const V2_WARDS_URL = "https://provinces.open-api.vn/api/v2/w/";
 
@@ -41,10 +33,6 @@ const V2_WARDS_URL = "https://provinces.open-api.vn/api/v2/w/";
 const CACHE_TTL = 60 * 60 * 1000;
 
 const FETCH_HEADERS = { "User-Agent": "alonha-app" };
-
-// ---------------------------------------------------------------------------
-// In-memory cache
-// ---------------------------------------------------------------------------
 
 type CacheEntry<T> = { data: T; ts: number };
 
@@ -56,10 +44,6 @@ function isFresh(entry: CacheEntry<unknown> | null): boolean {
   return entry !== null && Date.now() - entry.ts < CACHE_TTL;
 }
 
-// ---------------------------------------------------------------------------
-// Text helpers
-// ---------------------------------------------------------------------------
-
 /** Bỏ dấu tiếng Việt, lowercase, đ -> d */
 export function normalizeVietnamese(text: string): string {
   return text
@@ -70,10 +54,6 @@ export function normalizeVietnamese(text: string): string {
     .replace(/[^a-z0-9\s]/g, "")
     .trim();
 }
-
-// ---------------------------------------------------------------------------
-// Fetch helpers
-// ---------------------------------------------------------------------------
 
 import FALLBACK_PROVINCES from "./provinces_fallback.json";
 
@@ -87,7 +67,6 @@ export async function getProvinces(): Promise<V2Province[]> {
     const res = await fetch(V2_PROVINCES_URL, {
       headers: FETCH_HEADERS,
       next: { revalidate: 3600 },
-      // Thêm timeout ngắn hơn để không treo build quá lâu nếu network lỗi
       signal: AbortSignal.timeout(5000), 
     });
 
@@ -101,7 +80,6 @@ export async function getProvinces(): Promise<V2Province[]> {
     return data;
   } catch (error) {
     console.warn("Using fallback provinces due to fetch error:", error);
-    // Trả về dữ liệu fallback thay vì crash ứng dụng
     const data = FALLBACK_PROVINCES as V2Province[];
     provincesCache = { data, ts: Date.now() };
     return data;
@@ -145,10 +123,6 @@ function filterWards(wards: V2Ward[], provinceCode?: string | number | null): V2
   return wards.filter((w) => String(w.province_code) === code);
 }
 
-// ---------------------------------------------------------------------------
-// Dynamic alias map (tự build từ API data, KHÔNG hardcode)
-// ---------------------------------------------------------------------------
-
 /**
  * Tên viết tắt phổ biến. Chỉ giữ phần mapping thành phố lớn / tên thông dụng
  * mà KHÔNG THỂ suy ra tự động từ API (tên gọi tắt, tên cũ…).
@@ -156,20 +130,14 @@ function filterWards(wards: V2Ward[], provinceCode?: string | number | null): V2
  * Key: dạng không dấu lowercase. Value: codename từ API v2.
  */
 const MANUAL_EXTRA_ALIASES: Record<string, string> = {
-  // TP.HCM
   hcm: "ho_chi_minh",
   "tp hcm": "ho_chi_minh",
   "sai gon": "ho_chi_minh",
   sg: "ho_chi_minh",
-  // Hà Nội
   hn: "ha_noi",
-  // Đà Nẵng
   dn: "da_nang",
-  // Hải Phòng
   hp: "hai_phong",
-  // Cần Thơ
   ct: "can_tho",
-  // Tên thành phố / thắng cảnh phổ biến -> tỉnh chứa nó
   "nha trang": "khanh_hoa",
   "da lat": "lam_dong",
   "ha long": "quang_ninh",
@@ -177,9 +145,7 @@ const MANUAL_EXTRA_ALIASES: Record<string, string> = {
   "phan thiet": "binh_thuan",
   "phu quoc": "kien_giang",
   "vung tau": "ba_ria_vung_tau",
-  // Huế – tên cũ "Thừa Thiên Huế", API v2 đã đổi thành "Thành phố Huế"
   "thua thien hue": "hue",
-  // Tây Nguyên (vùng) -> default Đắk Lắk
   "tay nguyen": "dak_lak",
 };
 
@@ -200,20 +166,16 @@ async function buildAliasMap(): Promise<Map<string, { name: string; code: number
   for (const p of provinces) {
     const entry = { name: p.name, code: p.code };
 
-    // 1. Tên đầy đủ không dấu: "thanh pho ha noi"
     map.set(normalizeVietnamese(p.name), entry);
 
-    // 2. Bỏ prefix "Tỉnh "/"Thành phố ": "ha noi"
     const short = p.name
       .replace(/^(Tỉnh|Thành phố)\s+/i, "")
       .trim();
     map.set(normalizeVietnamese(short), entry);
 
-    // 3. codename (vd "ha_noi" -> "ha noi")
     map.set(p.codename.replace(/_/g, " "), entry);
   }
 
-  // 4. Manual aliases
   for (const [alias, codename] of Object.entries(MANUAL_EXTRA_ALIASES)) {
     const prov = provinces.find((p) => p.codename === codename);
     if (prov) {
@@ -224,10 +186,6 @@ async function buildAliasMap(): Promise<Map<string, { name: string; code: number
   aliasMapCache = { data: map, ts: Date.now() };
   return map;
 }
-
-// ---------------------------------------------------------------------------
-// Public: Detect province in keyword
-// ---------------------------------------------------------------------------
 
 export type ProvinceDetection = {
   provinceName: string;
@@ -245,7 +203,6 @@ export async function detectProvinceInKeyword(
   const aliasMap = await buildAliasMap();
   const normalized = normalizeVietnamese(keyword);
 
-  // Sắp xếp aliases theo độ dài giảm dần để match dài nhất trước
   const sortedAliases = [...aliasMap.entries()].sort(
     (a, b) => b[0].length - a[0].length,
   );
@@ -293,10 +250,6 @@ export async function findProvinceByCode(
   const numCode = typeof code === "string" ? parseInt(code, 10) : code;
   return provinces.find((p) => p.code === numCode) ?? null;
 }
-
-// ---------------------------------------------------------------------------
-// Legacy compat – giữ cho các file import cũ không bị lỗi
-// ---------------------------------------------------------------------------
 
 export async function findOrCreateProvinceByCode(
   _: string | null | undefined,

@@ -30,7 +30,6 @@ export async function POST(
     data: { status: "APPROVED", publishedAt: new Date() },
   });
 
-  // Gửi thông báo cho người đăng
   await notifyListingApproved(id, existing.title);
 
   return NextResponse.json({ ok: true });

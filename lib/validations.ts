@@ -29,7 +29,6 @@ export const changePasswordSchema = z.object({
 export const updateProfileSchema = z.object({
   name: z.string().min(1).optional().nullable(),
   phone: z.string().optional().nullable(),
-  // Cho phép URL tuyệt đối (http/https) hoặc path tương đối bắt đầu bằng "/"
   avatar: z
     .string()
     .trim()

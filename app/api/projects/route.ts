@@ -13,7 +13,6 @@ export async function GET(req: Request) {
 
   const skip = (page - 1) * limit;
 
-  // Build orderBy
   let orderBy: any = { createdAt: "desc" };
   switch (sort) {
     case "oldest":
@@ -33,7 +32,6 @@ export async function GET(req: Request) {
       break;
   }
 
-  // Build where clause
   const where: any = {};
   const andConditions: any[] = [];
 
@@ -59,7 +57,6 @@ export async function GET(req: Request) {
 
   if (andConditions.length > 0) where.AND = andConditions;
 
-  // Get real projects from database
   const projects = await prisma.project.findMany({
     where,
     orderBy,
@@ -70,7 +67,6 @@ export async function GET(req: Request) {
     },
   });
 
-  // Get total count
   const total = await prisma.project.count({ where });
 
   if (projects.length > 0) {

@@ -30,7 +30,6 @@ export function DashboardChart({
 }: DashboardChartProps) {
     const maxValue = useMemo(() => Math.max(...data.map((d) => d.value), 1), [data]);
 
-    // Use a simple scale function
     const scale = (value: number) => (value / maxValue) * 100;
 
     return (

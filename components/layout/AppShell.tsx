@@ -13,7 +13,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const hideChrome = HIDE_CHROME_PREFIXES.some((prefix) => pathname.startsWith(prefix));
   const noPadding = NO_PADDING_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
-
   return (
     <div className="relative flex min-h-screen flex-col overflow-x-clip bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300">
       {/* Background decorative elements */}

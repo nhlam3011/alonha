@@ -9,7 +9,6 @@ export const metadata: Metadata = {
   description: "Cập nhật tin tức thị trường bất động sản mới nhất, chính sách, cẩm nang và dự án.",
 };
 
-// --- RSS Logic ---
 const RSS_SOURCES = [
   { id: "vietnamplus", name: "VietnamPlus", url: "https://www.vietnamplus.vn/rss/kinhte/batdongsan-372.rss", category: "thi-truong" },
   { id: "vnexpress", name: "VnExpress", url: "https://vnexpress.net/rss/bat-dong-san.rss", category: "thi-truong" },
@@ -86,7 +85,6 @@ type NewsArticle = {
   source?: string; sourceId?: string;
 };
 
-// --- Main Component ---
 export default async function NewsPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
@@ -100,7 +98,6 @@ export default async function NewsPage(props: {
   const limit = 12;
   const page = typeof params.page === "string" ? Math.max(1, parseInt(params.page)) : 1;
 
-  // Fetch from database via API
   const apiUrl = new URL(`${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/news`);
   if (category) apiUrl.searchParams.set("category", category);
   if (source) apiUrl.searchParams.set("source", source);
@@ -123,7 +120,6 @@ export default async function NewsPage(props: {
     console.error("Error fetching news from API:", error);
   }
 
-  // Sort handling (for popularity)
   if (sort === "popular") {
     articles.sort((a, b) => b.views - a.views);
   }

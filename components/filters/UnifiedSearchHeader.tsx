@@ -5,24 +5,20 @@ import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
 type UnifiedSearchHeaderProps = {
-    // Toggle loại hình, vd: Mua bán / Cho thuê hoặc Đang bán / Sắp bán
     tabs?: { value: string; label: string; colorClass?: string }[];
     activeTab?: string;
     onTabChange?: (val: string) => void;
 
-    // Search input
     keyword?: string;
     onSearch?: (val: string) => void;
     aiLoading?: boolean;
     searchPlaceholder?: string;
 
-    // Count
     total?: number;
     loading?: boolean;
     unitLabel?: string;
     hideCount?: boolean;
 
-    // Buttons View mode
     viewMode?: "grid" | "list" | "map" | "split";
     onViewChange?: (mode: "grid" | "list" | "map" | "split") => void;
     showMapButton?: boolean;

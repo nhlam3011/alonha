@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// Trả về một admin khả dụng để môi giới có thể nhắn tin
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) {

@@ -41,7 +41,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ reply: FALLBACK_ANSWER });
   }
 
-  // 1. Get or Create Conversation
   let conversation = sessionId
     ? await prisma.chatbotConversation
       .findFirst({
@@ -60,15 +59,12 @@ export async function POST(req: Request) {
       .catch(() => null);
   }
 
-  // 2. Prepare History for AI
-  // Limit to last 10 messages to save tokens but keep context
   const rawHistory = conversation?.messages ?? [];
   const historyMessages: ChatMessage[] = rawHistory.slice(-10).map((m) => ({
     role: (m.role === "assistant" ? "assistant" : "user") as ChatMessage["role"],
     content: m.content,
   }));
 
-  // 3. Define System Prompt for Intent Classification & Extraction
   const systemPrompt = `Bạn là trợ lý AI thông minh, thân thiện của nền tảng Bất động sản AloNha tại Việt Nam.
 Nhiệm vụ: Phân tích tin nhắn và lịch sử trò chuyện để xác định ý định: "search" (tìm mua/thuê nhà), "compare" (so sánh), "recommend" (gợi ý), hoặc "chat" (tư vấn/giải đáp).
 
@@ -120,36 +116,28 @@ Output: {
   let searchResults: any[] | undefined;
 
   try {
-    // 4. Call Gemini
     const llmMessages: ChatMessage[] = [
       { role: "system", content: systemPrompt },
       ...historyMessages,
       { role: "user", content: message },
     ];
 
-    // Force formatting in prompt usually works, but setting output format via API checking is hard in this generic function.
-    // relying on prompt instructions for JSON.
     const rawAiReply = await callGeminiChat(llmMessages, { maxTokens: 2000, temperature: 0.2 });
 
-    // Parse JSON
     try {
-      // Extract everything between first { and last }
       const match = rawAiReply.match(/\{[\s\S]*\}/);
       if (match) {
         aiResponse = JSON.parse(match[0]);
       } else {
-        // clean any residual markdown
         const cleanJson = rawAiReply.replace(/```json/gi, "").replace(/```/g, "").trim();
         aiResponse = JSON.parse(cleanJson);
       }
     } catch (e) {
       console.error("Failed to parse AI JSON:", rawAiReply);
-      // Fallback if AI fails to give JSON: treat as chat using raw text if it looks like conversation, or error.
       aiResponse = { intent: "chat", reply: rawAiReply };
     }
 
     if (aiResponse?.intent === "search" && aiResponse.filters) {
-      // 5. Handle Search Intent
       const f = aiResponse.filters;
       const where: Prisma.ListingWhereInput = {
         status: "APPROVED",
@@ -157,7 +145,6 @@ Output: {
       };
 
       if (f.listingType) where.listingType = f.listingType;
-      // Convert number to compatible Prisma Decimal format if needed, though Prisma accepts numbers for Decimal
       if (f.bedrooms) where.bedrooms = f.bedrooms;
       if (f.priceMin != null) where.price = { gte: f.priceMin };
       if (f.priceMax != null) {
@@ -168,7 +155,6 @@ Output: {
         where.area = { ...(typeof where.area === 'object' ? where.area : {}), lte: f.areaMax };
       }
 
-      // Strict Province/District Filter by Name (References)
       if (f.province) {
         const provWords = f.province.replace(/Thành phố|Tỉnh/gi, '').trim();
         where.provinceName = { contains: provWords, mode: "insensitive" };
@@ -178,7 +164,6 @@ Output: {
         where.address = { contains: distWords, mode: "insensitive" };
       }
 
-      // Keyword fallback
       if (f.keyword) {
         const kw = f.keyword.trim();
         where.OR = [
@@ -187,7 +172,6 @@ Output: {
         ];
       }
 
-      // Execute Query
       const [listings, total] = await Promise.all([
         prisma.listing.findMany({
           where,
@@ -203,7 +187,6 @@ Output: {
             bathrooms: true,
             address: true,
             provinceName: true,
-            // district: { select: { name: true } },
           },
         }),
         prisma.listing.count({ where }),
@@ -220,14 +203,12 @@ Output: {
         address: l.address,
       }));
 
-      // Generate Reply based on results
       if (total > 0) {
         replyContent = aiResponse.reply || `Tìm thấy ${total} bất động sản phù hợp. Xem ngay bên dưới nhé!`;
       } else {
         replyContent = aiResponse.reply || `Tiếc quá, hiện tại mình chưa tìm thấy bất động sản nào khớp hoàn toàn với yêu cầu này. Bạn thử nới rộng khoảng giá hoặc khu vực xem sao nhé!`;
       }
     } else if (aiResponse?.intent === "recommend" && aiResponse.filters) {
-      // 5b. Handle Recommend Intent - similar to search but with recommendations
       const f = aiResponse.filters;
       const where: Prisma.ListingWhereInput = {
         status: "APPROVED",
@@ -290,10 +271,8 @@ Output: {
         replyContent = "Mình chưa tìm được bất động sản phù hợp với tiêu chí này. Bạn có muốn điều chỉnh yêu cầu không?";
       }
     } else if (aiResponse?.intent === "compare") {
-      // 5c. Handle Compare Intent
       replyContent = aiResponse.reply || "Để so sánh, bạn vui lòng cung cấp tên hoặc link của các bất động sản cần so sánh nhé!";
     } else {
-      // 6. Handle Chat Intent
       replyContent = aiResponse?.reply || FALLBACK_ANSWER;
     }
 
@@ -302,7 +281,6 @@ Output: {
     replyContent = "Hiện tại hệ thống đang bận, bạn vui lòng thử lại sau nhé.";
   }
 
-  // 7. Save Conversation History
   if (sessionId) {
     try {
       const convId = conversation?.id; // Reuse existing id
@@ -315,7 +293,6 @@ Output: {
         });
       }
     } catch (e) {
-      // ignore logging errors
     }
   }
 

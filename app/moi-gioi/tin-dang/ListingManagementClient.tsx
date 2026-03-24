@@ -68,9 +68,7 @@ function ActionDropdown({ listing, savingId, onUpdateStatus, onDeleteDraft, onRe
             if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
         };
         document.addEventListener("mousedown", close);
-        // Ensure dropdown is visible
         if (ref.current) {
-            // Optional: scroll into view logic if needed, but usually complicates things with fixed headers
         }
         return () => document.removeEventListener("mousedown", close);
     }, [open]);

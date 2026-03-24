@@ -55,8 +55,6 @@ export async function getCompareItems(context: CompareContext) {
     return rows
         .filter((row) => row.listing.status === "APPROVED" && !!row.listing.publishedAt)
         .map((row) => {
-            // Cast to satisfy toListingCard requirement. 
-            // The include above fetches images which aligns with ListingWithRelations in lib/listings
             const listing = row.listing as unknown as Listing & { images: { url: string; isPrimary: boolean }[] } & { project: Project | null };
 
             const location =
@@ -119,8 +117,6 @@ export async function addToCompare(
 
     const group = await getOrCreateGroup(context);
 
-    // We need to fetch existing items to check count and duplicates
-    // We also need to check if they are still valid (APPROVED)
     const existingItems = await prisma.compareGroupItem.findMany({
         where: { compareGroupId: group.id },
         orderBy: { order: "asc" },

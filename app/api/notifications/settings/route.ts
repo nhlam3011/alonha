@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { getUserNotificationSettings, updateUserNotificationSettings } from '@/lib/notifications';
 
-// GET /api/notifications/settings - Get user's notification settings
 export async function GET(request: NextRequest) {
     try {
         const session = await auth();
@@ -19,7 +18,6 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// PUT /api/notifications/settings - Update user's notification settings
 export async function PUT(request: NextRequest) {
     try {
         const session = await auth();

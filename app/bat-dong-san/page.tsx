@@ -66,7 +66,6 @@ export default async function ListingsPage({
   const cookieStore = await cookies();
   const viewMode = (cookieStore.get("viewMode")?.value as "grid" | "list") || "grid";
 
-  // Parse params
   const keyword = typeof params.keyword === "string" ? params.keyword : "";
   const loaiHinh = typeof params.loaiHinh === "string" ? params.loaiHinh : "sale";
   const category = typeof params.category === "string" ? params.category : "";
@@ -92,7 +91,6 @@ export default async function ListingsPage({
   const page = typeof params.page === "string" ? Math.max(1, Number(params.page)) : 1;
   const limit = 12;
 
-  // Build Prisma Query
   const andConditions: Prisma.ListingWhereInput[] = [];
 
   const effectiveKeyword = keyword.trim();
@@ -227,13 +225,11 @@ export default async function ListingsPage({
 
   const skip = (page - 1) * limit;
 
-  // Cấu hình Base URL linh hoạt cho môi trường Vercel khi fetch API Server-side
   const headersList = await headers();
   const host = headersList.get("host") || "localhost:3000";
   const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `${protocol}://${host}`;
 
-  // Lấy danh sách Provinces để fill vào filter 
   const provincesRes = await fetch(`${baseUrl}/api/provinces`, {
     next: { revalidate: 3600 }
   }).catch((e) => {

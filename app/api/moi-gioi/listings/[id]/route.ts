@@ -120,7 +120,6 @@ export async function PUT(
   });
   if (!listing) return NextResponse.json({ error: "Không tìm thấy tin đăng." }, { status: 404 });
 
-  // Cho phép sửa tin APPROVED, nhưng sau khi sửa sẽ chuyển về PENDING để admin duyệt lại
   const shouldRequireReapproval = listing.status === "APPROVED";
 
   const updateData: any = {};
@@ -153,7 +152,6 @@ export async function PUT(
   if (body.contactEmail !== undefined) updateData.contactEmail = body.contactEmail;
   if (body.projectId !== undefined) updateData.projectId = body.projectId ? String(body.projectId).trim() : null;
 
-  // Nếu sửa tin APPROVED, chuyển về PENDING và xóa publishedAt
   if (shouldRequireReapproval) {
     updateData.status = "PENDING";
     updateData.publishedAt = null;
@@ -165,7 +163,6 @@ export async function PUT(
     select: { id: true, status: true, slug: true },
   });
 
-  // Cập nhật ảnh nếu có
   if (Array.isArray(body.images)) {
     await prisma.listingImage.deleteMany({ where: { listingId: listing.id } });
     if (body.images.length > 0) {

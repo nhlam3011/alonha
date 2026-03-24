@@ -17,7 +17,6 @@ export function slugify(text: string): string {
 
 export function toListingCard(listing: ListingWithRelations): ListingCardData {
   const primaryImage = listing.images.find((i) => i.isPrimary) ?? listing.images[0];
-  // Địa chỉ đầy đủ: chi tiết + phường/xã + tỉnh/thành phố (theo schema mới dùng provinceName/wardName)
   const addressParts = [
     listing.address?.trim(),
     listing.wardName?.trim(),

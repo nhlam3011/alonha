@@ -45,7 +45,6 @@ JSON Template:
             });
         }
 
-        // mode = "listing"
         const prompt = `
 Bạn là AI chuyên phân tích câu tìm kiếm bất động sản tiếng Việt.
 Phân tích câu sau và trả về JSON. Chỉ trả về JSON hợp lệ, không kèm markdown.
@@ -107,7 +106,6 @@ JSON Template:
         });
     } catch (error) {
         console.error("AI search parse error:", error);
-        // Fallback: trả về keyword thô để tìm thủ công
         return NextResponse.json({ keyword: query || "" });
     }
 }

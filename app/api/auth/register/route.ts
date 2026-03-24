@@ -37,7 +37,6 @@ export async function POST(req: Request) {
       select: { id: true, email: true, name: true, role: true },
     });
 
-    // Gửi email chào mừng
     if (user.email) {
       await sendWelcomeEmail(user.email, user.name);
     }

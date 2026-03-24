@@ -10,7 +10,6 @@ export default async function AdminDashboardPage() {
     return null;
   }
 
-  // Parallel data fetching
   const [userCount, listingCount, pendingCount, lockedUserCount] = await Promise.all([
     prisma.user.count(),
     prisma.listing.count(),
@@ -18,7 +17,6 @@ export default async function AdminDashboardPage() {
     prisma.user.count({ where: { isLocked: true } }),
   ]);
 
-  // Date formatting
   const nowLabel = new Date().toLocaleDateString("vi-VN", {
     weekday: "long",
     day: "numeric",
@@ -26,7 +24,6 @@ export default async function AdminDashboardPage() {
     year: "numeric",
   });
 
-  // Mock data for charts (In a real app, these would come from the DB with complex aggregation)
   const userGrowthData = [
     { label: "T2", value: Math.max(0, Math.floor(userCount * 0.8)) },
     { label: "T3", value: Math.max(0, Math.floor(userCount * 0.85)) },

@@ -44,7 +44,6 @@ export default function ResetPasswordPage() {
       <div className="relative z-10 w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 lg:p-16 xl:p-24 min-h-screen pt-20 pb-10">
         <div className="w-full max-w-[440px] animate-in fade-in slide-in-from-bottom-4 duration-700">
 
-
           {/* Card wrapper trên mobile */}
           <div className="bg-[var(--background)] rounded-2xl p-6 shadow-2xl lg:p-0 lg:bg-transparent lg:shadow-none">
             <Suspense fallback={
