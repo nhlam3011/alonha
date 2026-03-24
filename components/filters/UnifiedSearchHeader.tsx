@@ -159,7 +159,7 @@ export function UnifiedSearchHeader({
                 {showMapButton && mapLink && (
                     <Link
                         href={mapLink}
-                        className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2 h-10 text-sm font-medium text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                        className="hidden md:inline-flex shrink-0 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2 h-10 text-sm font-medium text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
                     >
                         <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />

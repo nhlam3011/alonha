@@ -345,7 +345,7 @@ function SearchContent() {
             showMapButton={false}
             keyword={displayQuery}
             onSearch={handleAiSearchSubmit}
-            searchPlaceholder="Tìm kiếm bất động sản bằng AI..."
+            searchPlaceholder="Tìm kiếm..."
           />
 
           <UnifiedFilterBar
@@ -434,16 +434,35 @@ function SearchContent() {
             </div>
 
             {/* Bộ lọc thêm Toggle */}
-            <button
-              onClick={() => setFiltersOpen((o) => !o)}
-              className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-9 px-4 text-xs font-medium transition ${filtersOpen || direction || legalStatus || bedrooms
-                ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
-                : "border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)] hover:border-[var(--primary)]/50"
-                }`}
-            >
-              <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-              Lọc thêm
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setFiltersOpen((o) => !o)}
+                className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-9 px-4 text-xs font-medium transition ${filtersOpen || direction || legalStatus || bedrooms
+                  ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                  : "border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)] hover:border-[var(--primary)]/50"
+                  }`}
+              >
+                <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                Lọc thêm
+              </button>
+
+              <button
+                onClick={() => setViewMode(viewMode === "map" ? "list" : "map")}
+                className="flex md:hidden shrink-0 items-center justify-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] h-9 px-4 text-xs font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+              >
+                {viewMode === "map" ? (
+                  <>
+                    <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                    Danh sách
+                  </>
+                ) : (
+                  <>
+                    <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg>
+                    Bản đồ
+                  </>
+                )}
+              </button>
+            </div>
           </UnifiedFilterBar>
 
           {/* More filters panel */}

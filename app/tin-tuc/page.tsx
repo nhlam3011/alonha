@@ -94,6 +94,7 @@ export default async function NewsPage(props: {
 
   const category = typeof params.category === "string" ? params.category : "";
   const source = typeof params.source === "string" ? params.source : "";
+  const keyword = typeof params.keyword === "string" ? params.keyword : "";
   const sort = typeof params.sort === "string" ? params.sort : "newest";
   const limit = 12;
   const page = typeof params.page === "string" ? Math.max(1, parseInt(params.page)) : 1;
@@ -101,6 +102,7 @@ export default async function NewsPage(props: {
   const apiUrl = new URL(`${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/news`);
   if (category) apiUrl.searchParams.set("category", category);
   if (source) apiUrl.searchParams.set("source", source);
+  if (keyword) apiUrl.searchParams.set("keyword", keyword);
   apiUrl.searchParams.set("limit", String(limit));
   apiUrl.searchParams.set("page", String(page));
 
@@ -124,27 +126,27 @@ export default async function NewsPage(props: {
     articles.sort((a, b) => b.views - a.views);
   }
 
-  const featuredArticle = page === 1 && articles.length > 0 ? articles[0] : null;
-  const regularArticles = page === 1 ? articles.slice(1) : articles;
+  const featuredArticle = page === 1 && articles.length > 0 && !keyword ? articles[0] : null;
+  const regularArticles = (page === 1 && !keyword) ? articles.slice(1) : articles;
 
   return (
     <div className="min-h-screen bg-[var(--background)]">
       <NewsClientFilters total={total} sources={sources} initialViewMode={viewMode} />
 
-      <div className="layout-container px-4 py-6 md:px-10">
+      <div className="layout-container px-4 py-8 md:px-10">
         {articles.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--border)] bg-[var(--card)] py-20">
-            <div className="flex size-16 items-center justify-center rounded-full bg-[var(--primary-light)]">
-              <svg className="size-7 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+          <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-[var(--border)] bg-[var(--card)] py-24 shadow-sm">
+            <div className="flex size-20 items-center justify-center rounded-full bg-[var(--primary-light)] text-[var(--primary)] shadow-inner">
+              <svg className="size-9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
             </div>
-            <p className="mt-4 text-base font-medium text-[var(--foreground)]">Không có bài viết</p>
-            <p className="mt-1 text-sm text-[var(--muted-foreground)]">Chưa có bài viết nào trong danh mục này</p>
+            <h3 className="mt-6 text-xl font-bold text-[var(--foreground)] tracking-tight">Không tìm thấy bài viết</h3>
+            <p className="mt-2 text-sm text-[var(--muted-foreground)] max-w-xs text-center">Chúng tôi không tìm thấy kết quả phù hợp với tiêu chí lọc của bạn. Thử thay đổi từ khóa hoặc bộ lọc khác nhé.</p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {featuredArticle && <ArticleCard article={featuredArticle} isFeatured />}
 
-            <div className={viewMode === "list" ? "space-y-4" : "grid gap-5 sm:grid-cols-2 lg:grid-cols-3"}>
+            <div className={viewMode === "list" ? "space-y-5" : "grid gap-6 sm:grid-cols-2 lg:grid-cols-3"}>
               {regularArticles.map((article) => (
                 <ArticleCard key={article.id} article={article} viewMode={viewMode} />
               ))}
@@ -186,41 +188,54 @@ function ArticleCard({
 
   const content = (
     <>
-      <div className={`relative overflow-hidden bg-[var(--muted)] shrink-0 ${isFeatured ? "h-64 sm:h-80" : isListMode ? "w-40 h-full min-h-[120px] md:w-56 md:min-h-[140px]" : "aspect-video"}`}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
+      <div className={`relative overflow-hidden bg-[var(--muted)] shrink-0 shadow-inner ${isFeatured ? "h-[350px] sm:h-[480px]" : isListMode ? "w-32 sm:w-48 md:w-64 h-full min-h-[120px] md:min-h-[180px]" : "aspect-[16/10]"}`}>
         <ImageWithFallback
           src={article.imageUrl || DEFAULT_IMAGE}
           alt={article.title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
         />
-        {isFeatured && <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />}
+        {isFeatured && <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />}
       </div>
 
-      <div className={isFeatured ? "absolute bottom-0 left-0 right-0 p-6" : `p-4 flex flex-col flex-1 ${isListMode ? "justify-center" : ""}`}>
+      <div className={isFeatured ? "absolute bottom-0 left-0 right-0 p-5 sm:p-10" : `p-4 sm:p-5 flex flex-col flex-1 ${isListMode ? "justify-center" : ""}`}>
         {isFeatured ? (
-          <>
-            <span className="inline-block rounded-full bg-[var(--primary)] px-3 py-1 text-xs font-medium text-white mb-3">
+          <div className="max-w-4xl">
+            <span className="inline-block rounded-lg bg-[var(--primary)] px-3 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white mb-3 sm:mb-4 shadow-lg shadow-[var(--primary)]/20">
               {article.categoryLabel}
             </span>
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-2 line-clamp-2">{article.title}</h2>
-            <p className="text-sm text-white/80 line-clamp-2 hidden sm:block">{article.excerpt}</p>
-            <div className="flex items-center gap-4 mt-3 text-xs text-white/70">
-              <span>{article.author}</span><span>•</span><span>{formatDate(article.publishedAt)}</span><span>•</span><span>{article.readTime} phút đọc</span>
+            <h2 className="text-xl sm:text-4xl font-extrabold text-white mb-3 sm:mb-4 line-clamp-2 leading-tight tracking-tight drop-shadow-md">{article.title}</h2>
+            <p className="text-sm sm:text-base text-white/90 line-clamp-2 hidden sm:block mb-6 leading-relaxed max-w-3xl drop-shadow-sm">{article.excerpt}</p>
+            <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-xs font-semibold text-white/90">
+              <span className="flex items-center gap-1.5"><svg className="size-3.5 sm:size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>{article.author}</span>
+              <span className="opacity-40">•</span>
+              <span className="flex items-center gap-1.5"><svg className="size-3.5 sm:size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>{formatDate(article.publishedAt)}</span>
+              <span className="opacity-40 hidden sm:inline">•</span>
+              <span className="hidden sm:flex items-center gap-1.5"><svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>{article.readTime} phút đọc</span>
             </div>
-          </>
+          </div>
         ) : (
           <>
-            <span className="inline-block self-start rounded-full bg-[var(--primary-light)] px-2.5 py-0.5 text-xs font-medium text-[var(--primary)] mb-2">
-              {article.categoryLabel}
-            </span>
-            <h3 className={`font-semibold text-[var(--foreground)] line-clamp-2 group-hover:text-[var(--primary)] transition-colors ${isListMode ? "text-base" : "text-base"}`}>{article.title}</h3>
-            <p className={`mt-2 text-sm text-[var(--muted-foreground)] line-clamp-2 ${isListMode ? "hidden md:block" : ""}`}>{article.excerpt}</p>
-            <div className="mt-auto pt-3 flex items-center justify-between gap-3 text-xs text-[var(--muted-foreground)]">
-              <span>{formatDate(article.publishedAt)}</span>
-              <span className="flex items-center gap-1">
-                <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                {formatViews(article.views)}
+            <div className="mb-2 sm:mb-3 flex items-center justify-between gap-2">
+              <span className="inline-block rounded-md bg-[var(--primary-light)] px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">
+                {article.categoryLabel}
               </span>
+              <span className="text-[9px] sm:text-[10px] font-bold text-[var(--muted-foreground)] opacity-70">
+                {article.source}
+              </span>
+            </div>
+            <h3 className={`font-bold text-[var(--foreground)] line-clamp-2 group-hover:text-[var(--primary)] transition-colors duration-300 leading-snug tracking-tight ${isListMode ? "text-base sm:text-lg md:text-xl" : "text-base sm:text-lg"}`}>{article.title}</h3>
+            <p className={`mt-2 text-xs sm:text-sm text-[var(--muted-foreground)] line-clamp-2 leading-relaxed ${isListMode ? "hidden md:block" : ""}`}>{article.excerpt}</p>
+            <div className="mt-auto pt-3 sm:pt-4 flex items-center justify-between border-t border-[var(--border)] border-dashed text-[10px] sm:text-xs font-semibold">
+              <span className="text-[var(--muted-foreground)] opacity-70">{formatDate(article.publishedAt)}</span>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <span className="flex items-center gap-1 text-[var(--muted-foreground)]">
+                  <svg className="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                  {formatViews(article.views)}
+                </span>
+                <span className="flex items-center gap-1 text-[var(--primary)] font-bold transition-all duration-300">
+                  Xem thêm <svg className="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                </span>
+              </div>
             </div>
           </>
         )}
@@ -228,22 +243,18 @@ function ArticleCard({
     </>
   );
 
+  const cardClassName = `group overflow-hidden rounded-[20px] sm:rounded-3xl border border-[var(--border)] bg-[var(--card)] shadow-sm hover:shadow-2xl hover:-translate-y-1.5 hover:border-[var(--primary)]/30 transition-all duration-500 ease-out ${isFeatured ? "block relative" : isListMode ? "flex h-auto sm:h-auto" : "flex flex-col h-full"}`;
+
   if (article.sourceUrl) {
     return (
-      <a
-        href={article.sourceUrl} target="_blank" rel="noopener noreferrer"
-        className={`group h-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)] hover:shadow-lg transition-all ${isFeatured ? "block relative" : isListMode ? "flex" : "flex flex-col"}`}
-      >
+      <a href={article.sourceUrl} target="_blank" rel="noopener noreferrer" className={cardClassName}>
         {content}
       </a>
     );
   }
 
   return (
-    <Link
-      href={`/tin-tuc/${article.slug}`}
-      className={`group h-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)] hover:shadow-lg transition-all ${isFeatured ? "block relative" : isListMode ? "flex" : "flex flex-col"}`}
-    >
+    <Link href={`/tin-tuc/${article.slug}`} className={cardClassName}>
       {content}
     </Link>
   );

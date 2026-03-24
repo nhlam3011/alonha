@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import Link from "next/link";
 import { UnifiedSearchHeader } from "@/components/filters/UnifiedSearchHeader";
 import { UnifiedFilterBar } from "@/components/filters/UnifiedFilterBar";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
@@ -218,7 +219,7 @@ export function ClientFilters({
                         keyword={displayQuery}
                         onSearch={handleAiSearch}
                         aiLoading={aiLoading}
-                        searchPlaceholder="Tìm kiếm bất động sản..."
+                        searchPlaceholder="Tìm kiếm..."
                     />
 
                     <UnifiedFilterBar
@@ -298,16 +299,26 @@ export function ClientFilters({
                             />
                         </div>
 
-                        <button
-                            onClick={() => setMoreFiltersOpen((o) => !o)}
-                            className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-10 px-5 text-sm font-medium transition ${moreFiltersOpen || direction || legalStatus || bedrooms
-                                ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
-                                : "border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--primary)]/50"
-                                }`}
-                        >
-                            <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-                            Lọc thêm
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setMoreFiltersOpen((o) => !o)}
+                                className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-10 px-5 text-sm font-medium transition ${moreFiltersOpen || direction || legalStatus || bedrooms
+                                    ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                                    : "border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--primary)]/50"
+                                    }`}
+                            >
+                                <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                                Lọc thêm
+                            </button>
+
+                            <Link
+                                href={buildMapLink()}
+                                className="flex md:hidden shrink-0 items-center justify-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] h-10 px-5 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                            >
+                                <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg>
+                                Bản đồ
+                            </Link>
+                        </div>
                     </UnifiedFilterBar>
 
                     {moreFiltersOpen && (

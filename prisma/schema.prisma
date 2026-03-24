@@ -427,6 +427,14 @@ model News {
   @@index([slug])
 }
 
+model Media {
+  id        String   @id @default(cuid())
+  fileName  String
+  mimeType  String
+  data      Bytes
+  createdAt DateTime @default(now())
+}
+
 enum UserRole {
   USER
   AGENT
