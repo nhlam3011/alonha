@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { PropertyCard } from "@/components/listings/PropertyCard";
 import { toListingCard } from "@/lib/listings";
-import { PhoneContact, ActionButtons, ContactSidebar, AIFeatures } from "./ClientComponents";
+import { PhoneContact, ActionButtons, ContactSidebar, AIFeatures, ImageGallery } from "./ClientComponents";
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 
 const PLACEHOLDER_IMG = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=80";
@@ -153,34 +153,8 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2">
             {/* Mosaic gallery */}
-            <div className="relative grid grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)]">
-              <div className="relative col-span-4 row-span-2 min-h-[240px] sm:col-span-2 sm:row-span-2 sm:aspect-auto sm:h-full group">
-                <div className="relative aspect-[4/3] h-full min-h-[240px] sm:absolute sm:inset-0 overflow-hidden">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <ImageWithFallback
-                    src={images[0]?.url ?? PLACEHOLDER_IMG}
-                    alt={listing.title}
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                </div>
-                <Link
-                  href="#"
-                  className="absolute bottom-3 right-3 rounded-lg bg-black/60 px-3 py-2 text-sm font-medium text-white hover:bg-black/80 sm:bottom-4 sm:right-4 backdrop-blur-sm transition-colors"
-                >
-                  Xem tất cả ảnh
-                </Link>
-              </div>
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="relative aspect-[4/3] hidden sm:block overflow-hidden">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <ImageWithFallback
-                    src={images[i]?.url ?? PLACEHOLDER_IMG}
-                    alt=""
-                    className="h-full w-full object-cover transition-transform duration-700 hover:scale-110 cursor-pointer"
-                  />
-                </div>
-              ))}
-            </div>
+            <ImageGallery images={images as any} title={listing.title} />
+
 
             {/* Title, price, address */}
             <h1 className="mt-6 text-xl font-bold text-[var(--foreground)] sm:text-2xl">{listing.title}</h1>

@@ -366,3 +366,141 @@ export function AIFeatures({
         </>
     );
 }
+export function ImageGallery({ images, title }: { images: { url: string }[], title: string }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    const openGallery = (index: number) => {
+        setCurrentIndex(index);
+        setIsOpen(true);
+        document.body.style.overflow = "hidden";
+    };
+
+    const closeGallery = () => {
+        setIsOpen(false);
+        document.body.style.overflow = "auto";
+    };
+
+    const nextImage = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        setCurrentIndex((prev) => (prev + 1) % images.length);
+    };
+
+    const prevImage = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    };
+
+    const mainImg = images[0]?.url || "/images/placeholder-real-estate.png";
+
+    return (
+        <>
+            <div className="relative grid grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)]">
+                {/* Main Image */}
+                <div 
+                    className="relative col-span-4 row-span-2 min-h-[240px] sm:col-span-2 sm:row-span-2 sm:aspect-auto sm:h-full group cursor-pointer"
+                    onClick={() => openGallery(0)}
+                >
+                    <div className="relative aspect-[4/3] h-full min-h-[240px] sm:absolute sm:inset-0 overflow-hidden">
+                        <img
+                            src={mainImg}
+                            alt={title}
+                            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                    </div>
+                    <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); openGallery(0); }}
+                        className="absolute bottom-3 right-3 rounded-lg bg-black/60 px-3 py-2 text-sm font-medium text-white hover:bg-black/80 sm:bottom-4 sm:right-4 backdrop-blur-sm transition-colors"
+                    >
+                        Xem tất cả ({images.length} ảnh)
+                    </button>
+                </div>
+                
+                {/* Sub images for desktop */}
+                {[1, 2, 3, 4].map((i) => (
+                    <div 
+                        key={i} 
+                        className="relative aspect-[4/3] hidden sm:block overflow-hidden cursor-pointer"
+                        onClick={() => openGallery(i < images.length ? i : 0)}
+                    >
+                        <img
+                            src={images[i]?.url || images[0]?.url || "/images/placeholder-real-estate.png"}
+                            alt=""
+                            className="h-full w-full object-cover transition-transform duration-700 hover:scale-110"
+                        />
+                        {i === 4 && images.length > 5 && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-xl font-bold text-white">
+                                +{images.length - 5}
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+
+            {/* Lightbox / Modal */}
+            {isOpen && (
+                <div 
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 sm:p-10 backdrop-blur-sm"
+                    onClick={closeGallery}
+                    onKeyDown={(e) => {
+                        if (e.key === "Escape") closeGallery();
+                        if (e.key === "ArrowRight") nextImage();
+                        if (e.key === "ArrowLeft") prevImage();
+                    }}
+                    tabIndex={0}
+                >
+                    <button 
+                        onClick={closeGallery} 
+                        className="absolute top-4 right-4 z-[110] rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition-colors"
+                    >
+                        <svg className="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+
+                    <div className="relative flex h-full w-full items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                        <button 
+                            onClick={prevImage} 
+                            className="absolute left-0 z-[110] rounded-full bg-white/10 p-3 text-white hover:bg-white/20 sm:left-4"
+                        >
+                            <svg className="size-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                        </button>
+
+                        <div className="relative max-h-full max-w-full overflow-hidden rounded-lg shadow-2xl">
+                            <img 
+                                src={images[currentIndex]?.url} 
+                                alt={`${title} - ${currentIndex + 1}`} 
+                                className="max-h-[85vh] object-contain"
+                            />
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-4 py-1.5 text-sm text-white">
+                                {currentIndex + 1} / {images.length}
+                            </div>
+                        </div>
+
+                        <button 
+                            onClick={nextImage} 
+                            className="absolute right-0 z-[110] rounded-full bg-white/10 p-3 text-white hover:bg-white/20 sm:right-4"
+                        >
+                            <svg className="size-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                        </button>
+                    </div>
+
+                    {/* Thumbnails at bottom */}
+                    <div 
+                        className="absolute bottom-6 left-0 right-0 hidden justify-center gap-2 overflow-x-auto px-4 py-2 sm:flex"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {images.map((img, idx) => (
+                            <button 
+                                key={idx} 
+                                onClick={() => setCurrentIndex(idx)}
+                                className={`size-16 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${idx === currentIndex ? "border-[var(--primary)] scale-110 shadow-lg" : "border-transparent opacity-50 hover:opacity-100"}`}
+                            >
+                                <img src={img.url} alt="" className="h-full w-full object-cover" />
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}

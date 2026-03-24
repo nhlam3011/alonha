@@ -42,19 +42,15 @@ export function Footer() {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center gap-2.5 group mb-4">
-              <div className="relative w-10 h-10">
+              <div className="relative w-32 h-10 bg-[var(--logo-bg)] rounded-md p-1">
                 <Image
                   src="/logo.png"
                   alt="AloNha"
                   fill
-                  sizes="40px"
+                  sizes="128px"
                   className="object-contain relative z-10"
                 />
               </div>
-              <span className="text-xl font-bold">
-                <span className="text-[var(--foreground)]">Alo</span>
-                <span className="gradient-text">Nha</span>
-              </span>
             </Link>
             <p className="text-sm text-[var(--muted-foreground)] leading-relaxed max-w-xs mb-6">
               Nền tảng bất động sản thông minh ứng dụng AI, giúp bạn tìm kiếm và kết nối nhanh chóng.

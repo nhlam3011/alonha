@@ -76,20 +76,16 @@ export function Header() {
 
             {/* ========== Logo ========== */}
             <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-              <div className="relative w-9 h-9 lg:w-10 lg:h-10 transition-transform duration-300 group-hover:scale-105">
+              <div className="relative w-32 h-10 lg:w-52 lg:h-14 transition-transform duration-300 group-hover:scale-105 bg-[var(--logo-bg)] rounded-md p-1">
                 <Image
                   src="/logo.png"
                   alt="AloNha"
                   fill
-                  sizes="40px"
+                  sizes="(max-width: 1024px) 160px, 208px"
                   className="object-contain"
                   priority
                 />
               </div>
-              <span className="text-xl lg:text-[22px] font-extrabold tracking-tight">
-                <span className="text-[var(--foreground)]">Alo</span>
-                <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent">Nha</span>
-              </span>
             </Link>
 
             {/* ========== Desktop Nav — Center ========== */}
@@ -99,8 +95,8 @@ export function Header() {
                   key={href}
                   href={href}
                   className={`px-4 py-1.5 text-[15px] font-semibold rounded-full transition-all duration-200 whitespace-nowrap ${pathname === href || pathname.startsWith(href + "/")
-                      ? "bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white shadow-md shadow-[var(--primary)]/25"
-                      : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card)]"
+                    ? "bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white shadow-md shadow-[var(--primary)]/25"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card)]"
                     }`}
                 >
                   {label}
@@ -260,8 +256,8 @@ export function Header() {
                   href={href}
                   onClick={() => setMobileOpen(false)}
                   className={`flex items-center px-4 py-3 text-[15px] font-semibold rounded-xl transition-colors ${pathname === href || pathname.startsWith(href + "/")
-                      ? "bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white shadow-md shadow-[var(--primary)]/20"
-                      : "text-[var(--foreground)] hover:bg-[var(--muted)]"
+                    ? "bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white shadow-md shadow-[var(--primary)]/20"
+                    : "text-[var(--foreground)] hover:bg-[var(--muted)]"
                     }`}
                 >
                   {label}

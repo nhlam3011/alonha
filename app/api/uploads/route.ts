@@ -26,16 +26,45 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "File trống." }, { status: 400 });
     }
 
+    // Cloudinary upload if configured
+    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+      try {
+        const { v2: cloudinary } = await import("cloudinary");
+        cloudinary.config({
+          cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+          api_key: process.env.CLOUDINARY_API_KEY,
+          api_secret: process.env.CLOUDINARY_API_SECRET,
+        });
+
+        const uploadResult = await new Promise((resolve, reject) => {
+          cloudinary.uploader.upload_stream(
+            { resource_type: "auto", folder: "alonha" },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          ).end(buffer);
+        });
+
+        const url = (uploadResult as any).secure_url;
+        console.log("Uploaded to Cloudinary:", url);
+        return NextResponse.json({ url });
+      } catch (cloudError) {
+        console.error("Cloudinary upload error, falling back to local:", cloudError);
+      }
+    }
+
+    // Local fallback
     const uploadsDir = path.join(process.cwd(), "public", "uploads");
     await fs.mkdir(uploadsDir, { recursive: true });
 
-    const originalName = file.name || "image";
+    const originalName = (file as any)?.name || "image";
     const ext = path.extname(originalName) || ".jpg";
     const safeExt = ext.length <= 10 ? ext : ".jpg";
     const fileName = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}${safeExt}`;
     const filePath = path.join(uploadsDir, fileName);
 
-    console.log("Writing to:", filePath);
+    console.log("Writing to local:", filePath);
     await fs.writeFile(filePath, buffer);
 
     const url = `/uploads/${fileName}`;
