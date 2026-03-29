@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useState, useEffect } from "react";
 
 const footerLinks = {
   explore: [
@@ -29,6 +32,26 @@ const socialLinks = [
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    // Initial theme detection
+    const initialTheme = document.documentElement.classList.contains("dark") ? "dark" : "light";
+    setTheme(initialTheme);
+
+    // Watch for class changes on <html>
+    const observer = new MutationObserver(() => {
+      const isDark = document.documentElement.classList.contains("dark");
+      setTheme(isDark ? "dark" : "light");
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <footer className="relative overflow-hidden border-t border-[var(--border)]">
@@ -44,7 +67,7 @@ export function Footer() {
             <Link href="/" className="flex items-center gap-2.5 group mb-4">
               <div className="relative w-32 h-10 bg-[var(--logo-bg)] rounded-md p-1">
                 <Image
-                  src="/logo.png"
+                  src={theme === "dark" ? "/logo-dark.png" : "/logo-light.png"}
                   alt="AloNha"
                   fill
                   sizes="128px"

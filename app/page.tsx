@@ -74,11 +74,11 @@ const CATEGORIES = [
 ];
 
 const POPULAR_CITIES = [
-  { id: "ho-chi-minh", name: "TP. Hồ Chí Minh", count: "5,200+", image: "https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?auto=format&fit=crop&q=80&w=800" },
+  { id: "ho-chi-minh", name: "TP. Hồ Chí Minh", count: "5,200+", image: "https://media.vov.vn/sites/default/files/styles/large/public/2024-03/hcmc.jpg" },
   { id: "ha-noi", name: "Hà Nội", count: "3,800+", image: "https://images.unsplash.com/photo-1555921015-5532091f6026?auto=format&fit=crop&q=80&w=800" },
   { id: "da-nang", name: "Đà Nẵng", count: "1,200+", image: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&q=80&w=800" },
-  { id: "can-tho", name: "Cần Thơ", count: "800+", image: "https://images.unsplash.com/photo-1582264628469-650adbbdb13e?auto=format&fit=crop&q=80&w=800" },
-  { id: "hai-phong", name: "Hải Phòng", count: "600+", image: "https://images.unsplash.com/photo-1558284581-2287953257fc?auto=format&fit=crop&q=80&w=800" },
+  { id: "can-tho", name: "Cần Thơ", count: "800+", image: "https://cdn.vntrip.vn/cam-nang/wp-content/uploads/2017/08/1-3.jpg" },
+  { id: "hai-phong", name: "Hải Phòng", count: "600+", image: "https://haiphongnews.gov.vn/uploads/2022-t8/2.jpg" },
 ];
 
 export const revalidate = 60; // SSR with ISR cache (revalidate every 60s)
@@ -146,12 +146,12 @@ export default async function HomePage() {
   return (
     <div suppressHydrationWarning className="bg-[var(--background)] min-h-screen overflow-x-hidden">
       {/* ━━━ HERO — Cinematic & Premium ━━━ */}
-      <section className="relative h-screen flex flex-col pt-12">
+      <section className="relative h-screen flex flex-col pt-10">
         <div className="absolute inset-0 z-0 overflow-hidden">
           <img
-            src="https://images.unsplash.com/photo-1600607686527-6fb886090705?ixlib=rb-4.0.3&auto=format&fit=crop&w=2500&q=80"
+            src="https://batdongsanbien.com.vn/wp-content/uploads/2025/01/phoi-canh-the-gio-riverside.jpg"
             alt="Luxury Architecture"
-            className="w-full h-full object-cover select-none scale-105 animate-pulse-slow origin-center"
+            className="w-full h-full object-cover select-none scale-100 animate-pulse-slow origin-center"
             draggable={false}
             style={{ animationDuration: '20s' }}
           />
@@ -163,7 +163,7 @@ export default async function HomePage() {
           <div className="max-w-4xl space-y-6 mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border-white/20 text-white text-xs sm:text-sm font-semibold shadow-2xl animate-fade-in backdrop-blur-md">
               <SparklesIcon className="w-4 h-4 text-emerald-400" />
-              <span>Nền tảng BĐS Thông Minh Hàng Đầu</span>
+              <span>Nền tảng BĐS thông minh</span>
             </div>
 
             <h1 className="text-5xl sm:text-7xl lg:text-[88px] font-extrabold text-white leading-[1.05] tracking-tight animate-slide-up [text-shadow:0_4px_30px_rgba(0,0,0,0.5)]" style={{ animationDelay: '100ms' }}>

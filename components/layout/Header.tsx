@@ -34,6 +34,27 @@ export function Header() {
   const isAgentPortalUser = canPostListing(role);
   const isAdminUser = role === "ADMIN";
 
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    // Initial theme detection
+    const initialTheme = document.documentElement.classList.contains("dark") ? "dark" : "light";
+    setTheme(initialTheme);
+
+    // Watch for class changes on <html>
+    const observer = new MutationObserver(() => {
+      const isDark = document.documentElement.classList.contains("dark");
+      setTheme(isDark ? "dark" : "light");
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
@@ -76,9 +97,9 @@ export function Header() {
 
             {/* ========== Logo ========== */}
             <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-              <div className="relative w-32 h-10 lg:w-52 lg:h-14 transition-transform duration-300 group-hover:scale-105 bg-[var(--logo-bg)] rounded-md p-1">
+              <div className="relative w-28 h-8 lg:w-44 lg:h-12 transition-transform duration-300 group-hover:scale-105 bg-[var(--logo-bg)] rounded-md p-1">
                 <Image
-                  src="/logo.png"
+                  src={theme === "dark" ? "/logo-dark.png" : "/logo-light.png"}
                   alt="AloNha"
                   fill
                   sizes="(max-width: 1024px) 160px, 208px"
