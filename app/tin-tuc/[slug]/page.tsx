@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
+import { prisma } from "@/lib/prisma";
+import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
+
 
 type NewsArticle = {
     id: string;
@@ -19,122 +22,65 @@ type NewsArticle = {
     tags: string[];
 };
 
-const SAMPLE_ARTICLE: NewsArticle = {
-    id: "1",
-    slug: "xu-huong-gia-bat-dong-san-2024",
-    title: "Xu hướng giá bất động sản 2024: Những điểm sáng và thách thức",
-    content: `
-  <p>Thị trường bất động sản năm 2024 dự báo sẽ có nhiều biến động với sự phân hóa rõ rệt giữa các phân khúc. Các chuyên gia đưa ra dự báo về xu hướng giá trong thời gian tới.</p>
-  
-  <h2>Tổng quan thị trường</h2>
-  <p>Theo các chuyên gia kinh tế, thị trường bất động sản Việt Nam trong năm 2024 sẽ chịu ảnh hưởng bởi nhiều yếu tố vĩ mô như lãi suất, chính sách tín dụng và tình hình kinh tế toàn cầu.</p>
-  
-  <p>Các dự báo cho thấy thị trường sẽ có sự phân hóa rõ rệt giữa các phân khúc và khu vực. Trong khi bất động sản cao cấp có thể giảm nhiệt, thì phân khúc nhà ở trung cấp và bình dân vẫn duy trì sức cầu ổn định.</p>
-  
-  <h2>Các yếu tố ảnh hưởng</h2>
-  <h3>1. Chính sách tín dụng</h3>
-  <p>Ngân hàng Nhà nước tiếp tục duy trì chính sách tiền tệ thận trọng, lãi suất cho vay bất động sản vẫn ở mức cao. Điều này ảnh hưởng trực tiếp đến khả năng tiếp cận vốn của người mua nhà.</p>
-  
-  <h3>2. Quy hoạch và pháp lý</h3>
-  <p>Các vấn đề về quy hoạch và pháp lý vẫn là rào cản lớn cho thị trường. Nhiều dự án bị đình trệ do vướng mắc pháp lý, gây ảnh hưởng đến nguồn cung.</p>
-  
-  <h3>3. Nhu cầu thực</h3>
-  <p>Nhu cầu nhà ở thực vẫn rất lớn, đặc biệt tại các đô thị lớn. Tuy nhiên, sức mua bị hạn chế do thu nhập người dân chưa tăng tương ứng với giá nhà.</p>
-  
-  <h2>Dự báo theo phân khúc</h2>
-  <p><strong>Căn hộ chung cư:</strong> Dự kiến giá sẽ tăng nhẹ 3-5% tại các vị trí tốt, đặc biệt ở các dự án đã hoàn thiện hạ tầng và tiện ích.</p>
-  
-  <p><strong>Nhà phố, biệt thự:</strong> Phân khúc này có thể giảm giá 5-10% do nguồn cung dồi dào và sức cầu hạn chế.</p>
-  
-  <p><strong>Đất nền:</strong> Biến động mạnh tùy thuộc vào vị trí và pháp lý. Các dự án có pháp lý clear vẫn được săn đón.</p>
-  
-  <h2>Lời khuyên cho nhà đầu tư</h2>
-  <p>Các chuyên gia khuyến nghị nhà đầu tư nên:</p>
-  <ul>
-    <li>Tập trung vào các dự án có pháp lý hoàn chỉnh</li>
-    <li>Ưu tiên vị trí có hạ tầng giao thông phát triển</li>
-    <li>Tránh đầu cơ, tập trung vào giá trị thực</li>
-    <li>Theo dõi sát chính sách vĩ mô</li>
-  </ul>
-  
-  <h2>Kết luận</h2>
-  <p>Thị trường bất động sản 2024 sẽ là năm của sự chọn lọc. Nhà đầu tư cần thận trọng and có chiến lược rõ ràng để tối ưu hóa lợi nhuận và giảm thiểu rủi ro.</p>
-`,
-    excerpt: "Thị trường bất động sản năm 2024 dự báo sẽ có nhiều biến động với sự phân hóa rõ rệt giữa các phân khúc.",
-    category: "thi-truong",
-    categoryLabel: "Thị trường",
-    imageUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80",
-    author: "Nguyễn Văn A",
-    authorAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80",
-    publishedAt: "2024-01-15",
-    readTime: 5,
-    views: 1250,
-    tags: ["bất động sản", "đầu tư", "thị trường", "2024"],
-};
-
-const RELATED_ARTICLES = [
-    {
-        id: "2",
-        slug: "chinh-sach-nha-o-moi-2024",
-        title: "Chính sách nhà ở mới 2024: Những thay đổi quan trọng cần biết",
-        imageUrl: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=800&q=80",
-        categoryLabel: "Chính sách",
-        publishedAt: "2024-01-12",
-    },
-    {
-        id: "3",
-        slug: "huong-dan-mua-nha-dat",
-        title: "Hướng dẫn mua nhà đất cho người mới bắt đầu",
-        imageUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80",
-        categoryLabel: "Cẩm nang",
-        publishedAt: "2024-01-10",
-    },
-    {
-        id: "4",
-        slug: "du-an-vinhomes-ocean-park",
-        title: "Review chi tiết dự án Vinhomes Ocean Park 2",
-        imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80",
-        categoryLabel: "Dự án",
-        publishedAt: "2024-01-08",
-    },
-];
-
-function formatDate(dateStr: string): string {
-    const date = new Date(dateStr);
+function formatDate(date: Date | null | undefined): string {
+    if (!date) return "";
     return date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
+
+const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&q=80";
+
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const { slug } = await params;
 
-    const article = SAMPLE_ARTICLE.slug === slug ? SAMPLE_ARTICLE : null;
+    const article = await prisma.news.findFirst({
+        where: { slug, isActive: true },
+    });
 
     if (!article) return { title: "Không tìm thấy bài viết | AloNha" };
 
     return {
         title: `${article.title} | AloNha`,
-        description: article.excerpt,
+        description: article.excerpt ?? "",
         openGraph: {
             title: article.title,
-            description: article.excerpt,
-            images: [article.imageUrl],
+            description: article.excerpt ?? "",
+            images: [article.imageUrl ?? DEFAULT_IMAGE],
             type: "article",
-            publishedTime: article.publishedAt,
-            authors: [article.author],
+            publishedTime: article.publishedAt?.toISOString(),
+            authors: [article.author || article.sourceName || "AloNha"],
         },
     };
+
 }
 
 export default async function NewsDetailPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
 
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    const article = SAMPLE_ARTICLE.slug === slug ? SAMPLE_ARTICLE : null;
+    const article = await prisma.news.findFirst({
+        where: { slug, isActive: true },
+    });
 
     if (!article) {
         notFound();
     }
+
+    // Tăng lượt xem
+    await prisma.news.update({
+        where: { id: article.id },
+        data: { views: { increment: 1 } },
+    });
+
+    const relatedArticles = await prisma.news.findMany({
+        where: {
+            category: article.category,
+            id: { not: article.id },
+            isActive: true,
+        },
+        take: 3,
+        orderBy: { publishedAt: "desc" },
+    });
+
 
     return (
         <div className="min-h-screen bg-[var(--background)]">
@@ -161,14 +107,15 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
                     <article className="rounded-3xl border border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm lg:shadow-md mb-12">
                         {/* Featured Image */}
                         <div className="relative h-64 sm:h-[480px] overflow-hidden bg-[var(--muted)] shadow-inner">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                                src={article.imageUrl}
+                            <ImageWithFallback
+                                src={article.imageUrl ?? DEFAULT_IMAGE}
                                 alt={article.title}
                                 className="w-full h-full object-cover transition-transform duration-1000 ease-out hover:scale-105"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                         </div>
+
+
 
                         {/* Article Content */}
                         <div className="p-6 sm:p-10 lg:p-12">
@@ -185,8 +132,9 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
                                     <span className="opacity-20">|</span>
                                     <span className="flex items-center gap-1.5">
                                         <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                        {article.readTime} phút đọc
+                                        {Math.max(2, Math.ceil((article.excerpt?.length || 200) / 500))} phút đọc
                                     </span>
+
                                     <span className="opacity-20">|</span>
                                     <span className="flex items-center gap-1.5">
                                         <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -206,48 +154,41 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
                             {/* Author */}
                             <div className="flex items-center gap-4 mb-10 pb-10 border-b border-[var(--border)] border-dashed">
                                 <div className="relative w-12 h-12 rounded-full overflow-hidden bg-[var(--muted)] shadow-md border-2 border-white ring-8 ring-[var(--primary-light)]/30">
-                                    {article.authorAvatar ? (
-                                        // eslint-disable-next-line @next/next/no-img-element
-                                        <img
-                                            src={article.authorAvatar}
-                                            alt={article.author}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-[var(--muted-foreground)] bg-[var(--card)]">
-                                            <svg className="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                            </svg>
-                                        </div>
-                                    )}
+                                    <div className="w-full h-full flex items-center justify-center text-[var(--muted-foreground)] bg-[var(--card)]">
+                                        <svg className="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                    </div>
                                 </div>
                                 <div className="flex flex-col">
-                                    <p className="font-bold text-lg text-[var(--foreground)] tracking-tight">{article.author}</p>
-                                    <p className="text-xs font-semibold text-[var(--muted-foreground)] tracking-wide uppercase opacity-70">Biên tập viên AloNha</p>
+                                    <p className="font-bold text-lg text-[var(--foreground)] tracking-tight">{article.author || article.sourceName}</p>
+                                    <p className="text-xs font-semibold text-[var(--muted-foreground)] tracking-wide uppercase opacity-70">Cung cấp bởi {article.sourceName}</p>
                                 </div>
                             </div>
+
 
                             {/* Article Body */}
                             <div
                                 className="prose prose-sm sm:prose-base lg:prose-lg max-w-none prose-headings:text-[var(--foreground)] prose-headings:font-bold prose-headings:tracking-tight prose-p:text-[var(--foreground)] prose-p:leading-relaxed prose-a:text-[var(--primary)] prose-a:no-underline hover:prose-a:underline prose-strong:text-[var(--foreground)] prose-strong:font-bold prose-img:rounded-3xl prose-img:shadow-lg prose-ul:text-[var(--foreground)] prose-ol:text-[var(--foreground)] prose-li:text-[var(--foreground)]"
-                                dangerouslySetInnerHTML={{ __html: article.content }}
+                                dangerouslySetInnerHTML={{ __html: article.content || article.excerpt || "" }}
                             />
 
+
                             {/* Tags */}
-                            <div className="mt-12 pt-8 border-t border-[var(--border)] border-dashed">
-                                <div className="flex flex-wrap items-center gap-3">
-                                    <span className="text-sm font-bold text-[var(--foreground)] mr-1">Thẻ bài viết:</span>
-                                    {article.tags.map((tag) => (
+                            {article.categoryLabel && (
+                                <div className="mt-12 pt-8 border-t border-[var(--border)] border-dashed">
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <span className="text-sm font-bold text-[var(--foreground)] mr-1">Chủ đề:</span>
                                         <Link
-                                            key={tag}
-                                            href={`/tin-tuc?tag=${tag}`}
+                                            href={`/tin-tuc?category=${article.category}`}
                                             className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/30 px-4 py-1.5 text-xs font-bold text-[var(--muted-foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-all duration-300"
                                         >
-                                            #{tag}
+                                            #{article.categoryLabel}
                                         </Link>
-                                    ))}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
+
 
                             {/* Share */}
                             <div className="mt-8 flex items-center gap-4 p-4 rounded-2xl bg-[var(--primary-light)]/20 border border-[var(--primary-light)]/30">
@@ -282,16 +223,15 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
                             </Link>
                         </div>
                         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                            {RELATED_ARTICLES.map((related) => (
+                            {relatedArticles.map((related) => (
                                 <Link
                                     key={related.id}
                                     href={`/tin-tuc/${related.slug}`}
                                     className="group h-full flex flex-col overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)]/30 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 ease-out"
                                 >
                                     <div className="relative aspect-[16/10] overflow-hidden bg-[var(--muted)] shrink-0 shadow-inner">
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img
-                                            src={related.imageUrl}
+                                        <ImageWithFallback
+                                            src={related.imageUrl || DEFAULT_IMAGE}
                                             alt={related.title}
                                             className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                                         />
@@ -313,6 +253,7 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
                                 </Link>
                             ))}
                         </div>
+
                     </section>
                 </div>
             </div>

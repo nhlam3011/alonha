@@ -37,6 +37,43 @@ const tools = [
     color: "#16a34a",
     bgColor: "rgba(22, 163, 74, 0.1)",
   },
+  {
+    href: "/cong-cu/dinh-gia",
+    title: "AI Định giá BĐS",
+    desc: "Nhập thông tin bất động sản để AI ước tính giá trị thực, so sánh mặt bằng khu vực và phân tích xu hướng giá thị trường.",
+    icon: (
+      <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+      </svg>
+    ),
+    color: "#8b5cf6",
+    bgColor: "rgba(139, 92, 246, 0.1)",
+  },
+  {
+    href: "/cong-cu/diem-so-khu-vuc",
+    title: "Điểm số Khu vực",
+    desc: "Đánh giá tổng hợp khu vực về an ninh, giao thông, giáo dục, y tế, thương mại, môi trường và giá trị BĐS.",
+    icon: (
+      <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+    color: "#06b6d4",
+    bgColor: "rgba(6, 182, 212, 0.1)",
+  },
+  {
+    href: "/cong-cu/dau-tu",
+    title: "AI Phân tích Đầu tư",
+    desc: "Phân tích tiềm năng đầu tư: ROI, tỷ suất cho thuê, so sánh với ngân hàng/vàng/chứng khoán và chiến lược tối ưu.",
+    icon: (
+      <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+      </svg>
+    ),
+    color: "#f59e0b",
+    bgColor: "rgba(245, 158, 11, 0.1)",
+  },
 ];
 
 export default function ToolsPage() {

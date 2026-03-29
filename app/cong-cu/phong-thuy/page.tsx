@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Gender = "male" | "female";
 type CungMenh = "Khảm" | "Khôn" | "Chấn" | "Tốn" | "Ly" | "Càn" | "Đoài" | "Cấn";
@@ -121,8 +121,7 @@ function DirectionModal({ huong, info, cungMenh, nguHanh, nhomTrach, onClose }: 
     (async () => {
       try {
         const res = await fetch("/api/ai/feng-shui", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ huong, sao: info.sao, loai: info.loai, cungMenh, nguHanh, nhomTrach }),
         });
         const data = await res.json();
@@ -131,105 +130,75 @@ function DirectionModal({ huong, info, cungMenh, nguHanh, nhomTrach, onClose }: 
         setDetail(data.data);
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : "Không thể tải chi tiết");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+      } finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
   }, [huong, info.sao, info.loai, cungMenh, nguHanh, nhomTrach]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-lg animate-slide-up overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-4">
+        <div className="flex items-center justify-between border-b border-[var(--border)] px-4 sm:px-5 py-4">
           <div>
-            <h3 className="flex items-center gap-2 text-lg font-bold text-[var(--foreground)]">
-              {huong}
-              <span className={isCat ? "badge-primary" : "badge-destructive"}>{info.sao}</span>
+            <h3 className="flex items-center gap-2 text-base sm:text-lg font-bold text-[var(--foreground)]">
+              {huong} <span className={isCat ? "badge-primary" : "badge-destructive"}>{info.sao}</span>
             </h3>
             <p className="text-xs text-[var(--muted-foreground)]">{info.desc}</p>
           </div>
-          <button onClick={onClose} className="rounded-lg bg-[var(--muted)] p-1.5 text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+          <button onClick={onClose} className="rounded-lg p-1.5 text-[var(--muted-foreground)] hover:bg-[var(--muted)]">
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
-
-        {/* Body */}
-        <div className="max-h-[70vh] overflow-y-auto p-5">
+        <div className="max-h-[70vh] overflow-y-auto p-4 sm:p-5">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12">
               <div className="mb-3 h-8 w-8 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />
               <p className="text-sm text-[var(--muted-foreground)]">AI đang phân tích hướng {huong}...</p>
             </div>
           ) : error ? (
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--muted)] p-4 text-center">
+            <div className="rounded-lg bg-[var(--muted)] p-4 text-center">
               <p className="text-sm text-[var(--muted-foreground)]">{error}</p>
             </div>
           ) : detail ? (
             <div className="space-y-4">
-              {/* Muc do */}
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className={isCat ? "badge-success" : "badge-destructive"}>{detail.mucDo}</span>
                 <span className="text-xs text-[var(--muted-foreground)]">{detail.saoTen}</span>
               </div>
-
-              {/* Y nghia */}
               <div>
-                <h4 className="mb-1.5 text-xs font-bold uppercase text-[var(--muted-foreground)]">Ý nghĩa</h4>
+                <h4 className="mb-1.5 text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Ý nghĩa</h4>
                 <p className="rounded-lg bg-[var(--muted)] p-3 text-sm leading-relaxed text-[var(--foreground)]">{detail.yNghia}</p>
               </div>
-
-              {/* Nen / Khong nen */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-3">
-                  <h4 className="mb-2 text-xs font-bold text-[var(--primary)]">✓ Nên đặt</h4>
-                  <ul className="space-y-1.5">
-                    {detail.nenDat.map((item, i) => (
-                      <li key={i} className="text-xs leading-relaxed text-[var(--foreground)]">• {formatItem(item)}</li>
-                    ))}
-                  </ul>
+                  <h4 className="mb-2 text-xs font-bold text-emerald-600">✓ Nên đặt</h4>
+                  <ul className="space-y-1.5">{detail.nenDat.map((item, i) => (<li key={i} className="text-xs leading-relaxed text-[var(--foreground)]">• {formatItem(item)}</li>))}</ul>
                 </div>
                 <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-3">
-                  <h4 className="mb-2 text-xs font-bold text-[var(--accent)]">✕ Không nên</h4>
-                  <ul className="space-y-1.5">
-                    {detail.khongNenDat.map((item, i) => (
-                      <li key={i} className="text-xs leading-relaxed text-[var(--foreground)]">• {formatItem(item)}</li>
-                    ))}
-                  </ul>
+                  <h4 className="mb-2 text-xs font-bold text-[var(--destructive)]">✕ Không nên</h4>
+                  <ul className="space-y-1.5">{detail.khongNenDat.map((item, i) => (<li key={i} className="text-xs leading-relaxed text-[var(--foreground)]">• {formatItem(item)}</li>))}</ul>
                 </div>
               </div>
-
-              {/* Luu y */}
-              <div className="rounded-lg border border-[var(--border)] bg-[var(--muted)] p-3">
+              <div className="rounded-lg bg-[var(--muted)] p-3">
                 <h4 className="mb-1 text-xs font-bold text-[var(--foreground)]">⚠ Lưu ý phong thủy</h4>
                 <p className="text-xs leading-relaxed text-[var(--muted-foreground)]">{detail.luuY}</p>
               </div>
-
-              {/* Vat pham + Mau sac */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {detail.vatPhamHoaGiai && detail.vatPhamHoaGiai.length > 0 && (
                   <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-3">
-                    <h4 className="mb-1.5 text-xs font-bold text-[var(--foreground)]">🏺 Vật phẩm gợi ý</h4>
-                    <ul className="space-y-1">
-                      {detail.vatPhamHoaGiai.map((item, i) => (
-                        <li key={i} className="text-xs text-[var(--muted-foreground)]">• {item}</li>
-                      ))}
-                    </ul>
+                    <h4 className="mb-1.5 text-xs font-bold text-[var(--foreground)]">Vật phẩm gợi ý</h4>
+                    <ul className="space-y-1">{detail.vatPhamHoaGiai.map((item, i) => (<li key={i} className="text-xs text-[var(--muted-foreground)]">• {item}</li>))}</ul>
                   </div>
                 )}
                 {detail.mauSacPhong && (
                   <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-3">
-                    <h4 className="mb-1.5 text-xs font-bold text-[var(--foreground)]">🎨 Màu sắc phù hợp</h4>
+                    <h4 className="mb-1.5 text-xs font-bold text-[var(--foreground)]">Màu sắc phù hợp</h4>
                     <p className="text-xs leading-relaxed text-[var(--muted-foreground)]">{detail.mauSacPhong}</p>
                   </div>
                 )}
               </div>
-
-              <p className="text-center text-[10px] italic text-[var(--muted-foreground)]">
-                * Phân tích bởi AI dựa trên Bát Trạch Minh Cảnh. Tham khảo thêm chuyên gia.
-              </p>
+              <p className="text-center text-[10px] italic text-[var(--muted-foreground)]">* Phân tích bởi AI dựa trên Bát Trạch Minh Cảnh.</p>
             </div>
           ) : null}
         </div>
@@ -258,149 +227,120 @@ export default function FengShuiPage() {
     return { lunarDay, lunarMonth, lunarYear, lunarLeap, canChi, cungMenh, nguHanh, nhomTrach, catHuong, hungHuong, batTrach };
   }, [birthDay, birthMonth, birthYear, gender]);
 
-  const selectClass = "w-full appearance-none rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-2 text-sm text-[var(--foreground)] outline-none focus:ring-2 focus:ring-[var(--primary)]";
+  const selectClass = "w-full appearance-none rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2.5 text-sm text-[var(--foreground)] outline-none focus:ring-2 focus:ring-[var(--primary)]";
 
   return (
     <div className="space-y-6">
-      <div className="max-w-5xl">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-extrabold text-[var(--foreground)] lg:text-3xl">Xem phong thủy nhà ở</h1>
-          <p className="mt-2 text-sm text-[var(--muted-foreground)]">Nhập thông tin cá nhân để xem hướng Cát/Hung theo Bát Trạch.</p>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-12">
-          {/* Sidebar */}
-          <div className="lg:col-span-4">
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)]">
-              <div className="border-b border-[var(--border)] px-5 py-3">
-                <h2 className="text-sm font-bold text-[var(--foreground)]">Nhập thông tin</h2>
-              </div>
-              <div className="space-y-4 p-5">
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-[var(--muted-foreground)]">Ngày sinh (Dương lịch)</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="relative">
-                      <select value={birthDay} onChange={(e) => setBirthDay(Number(e.target.value))} className={selectClass}>
-                        {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (<option key={d} value={d}>{d}</option>))}
-                      </select>
-                      <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]"><svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></div>
-                    </div>
-                    <div className="relative">
-                      <select value={birthMonth} onChange={(e) => setBirthMonth(Number(e.target.value))} className={selectClass}>
-                        {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (<option key={m} value={m}>{m}</option>))}
-                      </select>
-                      <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]"><svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></div>
-                    </div>
-                    <div className="relative">
-                      <select value={birthYear} onChange={(e) => setBirthYear(Number(e.target.value))} className={selectClass}>
-                        {Array.from({ length: currentYear - 1940 + 1 }, (_, i) => 1940 + i).map((y) => (<option key={y} value={y}>{y}</option>))}
-                      </select>
-                      <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]"><svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></div>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-[var(--muted-foreground)]">Giới tính</label>
-                  <div className="grid grid-cols-2 gap-1.5 rounded-lg bg-[var(--muted)] p-1">
-                    <button type="button" onClick={() => setGender("male")}
-                      className={`rounded-md px-2 py-2 text-xs font-semibold transition-all ${gender === "male" ? "bg-[var(--card)] text-[var(--primary)] shadow" : "text-[var(--muted-foreground)]"}`}>
-                      Nam
-                    </button>
-                    <button type="button" onClick={() => setGender("female")}
-                      className={`rounded-md px-2 py-2 text-xs font-semibold transition-all ${gender === "female" ? "bg-[var(--card)] text-[var(--accent)] shadow" : "text-[var(--muted-foreground)]"}`}>
-                      Nữ
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Result */}
-              <div className="border-t border-[var(--border)] p-5">
-                <div className="mb-4 text-center">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--muted-foreground)]">Cung Mệnh</p>
-                  <p className="text-3xl font-extrabold text-[var(--primary)]">{result.cungMenh}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="rounded-lg border border-[var(--border)] bg-[var(--muted)] p-2.5 text-center">
-                    <p className="text-[10px] font-semibold text-[var(--muted-foreground)]">Ngũ Hành</p>
-                    <p className="text-base font-bold text-[var(--foreground)]">{result.nguHanh}</p>
-                  </div>
-                  <div className="rounded-lg border border-[var(--border)] bg-[var(--muted)] p-2.5 text-center">
-                    <p className="text-[10px] font-semibold text-[var(--muted-foreground)]">Nhóm</p>
-                    <p className="text-base font-bold text-[var(--foreground)]">{result.nhomTrach}</p>
-                  </div>
-                </div>
-                <p className="mt-2 rounded-md bg-[var(--primary-light)] p-2 text-center text-[11px] font-medium text-[var(--primary)]">
-                  Âm lịch: {result.lunarDay}/{result.lunarMonth}{result.lunarLeap ? " (nhuận)" : ""}/{result.lunarYear} — <strong>{result.canChi}</strong>
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Directions */}
-          <div className="lg:col-span-8 space-y-5">
-            {/* Good */}
-            <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)]">
-              <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--primary-light)] px-5 py-3">
-                <h3 className="flex items-center gap-2 text-sm font-bold text-[var(--primary)]">
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  4 Hướng Tốt (Cát)
-                </h3>
-                <span className="hidden text-[11px] font-medium text-[var(--muted-foreground)] sm:inline">Bấm để xem AI phân tích</span>
-              </div>
-              <div className="grid gap-2 p-4 sm:grid-cols-2">
-                {result.catHuong.map(([huong, info]) => (
-                  <button key={huong} onClick={() => setSelectedHuong(huong)}
-                    className="group rounded-lg border border-[var(--border)] bg-[var(--background)] p-3 text-left transition-all hover:border-[var(--primary)] hover:shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-[var(--foreground)]">{huong}</span>
-                      <span className="badge-primary">{info.sao}</span>
-                    </div>
-                    <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">{info.desc}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Bad */}
-            <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)]">
-              <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--muted)] px-5 py-3">
-                <h3 className="flex items-center gap-2 text-sm font-bold text-[var(--foreground)]">
-                  <svg className="h-4 w-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                  4 Hướng Xấu (Hung)
-                </h3>
-                <span className="hidden text-[11px] font-medium text-[var(--muted-foreground)] sm:inline">Bấm để xem cách hóa giải</span>
-              </div>
-              <div className="grid gap-2 p-4 sm:grid-cols-2">
-                {result.hungHuong.map(([huong, info]) => (
-                  <button key={huong} onClick={() => setSelectedHuong(huong)}
-                    className="group rounded-lg border border-[var(--border)] bg-[var(--background)] p-3 text-left transition-all hover:border-[var(--accent)] hover:shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-[var(--foreground)]">{huong}</span>
-                      <span className="badge-destructive">{info.sao}</span>
-                    </div>
-                    <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">{info.desc}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <p className="text-center text-xs italic text-[var(--muted-foreground)]">* Bấm vào từng hướng để AI phân tích chi tiết cách bố trí và hóa giải.</p>
-          </div>
-        </div>
-
-        {selectedHuong && result.batTrach[selectedHuong] && (
-          <DirectionModal
-            huong={selectedHuong}
-            info={result.batTrach[selectedHuong]}
-            cungMenh={result.cungMenh}
-            nguHanh={result.nguHanh}
-            nhomTrach={result.nhomTrach}
-            onClose={() => setSelectedHuong(null)}
-          />
-        )}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--foreground)]">Xem phong thủy nhà ở</h1>
+        <p className="mt-2 text-sm sm:text-base text-[var(--muted-foreground)]">Nhập thông tin cá nhân để xem hướng Cát/Hung theo Bát Trạch.</p>
       </div>
+
+      <div className="grid gap-6 lg:grid-cols-12">
+        <div className="lg:col-span-4">
+          <div className="card-container">
+            <div className="card-header"><h2 className="text-sm font-bold text-[var(--foreground)]">Nhập thông tin</h2></div>
+            <div className="card-body space-y-4">
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">Ngày sinh (Dương lịch)</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <select value={birthDay} onChange={(e) => setBirthDay(Number(e.target.value))} className={selectClass}>
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (<option key={d} value={d}>{d}</option>))}
+                  </select>
+                  <select value={birthMonth} onChange={(e) => setBirthMonth(Number(e.target.value))} className={selectClass}>
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (<option key={m} value={m}>{m}</option>))}
+                  </select>
+                  <select value={birthYear} onChange={(e) => setBirthYear(Number(e.target.value))} className={selectClass}>
+                    {Array.from({ length: currentYear - 1940 + 1 }, (_, i) => 1940 + i).map((y) => (<option key={y} value={y}>{y}</option>))}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">Giới tính</label>
+                <div className="grid grid-cols-2 gap-1.5 rounded-lg bg-[var(--muted)] p-1">
+                  <button onClick={() => setGender("male")}
+                    className={`rounded-md px-2 py-2.5 text-xs font-semibold transition-all ${gender === "male" ? "bg-[var(--card)] text-[var(--primary)] shadow-sm" : "text-[var(--muted-foreground)]"}`}>Nam</button>
+                  <button onClick={() => setGender("female")}
+                    className={`rounded-md px-2 py-2.5 text-xs font-semibold transition-all ${gender === "female" ? "bg-[var(--card)] text-[var(--destructive)] shadow-sm" : "text-[var(--muted-foreground)]"}`}>Nữ</button>
+                </div>
+              </div>
+            </div>
+            <div className="border-t border-[var(--border)] p-4 sm:p-5">
+              <div className="mb-4 text-center">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]">Cung Mệnh</p>
+                <p className="text-3xl font-extrabold text-[var(--primary)]">{result.cungMenh}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-lg border border-[var(--border)] bg-[var(--muted)] p-2.5 text-center">
+                  <p className="text-[10px] font-bold text-[var(--muted-foreground)]">Ngũ Hành</p>
+                  <p className="text-base font-bold text-[var(--foreground)]">{result.nguHanh}</p>
+                </div>
+                <div className="rounded-lg border border-[var(--border)] bg-[var(--muted)] p-2.5 text-center">
+                  <p className="text-[10px] font-bold text-[var(--muted-foreground)]">Nhóm</p>
+                  <p className="text-base font-bold text-[var(--foreground)]">{result.nhomTrach}</p>
+                </div>
+              </div>
+              <p className="mt-3 rounded-lg bg-[var(--primary-light)] p-2.5 text-center text-[11px] font-medium text-[var(--primary)]">
+                Âm lịch: {result.lunarDay}/{result.lunarMonth}{result.lunarLeap ? " (nhuận)" : ""}/{result.lunarYear} — <strong>{result.canChi}</strong>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:col-span-8 space-y-5">
+          <div className="card-container overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--primary-light)] px-4 sm:px-5 py-3">
+              <h3 className="flex items-center gap-2 text-sm font-bold text-[var(--primary)]">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                4 Hướng Tốt (Cát)
+              </h3>
+              <span className="hidden sm:inline text-[11px] font-medium text-[var(--muted-foreground)]">Bấm để xem AI phân tích</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-4">
+              {result.catHuong.map(([huong, info]) => (
+                <button key={huong} onClick={() => setSelectedHuong(huong)}
+                  className="group rounded-lg border border-[var(--border)] bg-[var(--background)] p-3 text-left transition-all hover:border-[var(--primary)] hover:shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-[var(--foreground)]">{huong}</span>
+                    <span className="badge-primary">{info.sao}</span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">{info.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="card-container overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--muted)] px-4 sm:px-5 py-3">
+              <h3 className="flex items-center gap-2 text-sm font-bold text-[var(--foreground)]">
+                <svg className="h-4 w-4 text-[var(--destructive)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                4 Hướng Xấu (Hung)
+              </h3>
+              <span className="hidden sm:inline text-[11px] font-medium text-[var(--muted-foreground)]">Bấm để xem cách hóa giải</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-4">
+              {result.hungHuong.map(([huong, info]) => (
+                <button key={huong} onClick={() => setSelectedHuong(huong)}
+                  className="group rounded-lg border border-[var(--border)] bg-[var(--background)] p-3 text-left transition-all hover:border-[var(--destructive)] hover:shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-[var(--foreground)]">{huong}</span>
+                    <span className="badge-destructive">{info.sao}</span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">{info.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <p className="text-center text-xs italic text-[var(--muted-foreground)]">* Bấm vào từng hướng để AI phân tích chi tiết cách bố trí và hóa giải.</p>
+        </div>
+      </div>
+
+      {selectedHuong && result.batTrach[selectedHuong] && (
+        <DirectionModal huong={selectedHuong} info={result.batTrach[selectedHuong]}
+          cungMenh={result.cungMenh} nguHanh={result.nguHanh} nhomTrach={result.nhomTrach}
+          onClose={() => setSelectedHuong(null)} />
+      )}
     </div>
   );
 }

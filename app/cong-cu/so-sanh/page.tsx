@@ -112,127 +112,121 @@ export default function ComparePage() {
   }
 
   const compareRows = useMemo(() => [
-    { label: "Loại", render: (item: CompareItem) => (<span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${item.listing.listingType === "SALE" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"}`}>{item.listing.listingType === "SALE" ? "Bán" : "Cho thuê"}</span>) },
+    { label: "Loại", render: (item: CompareItem) => (<span className={item.listing.listingType === "SALE" ? "badge-sale" : "badge-rent"}>{item.listing.listingType === "SALE" ? "Bán" : "Cho thuê"}</span>) },
     { label: "Giá", render: (item: CompareItem) => <span className="text-base font-bold text-[var(--primary)]">{formatPrice(item.listing.price)}</span> },
     { label: "Đơn giá/m²", render: (item: CompareItem) => <span className="text-sm text-[var(--foreground)]">{item.listing.pricePerSqm ? `${formatPrice(item.listing.pricePerSqm)}/m²` : "—"}</span> },
     { label: "Diện tích", render: (item: CompareItem) => <span className="text-sm font-medium text-[var(--foreground)]">{item.listing.area} m²</span> },
     { label: "Phòng ngủ / Tắm", render: (item: CompareItem) => <span className="text-sm text-[var(--foreground)]">{item.listing.bedrooms ?? "—"} / {item.listing.bathrooms ?? "—"}</span> },
     { label: "Hướng", render: (item: CompareItem) => <span className="text-sm text-[var(--foreground)]">{item.listing.direction || "—"}</span> },
     { label: "Pháp lý", render: (item: CompareItem) => <span className="text-sm text-[var(--foreground)]">{item.listing.legalStatus || "—"}</span> },
-    { label: "Địa chỉ", render: (item: CompareItem) => <span className="line-clamp-2 text-sm text-[var(--muted-foreground)]" title={item.listing.address || ""}>{item.listing.address || "—"}</span> },
+    { label: "Địa chỉ", render: (item: CompareItem) => <span className="line-clamp-2 text-xs text-[var(--muted-foreground)]" title={item.listing.address || ""}>{item.listing.address || "—"}</span> },
   ], []);
 
   return (
     <div className="space-y-6">
-      <div className="max-w-6xl">
-        {/* Header */}
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-extrabold text-[var(--foreground)] lg:text-3xl">So sánh bất động sản</h1>
-            <p className="mt-2 text-sm text-[var(--muted-foreground)]">Cùng lúc đối chiếu các tin đăng để tìm ra lựa chọn tối ưu.</p>
-          </div>
-          {items.length > 0 && (
-            <div className="flex items-center gap-2 text-sm pb-1">
-              <span className="text-[var(--muted-foreground)]">Đang so sánh:</span>
-              <span className="font-bold text-[var(--primary)]">{items.length}/{maxItems}</span>
-              <div className="h-1.5 w-16 rounded-full bg-[var(--muted)]"><div className="h-full rounded-full bg-[var(--primary)] transition-all" style={{ width: `${(items.length / maxItems) * 100}%` }} /></div>
-            </div>
-          )}
-        </div>
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--foreground)]">So sánh bất động sản</h1>
+        <p className="mt-2 text-sm sm:text-base text-[var(--muted-foreground)]">Cùng lúc đối chiếu các tin đăng để tìm ra lựa chọn tối ưu.</p>
+      </div>
 
-        {/* Add Form */}
-        <div className="mb-6 rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
+      {/* Add Form */}
+      <div className="card-container">
+        <div className="card-body">
           <form onSubmit={handleAddBySlug}>
-            <label className="mb-2 block text-xs font-medium text-[var(--muted-foreground)]">Thêm BĐS để so sánh</label>
-            <div className="flex gap-2">
+            <label className="mb-2 block text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">Thêm BĐS để so sánh</label>
+            <div className="flex flex-col sm:flex-row gap-2">
               <div className="relative flex-1">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[var(--muted-foreground)]">
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 </div>
                 <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Dán link hoặc nhập mã tin..."
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] py-2 pl-9 pr-3 text-sm text-[var(--foreground)] outline-none focus:ring-2 focus:ring-[var(--primary)]" />
+                  className="form-input !pl-9 !py-2.5 text-sm" />
               </div>
               <button type="submit" disabled={submitting || items.length >= maxItems}
-                className="btn-primary whitespace-nowrap !rounded-lg !px-5 !py-2 text-sm disabled:opacity-50">
+                className="btn-primary !rounded-lg !px-5 !py-2.5 text-sm whitespace-nowrap disabled:opacity-50 shrink-0">
                 {submitting ? "Đang thêm..." : "Thêm"}
               </button>
             </div>
-            {notice && <p className="mt-1.5 text-xs font-medium text-[var(--primary)]">{notice}</p>}
-            {error && <p className="mt-1.5 text-xs font-medium text-[var(--accent)]">{error}</p>}
+            {notice && <p className="mt-1.5 text-xs font-medium text-emerald-600">{notice}</p>}
+            {error && <p className="mt-1.5 text-xs font-medium text-[var(--destructive)]">{error}</p>}
           </form>
         </div>
+      </div>
 
-        {/* Content */}
-        {loading ? (
-          <div className="py-16 text-center">
-            <div className="mx-auto mb-3 h-7 w-7 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />
+      {/* Content */}
+      {loading ? (
+        <div className="card-container">
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="mb-3 h-7 w-7 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />
             <p className="text-sm text-[var(--muted-foreground)]">Đang tải...</p>
           </div>
-        ) : items.length === 0 ? (
-          <div className="rounded-xl border-2 border-dashed border-[var(--border)] py-14 text-center">
-            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)]">
+        </div>
+      ) : items.length === 0 ? (
+        <div className="card-container">
+          <div className="empty-state py-16">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-[var(--muted)] text-[var(--muted-foreground)]">
               <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
             </div>
-            <h3 className="mb-1 font-semibold text-[var(--foreground)]">Chưa có BĐS nào</h3>
-            <p className="mx-auto mb-4 max-w-xs text-sm text-[var(--muted-foreground)]">Thêm tin đăng bằng link hoặc nút so sánh trên trang danh sách</p>
-            <Link href="/bat-dong-san" className="btn-outline !py-2 text-sm">Xem danh sách</Link>
+            <h3 className="empty-state-title">Chưa có BĐS nào</h3>
+            <p className="empty-state-description">Thêm tin đăng bằng link hoặc nút so sánh trên trang danh sách</p>
+            <Link href="/bat-dong-san" className="btn-outline !py-2 text-sm mt-4">Xem danh sách</Link>
           </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-[var(--foreground)]">Chi tiết so sánh</h2>
-              <button type="button" onClick={handleClearAll} disabled={!!removingId}
-                className="flex items-center gap-1 text-sm font-medium text-[var(--destructive)] hover:underline disabled:opacity-50">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                Xóa tất cả
-              </button>
-            </div>
-            <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm">
-              <div className="overflow-x-auto scrollbar-thin">
-                <table className="w-full min-w-[700px] table-fixed border-collapse text-sm">
-                  <thead>
-                    <tr>
-                      <th className="sticky left-0 z-10 w-[140px] border-b border-r border-[var(--border)] bg-[var(--background)] p-4 text-left text-sm font-semibold text-[var(--foreground)] shadow-[2px_0_4px_rgba(0,0,0,0.04)]">
-                        Tiêu chí
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base sm:text-lg font-bold text-[var(--foreground)]">Chi tiết so sánh</h2>
+            <button type="button" onClick={handleClearAll} disabled={!!removingId}
+              className="flex items-center gap-1 text-sm font-medium text-[var(--destructive)] hover:underline disabled:opacity-50">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              Xóa tất cả
+            </button>
+          </div>
+          <div className="card-container overflow-hidden">
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <table className="w-full min-w-[640px] sm:min-w-0 border-collapse text-sm">
+                <thead>
+                  <tr>
+                    <th className="sticky left-0 z-10 w-[120px] sm:w-[140px] border-b border-r border-[var(--border)] bg-[var(--background)] p-3 sm:p-4 text-left text-xs sm:text-sm font-bold text-[var(--foreground)]">
+                      Tiêu chí
+                    </th>
+                    {items.map((item) => (
+                      <th key={item.id} className="w-[200px] sm:w-[260px] border-b border-l border-[var(--border)] bg-[var(--background)] p-3 sm:p-4 text-left align-top">
+                        <div className="group relative flex h-full flex-col">
+                          <button onClick={() => handleRemove(item.listingId)}
+                            className="absolute -right-1 -top-1 z-20 rounded-full bg-[var(--background)] p-1.5 text-[var(--muted-foreground)] opacity-0 shadow-sm transition-opacity hover:bg-[var(--destructive)] hover:text-white group-hover:opacity-100" title="Xóa">
+                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                          </button>
+                          <Link href={`/bat-dong-san/${item.listing.slug}`} className="flex flex-col gap-2">
+                            <div className="relative aspect-video w-full shrink-0 overflow-hidden rounded-lg bg-[var(--muted)]">
+                              <Image src={item.listing.imageUrl || PLACEHOLDER_IMAGE} alt={item.listing.title} fill sizes="(max-width: 768px) 100vw, 260px" className="object-cover transition-transform duration-300 group-hover:scale-105" />
+                            </div>
+                            <h3 className="line-clamp-2 text-xs sm:text-sm font-semibold leading-tight text-[var(--foreground)] group-hover:text-[var(--primary)]">{item.listing.title}</h3>
+                          </Link>
+                        </div>
                       </th>
-                      {items.map((item) => (
-                        <th key={item.id} className="w-[300px] border-b border-l border-[var(--border)] bg-[var(--background)] p-4 text-left align-top">
-                          <div className="group relative flex h-full flex-col">
-                            <button onClick={() => handleRemove(item.listingId)}
-                              className="absolute -right-2 -top-2 z-20 rounded-full border border-[var(--border)] bg-[var(--background)] p-1.5 text-[var(--muted-foreground)] opacity-0 shadow-sm transition-opacity hover:bg-[var(--destructive)] hover:text-white group-hover:opacity-100" title="Xóa">
-                              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                            </button>
-                            <Link href={`/bat-dong-san/${item.listing.slug}`} className="flex flex-col gap-3">
-                              <div className="relative aspect-video w-full shrink-0 overflow-hidden rounded-lg bg-[var(--muted)]">
-                                <Image src={item.listing.imageUrl || PLACEHOLDER_IMAGE} alt={item.listing.title} fill sizes="(max-width: 768px) 100vw, 300px" className="object-cover transition-transform duration-300 group-hover:scale-105" />
-                              </div>
-                              <h3 className="line-clamp-2 h-10 text-sm font-semibold leading-tight text-[var(--foreground)] group-hover:text-[var(--primary)]">{item.listing.title}</h3>
-                            </Link>
-                          </div>
-                        </th>
-                      ))}
-                      {Array.from({ length: Math.max(0, maxItems - items.length) }).map((_, i) => (
-                        <th key={`empty-${i}`} className="w-[300px] border-b border-l border-[var(--border)] bg-[var(--muted)]/10 p-4">
-                          <div className="flex h-[180px] w-full items-center justify-center rounded-lg border-2 border-dashed border-[var(--border)] text-sm font-medium text-[var(--muted-foreground)]">Cột trống</div>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[var(--border)]">
-                    {compareRows.map((row) => (
-                      <tr key={row.label} className="bg-[var(--background)] transition-colors hover:bg-[var(--muted)]/20">
-                        <th className="sticky left-0 z-10 border-r border-[var(--border)] bg-[var(--background)] p-4 text-left text-sm font-medium text-[var(--muted-foreground)] shadow-[2px_0_4px_rgba(0,0,0,0.04)]">{row.label}</th>
-                        {items.map((item) => (<td key={`${row.label}-${item.id}`} className="border-l border-[var(--border)] p-4 text-sm align-middle">{row.render(item)}</td>))}
-                        {Array.from({ length: Math.max(0, maxItems - items.length) }).map((_, i) => (<td key={`e-${i}`} className="border-l border-[var(--border)] bg-[var(--muted)]/10 p-4" />))}
-                      </tr>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                    {Array.from({ length: Math.max(0, maxItems - items.length) }).map((_, i) => (
+                      <th key={`empty-${i}`} className="w-[200px] sm:w-[260px] border-b border-l border-[var(--border)] bg-[var(--muted)]/10 p-3 sm:p-4">
+                        <div className="flex h-[120px] sm:h-[160px] w-full items-center justify-center rounded-lg border-2 border-dashed border-[var(--border)] text-xs sm:text-sm font-medium text-[var(--muted-foreground)]">Cột trống</div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--border)]">
+                  {compareRows.map((row) => (
+                    <tr key={row.label} className="bg-[var(--background)] transition-colors hover:bg-[var(--muted)]/20">
+                      <th className="sticky left-0 z-10 border-r border-[var(--border)] bg-[var(--background)] p-3 sm:p-4 text-left text-xs sm:text-sm font-medium text-[var(--muted-foreground)]">{row.label}</th>
+                      {items.map((item) => (<td key={`${row.label}-${item.id}`} className="border-l border-[var(--border)] p-3 sm:p-4 text-sm">{row.render(item)}</td>))}
+                      {Array.from({ length: Math.max(0, maxItems - items.length) }).map((_, i) => (<td key={`e-${i}`} className="border-l border-[var(--border)] bg-[var(--muted)]/10 p-3 sm:p-4" />))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

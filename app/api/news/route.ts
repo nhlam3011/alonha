@@ -28,7 +28,7 @@ const RSS_SOURCES = [
     },
 ];
 
-const AUTO_CRAWL_INTERVAL_MINUTES = 1;
+// const AUTO_CRAWL_INTERVAL_MINUTES = 30;
 
 type RSSItem = {
     title: string;
@@ -381,45 +381,50 @@ export async function GET(request: NextRequest) {
             take: limit,
         });
 
-        const lastNews = await prisma.news.findFirst({
-            orderBy: { crawledAt: "desc" },
-        });
-
-        const shouldAutoCrawl = !lastNews ||
-            (Date.now() - new Date(lastNews.crawledAt).getTime()) > (AUTO_CRAWL_INTERVAL_MINUTES * 60 * 1000);
-
-        if (news.length === 0 || forceCrawl || shouldAutoCrawl) {
+        if (forceCrawl) {
             await crawlAndSaveNews();
 
-            news = await prisma.news.findMany({
+            // Refresh data after crawl
+            const newTotal = await prisma.news.count({ where });
+            const newNews = await prisma.news.findMany({
                 where,
                 orderBy: { publishedAt: "desc" },
                 skip,
                 take: limit,
             });
+
+            return NextResponse.json({
+                data: transformNews(newNews),
+                total: newTotal,
+                page,
+                totalPages: Math.ceil(newTotal / limit),
+                sources: RSS_SOURCES.map((s) => ({ id: s.id, name: s.name })),
+            });
         }
 
-        const transformedItems = news.map((item, index) => ({
-            id: item.id,
-            slug: item.slug,
-            title: item.title,
-            excerpt: item.excerpt,
-            category: item.category,
-            categoryLabel: item.categoryLabel,
-            imageUrl: item.imageUrl || getDefaultImage(index),
-            author: item.author || item.sourceName,
-            publishedAt: item.publishedAt?.toISOString() || item.crawledAt.toISOString(),
-            readTime: Math.max(2, Math.ceil((item.excerpt?.length || 200) / 500)),
-            views: item.views,
-            sourceUrl: item.sourceUrl,
-            source: item.sourceName,
-            sourceId: item.sourceId,
-            allImages: item.imageUrls,
-        }));
+        function transformNews(items: any[]) {
+            return items.map((item, index) => ({
+                id: item.id,
+                slug: item.slug,
+                title: item.title,
+                excerpt: item.excerpt,
+                category: item.category,
+                categoryLabel: item.categoryLabel,
+                imageUrl: item.imageUrl || getDefaultImage(index),
+                author: item.author || item.sourceName,
+                publishedAt: item.publishedAt?.toISOString() || item.crawledAt.toISOString(),
+                readTime: Math.max(2, Math.ceil((item.excerpt?.length || 200) / 500)),
+                views: item.views,
+                sourceUrl: item.sourceUrl,
+                source: item.sourceName,
+                sourceId: item.sourceId,
+                allImages: item.imageUrls,
+            }));
+        }
 
         return NextResponse.json({
-            data: transformedItems,
-            total: await prisma.news.count({ where }),
+            data: transformNews(news),
+            total,
             page,
             totalPages,
             sources: RSS_SOURCES.map((s) => ({ id: s.id, name: s.name })),
