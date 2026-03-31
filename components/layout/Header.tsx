@@ -75,7 +75,7 @@ function canPostListing(role?: string) {
 /* ─── Desktop Dropdown Item ─── */
 function NavDropdown({ item, isActive }: { item: NavItem; isActive: boolean }) {
   const [open, setOpen] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const ref = useRef<HTMLDivElement>(null);
 
   const handleEnter = () => {
