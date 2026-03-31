@@ -3,11 +3,13 @@ import { ListingsAdminClient, ListingRow, ListingStatus } from "./ListingsAdminC
 import { Prisma } from "@prisma/client";
 
 export default async function AdminListingsPage(props: {
-  searchParams: Promise<{ keyword?: string; status?: string }>;
+  searchParams: Promise<{ keyword?: string; status?: string; page?: string }>;
 }) {
   const searchParams = await props.searchParams;
   const keyword = searchParams.keyword || "";
   const status = searchParams.status || "ALL";
+  const currentPage = parseInt(searchParams.page || "1");
+  const limit = 20;
 
   const whereClause: Prisma.ListingWhereInput = {};
 
@@ -17,14 +19,22 @@ export default async function AdminListingsPage(props: {
 
   if (keyword) {
     whereClause.OR = [
+      { id: { contains: keyword, mode: "insensitive" } },
       { title: { contains: keyword, mode: "insensitive" } },
-      { id: { contains: keyword } },
+      { owner: { name: { contains: keyword, mode: "insensitive" } } },
+      { owner: { email: { contains: keyword, mode: "insensitive" } } },
     ];
   }
+
+  const total = await prisma.listing.count({ where: whereClause });
+  const totalPages = Math.ceil(total / limit) || 1;
+  const skip = (currentPage - 1) * limit;
 
   const dbListings = await prisma.listing.findMany({
     where: whereClause,
     orderBy: { createdAt: "desc" },
+    skip,
+    take: limit,
     include: {
       owner: {
         select: { id: true, name: true, email: true }
@@ -60,7 +70,11 @@ export default async function AdminListingsPage(props: {
         </div>
       </div>
 
-      <ListingsAdminClient initialListings={listings} />
+      <ListingsAdminClient 
+        initialListings={listings} 
+        totalPages={totalPages}
+        currentPage={currentPage}
+      />
     </div>
   );
 }

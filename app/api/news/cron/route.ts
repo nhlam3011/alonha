@@ -251,7 +251,7 @@ async function crawlAndSaveNews(): Promise<{ newArticles: number; updatedArticle
                     "User-Agent": "Mozilla/5.0 (compatible; AlonhaBot/1.0)",
                     "Accept": "application/rss+xml, application/xml, text/xml",
                 },
-                next: { revalidate: 900 },
+                cache: "no-store",
             });
 
             if (!response.ok) {

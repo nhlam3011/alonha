@@ -74,8 +74,8 @@ function createPriceIcon(
   const isSale = listingType === "SALE";
   const active = isSelected || isHovered;
 
-  const saleColor = theme === "dark" ? "#f87171" : "#ef4444";
-  const rentColor = theme === "dark" ? "#60a5fa" : "#2563eb";
+  const saleColor = theme === "dark" ? "#60a5fa" : "#2563eb";
+  const rentColor = theme === "dark" ? "#f87171" : "#ef4444";
   const bgLight = theme === "dark" ? "#1e293b" : "#ffffff";
 
   const bg = active ? (isSale ? saleColor : rentColor) : bgLight;
@@ -195,9 +195,10 @@ function FocusSelected({ listingId, listings }: { listingId: string | null; list
   return null;
 }
 
-function LocateButton() {
+function MapToolbar({ listings, mapType, setMapType }: { listings: MapListingPoint[], mapType: 'm' | 'y', setMapType: (t: 'm' | 'y') => void }) {
   const map = useMap();
   const [busy, setBusy] = useState(false);
+
   const locate = useCallback(() => {
     if (!navigator.geolocation) return;
     setBusy(true);
@@ -208,36 +209,53 @@ function LocateButton() {
     );
   }, [map]);
 
-  return (
-    <button
-      onClick={locate}
-      disabled={busy}
-      className="absolute bottom-20 right-3 z-[1000] flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--card)] shadow-lg border border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all hover:shadow-xl disabled:opacity-50"
-      title="Vị trí của tôi"
-    >
-      {busy ? (
-        <span className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--border)] border-t-[var(--primary)]" />
-      ) : (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="3" /><path d="M12 2v4m0 12v4M2 12h4m12 0h4" /></svg>
-      )}
-    </button>
-  );
-}
+  const resetView = useCallback(() => {
+    if (listings.length === 0) { map.setView(DEFAULT_CENTER, 6); return; }
+    const bounds = L.latLngBounds(listings.map((l) => [l.latitude, l.longitude] as [number, number]));
+    map.fitBounds(bounds.pad(0.12), { maxZoom: 16, animate: true });
+  }, [map, listings]);
 
-function ResetButton({ listings }: { listings: MapListingPoint[] }) {
-  const map = useMap();
+  const btnClass = "flex h-10 w-10 items-center justify-center bg-[var(--card)] hover:bg-[var(--muted)] text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors focus:outline-none";
+
   return (
-    <button
-      onClick={() => {
-        if (listings.length === 0) { map.setView(DEFAULT_CENTER, 6); return; }
-        const bounds = L.latLngBounds(listings.map((l) => [l.latitude, l.longitude] as [number, number]));
-        map.fitBounds(bounds.pad(0.12), { maxZoom: 16, animate: true });
-      }}
-      className="absolute bottom-9 right-3 z-[1000] flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--card)] shadow-lg border border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all hover:shadow-xl"
-      title="Xem tất cả"
-    >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
-    </button>
+    <div className="absolute right-4 bottom-8 z-[1000] flex flex-col shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-[var(--border)] rounded-xl overflow-hidden divide-y divide-[var(--border)]">
+      {/* Map Type Toggle */}
+      <button 
+        onClick={() => setMapType(mapType === 'm' ? 'y' : 'm')} 
+        className={btnClass} 
+        title={mapType === 'm' ? "Chuyển sang vệ tinh" : "Chuyển sang bản đồ"}
+      >
+        {mapType === 'm' ? (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+        ) : (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        )}
+      </button>
+
+      {/* Zoom In */}
+      <button onClick={() => map.zoomIn()} className={btnClass} title="Phóng to">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      </button>
+
+      {/* Zoom Out */}
+      <button onClick={() => map.zoomOut()} className={btnClass} title="Thu nhỏ">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      </button>
+
+      {/* Locate */}
+      <button onClick={locate} disabled={busy} className={btnClass} title="Vị trí của tôi">
+        {busy ? (
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--border)] border-t-[var(--primary)]" />
+        ) : (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="3" /><path d="M12 2v4m0 12v4M2 12h4m12 0h4" /></svg>
+        )}
+      </button>
+
+      {/* Reset */}
+      <button onClick={resetView} className={btnClass} title="Xem tất cả">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
+      </button>
+    </div>
   );
 }
 
@@ -248,6 +266,7 @@ export default function ListingMarkersMap({
   flyToLocation,
   hoveredListingId,
 }: ListingMarkersMapProps) {
+  const [mapType, setMapType] = useState<'m' | 'y'>('m');
   const theme = useTheme();
   const hasExternalFly = flyToLocation != null;
 
@@ -262,8 +281,8 @@ export default function ListingMarkersMap({
   const popupMuted = theme === "dark" ? "#94a3b8" : "#64748b";
   const popupPlaceholder = theme === "dark" ? "#334155" : "#f1f5f9";
   const popupPlaceholderText = theme === "dark" ? "#64748b" : "#94a3b8";
-  const saleColor = theme === "dark" ? "#f87171" : "#ef4444";
-  const rentColor = theme === "dark" ? "#60a5fa" : "#2563eb";
+  const saleColor = theme === "dark" ? "#60a5fa" : "#2563eb";
+  const rentColor = theme === "dark" ? "#f87171" : "#ef4444";
   const priceColor = theme === "dark" ? "#f87171" : "#ef4444";
 
   return (
@@ -272,10 +291,11 @@ export default function ListingMarkersMap({
       zoom={flyToLocation?.zoom ?? 10}
       className="h-full w-full outline-none"
       scrollWheelZoom={false}
+      zoomControl={false}
       style={{ zIndex: 0 }}
     >
       <TileLayer
-        url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+        url={`https://mt1.google.com/vt/lyrs=${mapType}&x={x}&y={y}&z={z}`}
         attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
       />
       <MapReady />
@@ -283,8 +303,7 @@ export default function ListingMarkersMap({
       <FlyToArea location={flyToLocation ?? null} />
       <PanToHovered listingId={hoveredListingId} listings={listings} />
       <FocusSelected listingId={selectedListingId} listings={listings} />
-      <LocateButton />
-      <ResetButton listings={listings} />
+      <MapToolbar listings={listings} mapType={mapType} setMapType={setMapType} />
 
       {listings.map((item) => {
         const isSelected = item.id === selectedListingId;

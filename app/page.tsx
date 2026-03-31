@@ -74,12 +74,11 @@ const CATEGORIES = [
 ];
 
 const POPULAR_CITIES = [
-  { id: "ho-chi-minh", name: "TP. Hồ Chí Minh", count: "5,200+", image: "https://media.vov.vn/sites/default/files/styles/large/public/2024-03/hcmc.jpg" },
-  { id: "ha-noi", name: "Hà Nội", count: "3,800+", image: "https://images.unsplash.com/photo-1555921015-5532091f6026?auto=format&fit=crop&q=80&w=800" },
-  { id: "da-nang", name: "Đà Nẵng", count: "1,200+", image: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&q=80&w=800" },
-  { id: "can-tho", name: "Cần Thơ", count: "800+", image: "https://cdn.vntrip.vn/cam-nang/wp-content/uploads/2017/08/1-3.jpg" },
-  { id: "hai-phong", name: "Hải Phòng", count: "600+", image: "https://haiphongnews.gov.vn/uploads/2022-t8/2.jpg" },
-];
+  { id: "79", name: "TP. Hồ Chí Minh", count: "5,200+", image: "https://media.vov.vn/sites/default/files/styles/large/public/2024-03/hcmc.jpg" },
+  { id: "01", name: "Hà Nội", count: "3,800+", image: "https://images.unsplash.com/photo-1555921015-5532091f6026?auto=format&fit=crop&q=80&w=800" },
+  { id: "48", name: "Đà Nẵng", count: "1,200+", image: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&q=80&w=800" },
+  { id: "92", name: "Cần Thơ", count: "800+", image: "https://cdn.vntrip.vn/cam-nang/wp-content/uploads/2017/08/1-3.jpg" },
+]
 
 export const revalidate = 60; // SSR with ISR cache (revalidate every 60s)
 
@@ -304,7 +303,7 @@ export default async function HomePage() {
             {POPULAR_CITIES.slice(0, 5).map((city, idx) => (
               <Link
                 key={city.id}
-                href={`/bat-dong-san?province=${city.id}`}
+                href={`/bat-dong-san?provinceId=${city.id}`}
                 className={`group relative rounded-3xl overflow-hidden block ${idx === 0 ? "col-span-2 row-span-2" :
                   idx === 1 ? "col-span-2 md:col-span-2 row-span-1" :
                     "col-span-1 md:col-span-1 row-span-1"
@@ -440,24 +439,20 @@ export default async function HomePage() {
 
       {/* ━━━ CTA — Premium Gradient ━━━ */}
       <section className="pb-20 sm:pb-32 px-4 pt-10">
-        <div className="max-w-6xl mx-auto relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-blue-600 via-sky-500 to-teal-400 p-10 sm:p-16 md:p-20 text-center shadow-2xl group">
-          {/* Animated decorative blobs */}
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white opacity-20 blur-[100px] rounded-full translate-x-1/3 -translate-y-1/3 pointer-events-none group-hover:scale-110 transition-transform duration-1000" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-emerald-300 opacity-30 blur-[80px] rounded-full -translate-x-1/3 translate-y-1/3 pointer-events-none group-hover:scale-110 transition-transform duration-1000 delay-100" />
-
+        <div className="max-w-5xl mx-auto relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-[#0061ff] to-[#00f2fe] p-10 md:p-16 text-center shadow-[0_20px_50px_rgba(0,198,255,0.2)]">
           <div className="relative z-10 max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-white leading-tight mb-6 drop-shadow-md">
+            <h2 className="text-3xl md:text-[44px] font-extrabold text-white leading-tight mb-4 tracking-tight">
               Hành trình tìm kiếm<br />tổ ấm hoàn mỹ
             </h2>
-            <p className="text-white/90 text-lg sm:text-xl font-medium mb-10 max-w-xl mx-auto">
-              Tham gia ngay hôm nay để tận hưởng công nghệ AI và dữ liệu chuyên sâu cho mọi quyết định bất động sản của bạn.
+            <p className="text-white/90 text-[15px] sm:text-base font-medium mb-8 max-w-lg mx-auto leading-relaxed">
+              Tham gia ngay hôm nay để tận hưởng công nghệ AI và dữ liệu<br className="hidden sm:block" />chuyên sâu cho mọi quyết định bất động sản của bạn.
             </p>
 
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Link href="/dang-ky" className="inline-flex items-center justify-center px-8 py-4 bg-white text-blue-600 text-sm font-black rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.2)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.3)] hover:scale-105 active:scale-95 transition-all w-full sm:w-auto uppercase tracking-wide">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+              <Link href="/dang-ky" className="inline-flex items-center justify-center px-8 py-3.5 bg-white text-blue-600 text-sm font-bold rounded-full hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all w-full sm:w-auto uppercase tracking-wide">
                 Đăng Ký Thành Viên
               </Link>
-              <Link href="/lien-he" className="inline-flex items-center justify-center px-8 py-4 bg-transparent border-2 border-white/40 text-white text-sm font-bold rounded-full hover:bg-white/10 hover:border-white transition-all w-full sm:w-auto">
+              <Link href="/lien-he" className="inline-flex items-center justify-center px-8 py-3.5 bg-transparent border border-white/50 text-white text-sm font-medium rounded-full hover:bg-white/10 hover:border-white transition-all w-full sm:w-auto">
                 Tư Vấn Ngay
               </Link>
             </div>

@@ -8,17 +8,207 @@ import { useSession, signOut } from "next-auth/react";
 import { ThemeToggle } from "./ThemeToggle";
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 
-const navLinks = [
-  { href: "/bat-dong-san", label: "Bất động sản" },
-  { href: "/tim-kiem", label: "Bản đồ" },
-  { href: "/du-an", label: "Dự án" },
-  { href: "/tin-tuc", label: "Tin tức" },
-  { href: "/cong-cu", label: "Công cụ" },
+type SubItem = {
+  href: string;
+  label: string;
+  desc?: string;
+};
+
+type NavItem = {
+  href: string;
+  label: string;
+  children?: SubItem[];
+};
+
+const navLinks: NavItem[] = [
+  {
+    href: "/bat-dong-san",
+    label: "Bất động sản",
+    children: [
+      { href: "/bat-dong-san?loaiHinh=sale", label: "Nhà đất bán", desc: "Mua bán nhà đất, căn hộ" },
+      { href: "/bat-dong-san?loaiHinh=rent", label: "Nhà đất cho thuê", desc: "Thuê nhà, căn hộ, phòng trọ" },
+      { href: "/bat-dong-san", label: "Tất cả BĐS", desc: "Xem toàn bộ tin đăng" },
+    ],
+  },
+  {
+    href: "/tim-kiem",
+    label: "Bản đồ",
+    children: [
+      { href: "/tim-kiem", label: "Tìm trên bản đồ", desc: "Tìm kiếm BĐS theo vị trí" },
+      { href: "/cong-cu/diem-so-khu-vuc", label: "Điểm số khu vực", desc: "Đánh giá tiện ích xung quanh" },
+    ],
+  },
+  {
+    href: "/du-an",
+    label: "Dự án",
+    children: [
+      { href: "/du-an", label: "Tất cả dự án", desc: "Danh sách dự án bất động sản" },
+    ],
+  },
+  {
+    href: "/tin-tuc",
+    label: "Tin tức",
+    children: [
+      { href: "/tin-tuc", label: "Tin tức BĐS", desc: "Cập nhật thị trường mới nhất" },
+      { href: "/tin-tuc?category=chinh-sach", label: "Chính sách", desc: "Pháp luật, quy định mới" },
+      { href: "/tin-tuc?category=du-an", label: "Dự án mới", desc: "Thông tin dự án nổi bật" },
+    ],
+  },
+  {
+    href: "/cong-cu",
+    label: "Công cụ",
+    children: [
+      { href: "/cong-cu/tinh-vay", label: "Tính khoản vay", desc: "Tính lãi suất, trả góp hàng tháng" },
+      { href: "/cong-cu/dinh-gia", label: "Định giá BĐS", desc: "Ước tính giá trị bất động sản" },
+      { href: "/cong-cu/so-sanh", label: "So sánh BĐS", desc: "So sánh các bất động sản cùng lúc" },
+      { href: "/cong-cu/dau-tu", label: "Phân tích đầu tư", desc: "ROI, dòng tiền, lợi nhuận" },
+      { href: "/cong-cu/phong-thuy", label: "Phong thủy", desc: "Xem hướng nhà, tuổi hợp" },
+    ],
+  },
 ];
 
 const CAN_POST_LISTING = ["AGENT", "BUSINESS", "ADMIN"];
 function canPostListing(role?: string) {
   return !!role && CAN_POST_LISTING.includes(role);
+}
+
+/* ─── Desktop Dropdown Item ─── */
+function NavDropdown({ item, isActive }: { item: NavItem; isActive: boolean }) {
+  const [open, setOpen] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const ref = useRef<HTMLDivElement>(null);
+
+  const handleEnter = () => {
+    clearTimeout(timeoutRef.current);
+    setOpen(true);
+  };
+  const handleLeave = () => {
+    timeoutRef.current = setTimeout(() => setOpen(false), 150);
+  };
+
+  // If no children, render a simple link
+  if (!item.children || item.children.length === 0) {
+    return (
+      <Link
+        href={item.href}
+        className={`px-4 py-1.5 text-[15px] font-semibold rounded-full transition-all duration-200 whitespace-nowrap ${isActive
+          ? "bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white shadow-md shadow-[var(--primary)]/25"
+          : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card)]"
+          }`}
+      >
+        {item.label}
+      </Link>
+    );
+  }
+
+  return (
+    <div ref={ref} className="relative" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+      {/* Trigger */}
+      <Link
+        href={item.href}
+        className={`group/trigger inline-flex items-center gap-1 px-4 py-1.5 text-[15px] font-semibold rounded-full transition-all duration-200 whitespace-nowrap ${isActive
+          ? "bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white shadow-md shadow-[var(--primary)]/25"
+          : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card)]"
+          }`}
+      >
+        {item.label}
+        <svg
+          className={`size-3.5 transition-transform duration-200 ${open ? "rotate-180" : ""} ${isActive ? "text-white/70" : "text-[var(--muted-foreground)]/60"}`}
+          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+        </svg>
+      </Link>
+
+      {/* Dropdown panel */}
+      {open && (
+        <div className="absolute left-1/2 -translate-x-1/2 top-full pt-3 z-50">
+          <div
+            className="min-w-[280px] rounded-2xl border border-[var(--border)] bg-[var(--card)] p-2 shadow-2xl shadow-black/12 animate-fade-in"
+            style={{ backdropFilter: "blur(20px)" }}
+          >
+            {/* Arrow indicator */}
+            <div className="absolute -top-[5px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 rotate-45 border-l border-t border-[var(--border)] bg-[var(--card)]" />
+
+            {item.children.map((child) => (
+              <Link
+                key={child.href}
+                href={child.href}
+                onClick={() => setOpen(false)}
+                className="block px-3 py-2.5 rounded-xl transition-all duration-150 hover:bg-[var(--primary)]/5 group/item"
+              >
+                <p className="text-sm font-bold text-[var(--foreground)] group-hover/item:text-[var(--primary)] transition-colors">
+                  {child.label}
+                </p>
+                {child.desc && (
+                  <p className="text-xs text-[var(--muted-foreground)] mt-0.5 leading-relaxed">
+                    {child.desc}
+                  </p>
+                )}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Mobile Accordion Item ─── */
+function MobileNavItem({ item, isActive, onClose }: { item: NavItem; isActive: boolean; onClose: () => void }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!item.children || item.children.length === 0) {
+    return (
+      <Link
+        href={item.href}
+        onClick={onClose}
+        className={`flex items-center px-4 py-3 text-[15px] font-semibold rounded-xl transition-colors ${isActive
+          ? "bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white shadow-md shadow-[var(--primary)]/20"
+          : "text-[var(--foreground)] hover:bg-[var(--muted)]"
+          }`}
+      >
+        {item.label}
+      </Link>
+    );
+  }
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className={`w-full flex items-center justify-between px-4 py-3 text-[15px] font-semibold rounded-xl transition-colors ${isActive
+          ? "bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white shadow-md shadow-[var(--primary)]/20"
+          : "text-[var(--foreground)] hover:bg-[var(--muted)]"
+          }`}
+      >
+        <span>{item.label}</span>
+        <svg
+          className={`size-4 transition-transform duration-200 ${expanded ? "rotate-180" : ""} ${isActive ? "text-white/70" : "text-[var(--muted-foreground)]"}`}
+          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {expanded && (
+        <div className="ml-3 mt-1 space-y-0.5 border-l-2 border-[var(--border)] pl-3 pb-1">
+          {item.children.map((child) => (
+            <Link
+              key={child.href}
+              href={child.href}
+              onClick={onClose}
+              className="block px-3 py-2.5 rounded-xl text-sm font-medium text-[var(--foreground)] hover:bg-[var(--muted)] hover:text-[var(--primary)] transition-colors"
+            >
+              <p className="font-semibold">{child.label}</p>
+              {child.desc && <p className="text-[11px] text-[var(--muted-foreground)] mt-0.5">{child.desc}</p>}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function Header() {
@@ -37,21 +227,13 @@ export function Header() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
-    // Initial theme detection
     const initialTheme = document.documentElement.classList.contains("dark") ? "dark" : "light";
     setTheme(initialTheme);
-
-    // Watch for class changes on <html>
     const observer = new MutationObserver(() => {
       const isDark = document.documentElement.classList.contains("dark");
       setTheme(isDark ? "dark" : "light");
     });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     return () => observer.disconnect();
   }, []);
 
@@ -80,12 +262,13 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const isLinkActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out ${hidden ? "-translate-y-full" : "translate-y-0"
         }`}
     >
-      {/* Navbar container */}
       <div
         className={`transition-all duration-500 ${scrolled
           ? "bg-[var(--background)]/80 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.08)] border-b border-[var(--border)]/60"
@@ -97,7 +280,7 @@ export function Header() {
 
             {/* ========== Logo ========== */}
             <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-              <div className="relative w-28 h-8 lg:w-44 lg:h-12 transition-transform duration-300 group-hover:scale-105 bg-[var(--logo-bg)] rounded-md p-1">
+              <div className="relative w-28 h-8 lg:w-44 lg:h-12 origin-left transition-transform duration-300 scale-100 lg:scale-[0.7] group-hover:scale-105 lg:group-hover:scale-[0.75] bg-[var(--logo-bg)] rounded-md p-1">
                 <Image
                   src={theme === "dark" ? "/logo-dark.png" : "/logo-light.png"}
                   alt="AloNha"
@@ -109,29 +292,22 @@ export function Header() {
               </div>
             </Link>
 
-            {/* ========== Desktop Nav — Center ========== */}
+            {/* ========== Desktop Nav — Center with Dropdowns ========== */}
             <nav className="hidden lg:flex items-center gap-1 bg-[var(--muted)]/60 rounded-full px-2 py-1.5 mx-6">
-              {navLinks.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`px-4 py-1.5 text-[15px] font-semibold rounded-full transition-all duration-200 whitespace-nowrap ${pathname === href || pathname.startsWith(href + "/")
-                    ? "bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white shadow-md shadow-[var(--primary)]/25"
-                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card)]"
-                    }`}
-                >
-                  {label}
-                </Link>
+              {navLinks.map((item) => (
+                <NavDropdown
+                  key={item.href}
+                  item={item}
+                  isActive={isLinkActive(item.href)}
+                />
               ))}
             </nav>
 
             {/* ========== Right Actions ========== */}
             <div className="flex items-center gap-1.5 sm:gap-2">
 
-              {/* Theme Toggle */}
               <ThemeToggle />
 
-              {/* Đăng tin CTA */}
               {canPostListing(session?.user?.role) && (
                 <Link
                   href="/dang-tin"
@@ -144,7 +320,6 @@ export function Header() {
                 </Link>
               )}
 
-              {/* User Button */}
               {status === "loading" ? (
                 <div className="w-10 h-10 rounded-full bg-[var(--muted)] animate-pulse" />
               ) : session?.user ? (
@@ -179,7 +354,6 @@ export function Header() {
 
                   {userMenuOpen && (
                     <div className="absolute right-0 top-full mt-3 w-56 rounded-2xl bg-[var(--card)] border border-[var(--border)] py-2 shadow-2xl shadow-black/10 animate-fade-in">
-                      {/* User card */}
                       <div className="flex items-center gap-3 px-4 py-3 mx-2 mb-1 rounded-xl bg-gradient-to-r from-[var(--primary)]/5 to-[var(--secondary)]/5 border border-[var(--border)]/50">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] text-white overflow-hidden ring-2 ring-[var(--border)]">
                           {session.user.image ? (
@@ -265,28 +439,21 @@ export function Header() {
         </div>
       </div>
 
-      {/* ========== Mobile Menu ========== */}
+      {/* ========== Mobile Menu with Accordions ========== */}
       {mobileOpen && (
         <div className="lg:hidden px-4 pb-4">
           <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-2xl shadow-black/10 overflow-hidden animate-slide-down mt-2">
-            {/* Nav links */}
             <nav className="p-3 space-y-0.5">
-              {navLinks.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`flex items-center px-4 py-3 text-[15px] font-semibold rounded-xl transition-colors ${pathname === href || pathname.startsWith(href + "/")
-                    ? "bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white shadow-md shadow-[var(--primary)]/20"
-                    : "text-[var(--foreground)] hover:bg-[var(--muted)]"
-                    }`}
-                >
-                  {label}
-                </Link>
+              {navLinks.map((item) => (
+                <MobileNavItem
+                  key={item.href}
+                  item={item}
+                  isActive={isLinkActive(item.href)}
+                  onClose={() => setMobileOpen(false)}
+                />
               ))}
             </nav>
 
-            {/* Auth / Post */}
             <div className="px-3 pb-3 space-y-2">
               {!session?.user && (
                 <Link

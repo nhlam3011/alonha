@@ -122,6 +122,7 @@ function SearchContent() {
   const [provinces, setProvinces] = useState<Array<{ id: string; code?: string; name: string }>>([]);
   const [wards, setWards] = useState<Array<{ code: number; name: string; province_code: number }>>([]);
   const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
+  const [hoveredListingId, setHoveredListingId] = useState<string | null>(null);
 
   const displayQuery = keyword || aiQuery;
   const [searchInput, setSearchInput] = useState(displayQuery);
@@ -437,9 +438,9 @@ function SearchContent() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setFiltersOpen((o) => !o)}
-                className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-9 px-4 text-xs font-medium transition ${filtersOpen || direction || legalStatus || bedrooms
+                className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-10 px-5 text-sm font-medium transition ${filtersOpen || direction || legalStatus || bedrooms
                   ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
-                  : "border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)] hover:border-[var(--primary)]/50"
+                  : "border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--primary)]/50"
                   }`}
               >
                 <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
@@ -592,6 +593,8 @@ function SearchContent() {
                       key={listing.id}
                       ref={el => { if (el) listingRefs.current.set(listing.id, el); }}
                       className={`transition-all duration-300 ${selectedListingId === listing.id ? "ring-2 ring-[var(--primary)] rounded-2xl scale-[1.01]" : ""}`}
+                      onMouseEnter={() => setHoveredListingId(listing.id)}
+                      onMouseLeave={() => setHoveredListingId(null)}
                     >
                       <PropertyCard listing={listing} />
                     </div>
@@ -610,6 +613,7 @@ function SearchContent() {
               selectedListingId={selectedListingId}
               onSelectListing={scrollToListing}
               flyToLocation={flyToLocation}
+              hoveredListingId={hoveredListingId}
             />
           </div>
         )}

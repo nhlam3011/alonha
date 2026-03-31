@@ -76,7 +76,7 @@ export default function ToolsNavigation() {
     return (
         <div className="sticky top-20 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-2 lg:p-3 shadow-sm">
             <div className="mb-3 hidden px-3 pt-2 lg:block">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Thực đơn công cụ</h2>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Công cụ</h2>
             </div>
             <nav className="flex overflow-x-auto lg:flex-col lg:overflow-visible gap-1.5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
                 {navItems.map((item) => {
@@ -86,8 +86,8 @@ export default function ToolsNavigation() {
                             key={item.href}
                             href={item.href}
                             className={`flex shrink-0 items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${isActive
-                                    ? "bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/20"
-                                    : "text-[var(--foreground)] hover:bg-[var(--muted)] hover:text-[var(--primary)]"
+                                ? "bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/20"
+                                : "text-[var(--foreground)] hover:bg-[var(--muted)] hover:text-[var(--primary)]"
                                 }`}
                         >
                             <div className={`flex items-center justify-center transition-colors ${isActive ? "text-white" : "text-[var(--muted-foreground)]"}`}>

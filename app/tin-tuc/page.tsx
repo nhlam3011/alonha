@@ -106,6 +106,8 @@ export default async function NewsPage(props: {
   apiUrl.searchParams.set("limit", String(limit));
   apiUrl.searchParams.set("page", String(page));
 
+  apiUrl.searchParams.set("sort", sort);
+
   let articles: NewsArticle[] = [];
   let total = 0;
   let sources = RSS_SOURCES;
@@ -120,10 +122,6 @@ export default async function NewsPage(props: {
     }
   } catch (error) {
     console.error("Error fetching news from API:", error);
-  }
-
-  if (sort === "popular") {
-    articles.sort((a, b) => b.views - a.views);
   }
 
   const featuredArticle = page === 1 && articles.length > 0 && !keyword ? articles[0] : null;
@@ -188,7 +186,7 @@ function ArticleCard({
 
   const content = (
     <>
-      <div className={`relative overflow-hidden bg-[var(--muted)] shrink-0 shadow-inner ${isFeatured ? "h-[350px] sm:h-[480px]" : isListMode ? "w-32 sm:w-48 md:w-64 h-full min-h-[120px] md:min-h-[180px]" : "aspect-[16/10]"}`}>
+      <div className={`relative overflow-hidden bg-[var(--muted)] shrink-0 shadow-inner ${isFeatured ? "h-[350px] sm:h-[480px]" : isListMode ? "w-32 sm:w-48 md:w-64 self-stretch" : "aspect-[16/10]"}`}>
         <ImageWithFallback
           src={article.imageUrl || DEFAULT_IMAGE}
           alt={article.title}
@@ -243,7 +241,7 @@ function ArticleCard({
     </>
   );
 
-  const cardClassName = `group overflow-hidden rounded-[20px] sm:rounded-3xl border border-[var(--border)] bg-[var(--card)] shadow-sm hover:shadow-2xl hover:-translate-y-1.5 hover:border-[var(--primary)]/30 transition-all duration-500 ease-out ${isFeatured ? "block relative" : isListMode ? "flex h-auto sm:h-auto" : "flex flex-col h-full"}`;
+  const cardClassName = `group overflow-hidden rounded-[20px] sm:rounded-3xl border border-[var(--border)] bg-[var(--card)] shadow-sm hover:shadow-2xl hover:-translate-y-1.5 hover:border-[var(--primary)]/30 transition-all duration-500 ease-out ${isFeatured ? "block relative" : isListMode ? "flex items-stretch" : "flex flex-col h-full"}`;
 
   if (article.sourceUrl) {
     return (

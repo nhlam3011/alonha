@@ -28,7 +28,9 @@ const RSS_SOURCES = [
     },
 ];
 
-// const AUTO_CRAWL_INTERVAL_MINUTES = 30;
+const AUTO_CRAWL_INTERVAL_MS = 30 * 60 * 1000; // 30 phút
+let lastCrawlTime: number = 0;
+let isCrawling = false;
 
 type RSSItem = {
     title: string;
@@ -281,7 +283,7 @@ async function crawlAndSaveNews(): Promise<number> {
                     "User-Agent": "Mozilla/5.0 (compatible; AlonhaBot/1.0)",
                     "Accept": "application/rss+xml, application/xml, text/xml",
                 },
-                next: { revalidate: 900 },
+                cache: "no-store",
             });
 
             if (!response.ok) {
@@ -313,6 +315,7 @@ async function crawlAndSaveNews(): Promise<number> {
                                 imageUrls: item.allImages?.length ? item.allImages : existing.imageUrls,
                                 views: existing.views + Math.floor(Math.random() * 10), // Increment views slightly
                                 updatedAt: new Date(),
+                                crawledAt: new Date(),
                             },
                         });
                     } else {
@@ -354,11 +357,45 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const category = searchParams.get("category") || "";
     const source = searchParams.get("source") || "";
+    const keyword = searchParams.get("keyword") || "";
     const limit = parseInt(searchParams.get("limit") || "20");
     const page = parseInt(searchParams.get("page") || "1");
+    const sort = searchParams.get("sort") || "newest";
     const forceCrawl = searchParams.get("forceCrawl") === "true";
 
     try {
+        // Auto-crawl nền: kiểm tra bài viết mới nhất trong DB
+        if (!isCrawling) {
+            const latestNews = await prisma.news.findFirst({
+                orderBy: { crawledAt: "desc" },
+                select: { id: true, crawledAt: true }
+            });
+
+            const now = Date.now();
+            const lastCrawlMs = latestNews?.crawledAt ? latestNews.crawledAt.getTime() : 0;
+            
+            if ((now - lastCrawlMs) > AUTO_CRAWL_INTERVAL_MS || forceCrawl) {
+                isCrawling = true;
+                try {
+                    console.log(`[Auto-crawl] Bắt đầu tự động lấy tin...`);
+                    const count = await crawlAndSaveNews();
+                    console.log(`[Auto-crawl] Hoàn tất, thêm ${count} tin mới`);
+                    
+                    // Prevent infinite crawl loops if RSS is dead or returns empty
+                    if (latestNews?.id) {
+                        await prisma.news.update({ 
+                            where: { id: latestNews.id }, 
+                            data: { crawledAt: new Date() } 
+                        }).catch(() => {});
+                    }
+                } catch (err) {
+                    console.error("[Auto-crawl] Lỗi:", err);
+                } finally {
+                    isCrawling = false;
+                }
+            }
+        }
+
         const where: any = { isActive: true };
 
         if (category) {
@@ -374,33 +411,17 @@ export async function GET(request: NextRequest) {
         const totalPages = Math.ceil(total / limit);
         const skip = (page - 1) * limit;
 
+        let orderBy: any = { publishedAt: "desc" };
+        if (sort === "oldest") orderBy = { publishedAt: "asc" };
+        else if (sort === "popular") orderBy = { views: "desc" };
+
         let news = await prisma.news.findMany({
             where,
-            orderBy: { publishedAt: "desc" },
+            orderBy,
             skip,
             take: limit,
         });
 
-        if (forceCrawl) {
-            await crawlAndSaveNews();
-
-            // Refresh data after crawl
-            const newTotal = await prisma.news.count({ where });
-            const newNews = await prisma.news.findMany({
-                where,
-                orderBy: { publishedAt: "desc" },
-                skip,
-                take: limit,
-            });
-
-            return NextResponse.json({
-                data: transformNews(newNews),
-                total: newTotal,
-                page,
-                totalPages: Math.ceil(newTotal / limit),
-                sources: RSS_SOURCES.map((s) => ({ id: s.id, name: s.name })),
-            });
-        }
 
         function transformNews(items: any[]) {
             return items.map((item, index) => ({

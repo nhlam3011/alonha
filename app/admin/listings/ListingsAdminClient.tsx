@@ -147,7 +147,15 @@ function ActionDropdown({ listing, savingId, onUpdateStatus, onDelete }: any) {
     );
 }
 
-export function ListingsAdminClient({ initialListings }: { initialListings: ListingRow[] }) {
+export function ListingsAdminClient({ 
+    initialListings,
+    totalPages,
+    currentPage
+}: { 
+    initialListings: ListingRow[],
+    totalPages: number,
+    currentPage: number
+}) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const pathname = usePathname();
@@ -365,6 +373,42 @@ export function ListingsAdminClient({ initialListings }: { initialListings: List
                                 })}
                             </tbody>
                         </table>
+                    </div>
+                )}
+                
+                {totalPages > 1 && rows.length > 0 && (
+                    <div className="mt-6 flex items-center justify-between border-t border-[var(--border)] pt-4 px-4 sm:px-6 pb-4">
+                        <div className="text-sm text-[var(--muted-foreground)] hidden sm:block">
+                            Trang <span className="font-medium text-[var(--foreground)]">{currentPage}</span> / <span className="font-medium text-[var(--foreground)]">{totalPages}</span>
+                        </div>
+                        <div className="flex gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                            <button
+                                disabled={currentPage <= 1}
+                                onClick={() => {
+                                    const params = new URLSearchParams(searchParams.toString());
+                                    params.set("page", String(currentPage - 1));
+                                    router.push(`${pathname}?${params.toString()}`);
+                                }}
+                                className="btn btn-outline btn-sm disabled:opacity-50"
+                            >
+                                <svg className="w-4 h-4 mr-1 lg:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                                <span className="hidden lg:inline">Trang trước</span>
+                                <span className="lg:hidden">Trước</span>
+                            </button>
+                            <button
+                                disabled={currentPage >= totalPages}
+                                onClick={() => {
+                                    const params = new URLSearchParams(searchParams.toString());
+                                    params.set("page", String(currentPage + 1));
+                                    router.push(`${pathname}?${params.toString()}`);
+                                }}
+                                className="btn btn-outline btn-sm disabled:opacity-50"
+                            >
+                                <span className="hidden lg:inline">Trang sau</span>
+                                <span className="lg:hidden">Sau</span>
+                                <svg className="w-4 h-4 ml-1 lg:ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>

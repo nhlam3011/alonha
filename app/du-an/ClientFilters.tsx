@@ -154,8 +154,29 @@ export function ProjectClientFilters({
                         searchPlaceholder="Tìm kiếm dự án bất động sản..."
                     />
 
-                    <UnifiedFilterBar>
-                        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 w-full">
+                    <UnifiedFilterBar
+                        sortOptions={SORT_OPTIONS}
+                        activeSort={sort}
+                        onSortChange={(val) => updateFilters({ sort: val })}
+                        appendRight={
+                            <button
+                                onClick={() => {
+                                    const newMode = viewMode === "grid" ? "list" : "grid";
+                                    setViewMode(newMode);
+                                    document.cookie = `project_viewMode=${newMode}; path=/; max-age=31536000`;
+                                    router.refresh();
+                                }}
+                                className="md:hidden ml-auto flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)]"
+                            >
+                                {viewMode === "grid" ? (
+                                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                                ) : (
+                                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                                )}
+                            </button>
+                        }
+                    >
+                        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 w-full flex-1">
                             {/* Trạng thái */}
                             <SearchableSelect
                                 options={STATUS_OPTIONS.map(s => ({ value: s.value, label: s.label }))}
@@ -176,40 +197,27 @@ export function ProjectClientFilters({
                                 className="min-w-[120px] !text-xs h-9"
                             />
 
-                            {/* Sắp xếp */}
-                            <select
-                                value={sort}
-                                onChange={(e) => updateFilters({ sort: e.target.value })}
-                                className="filter-select !shadow-none !border-none bg-transparent hover:!border-none focus:!border-none focus:!ring-0 min-w-[120px]"
-                            >
-                                {SORT_OPTIONS.map((o) => (
-                                    <option key={o.value} value={o.value}>
-                                        {o.label}
-                                    </option>
-                                ))}
-                            </select>
-
                             {/* Nút Lọc thêm */}
                             <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => setMoreFiltersOpen((o) => !o)}
-                                className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-10 px-5 text-sm font-medium transition ${moreFiltersOpen || status || provinceId
-                                    ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
-                                    : "border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--primary)]/50"
-                                    }`}
-                            >
-                                <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-                                Lọc thêm
-                            </button>
+                                <button
+                                    onClick={() => setMoreFiltersOpen((o) => !o)}
+                                    className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-10 px-5 text-sm font-medium transition ${moreFiltersOpen || status || provinceId
+                                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                                        : "border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--primary)]/50"
+                                        }`}
+                                >
+                                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                                    Lọc thêm
+                                </button>
 
-                            <Link
-                                href={buildMapLink()}
-                                className="flex md:hidden shrink-0 items-center justify-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] h-10 px-5 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
-                            >
-                                <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg>
-                                Bản đồ
-                            </Link>
-                        </div>
+                                <Link
+                                    href={buildMapLink()}
+                                    className="flex md:hidden shrink-0 items-center justify-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] h-10 px-5 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                                >
+                                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg>
+                                    Bản đồ
+                                </Link>
+                            </div>
                         </div>
                     </UnifiedFilterBar>
 
