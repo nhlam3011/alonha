@@ -37,7 +37,6 @@ export default async function AdminProjectsPage() {
       <div className="page-header">
         <div className="page-header-content">
           <h1 className="page-title">Quản lý dự án</h1>
-          <p className="page-subtitle">Thêm mới và cập nhật danh mục dự án bất động sản.</p>
         </div>
       </div>
 

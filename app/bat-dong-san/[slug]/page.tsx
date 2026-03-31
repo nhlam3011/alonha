@@ -252,7 +252,10 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
           {/* Sidebar: Liên hệ */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
+            <div 
+              className="sticky rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm"
+              style={{ top: 'calc(var(--header-height, 80px) + 1.5rem)' }}
+            >
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] text-white overflow-hidden ring-2 ring-[var(--border)] shadow-md">
                   {listing.owner?.avatar ? (

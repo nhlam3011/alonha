@@ -112,7 +112,6 @@ export default function AdminAgentApplicationsPage() {
             <div className="page-header">
                 <div className="page-header-content">
                     <h1 className="page-title">Đơn đăng ký Môi giới</h1>
-                    <p className="page-subtitle">Xem xét hồ sơ, hẹn phỏng vấn và duyệt ứng viên môi giới.</p>
                 </div>
             </div>
 
@@ -157,14 +156,14 @@ export default function AdminAgentApplicationsPage() {
                                 ) : apps.length === 0 ? (
                                     <tr><td colSpan={6} className="py-16 text-center text-[var(--muted-foreground)]">Không có đơn nào</td></tr>
                                 ) : apps.map(app => (
-                                    <tr 
-                                        key={app.id} 
+                                    <tr
+                                        key={app.id}
                                         className={`cursor-pointer transition-all duration-200 group ${selected?.id === app.id ? "bg-[var(--primary)]/10 shadow-[inset_4px_0_0_0_var(--primary)]" : "hover:bg-slate-50 dark:hover:bg-white/5"}`}
-                                        onClick={() => { 
-                                            setSelected(app); 
-                                            setAdminNote(app.adminNote || ""); 
-                                            setInterviewDate(app.interviewDate?.slice(0, 16) || ""); 
-                                            setInterviewLocation(app.interviewLocation || ""); 
+                                        onClick={() => {
+                                            setSelected(app);
+                                            setAdminNote(app.adminNote || "");
+                                            setInterviewDate(app.interviewDate?.slice(0, 16) || "");
+                                            setInterviewLocation(app.interviewLocation || "");
                                         }}
                                     >
                                         <td className="px-6 py-5">
@@ -182,13 +181,12 @@ export default function AdminAgentApplicationsPage() {
                                         <td className="px-6 py-5 text-sm font-mono text-[var(--muted-foreground)] whitespace-nowrap">{app.idCardNumber}</td>
                                         <td className="px-6 py-5 text-sm text-center whitespace-nowrap">{app.experience || "—"}</td>
                                         <td className="px-6 py-5 text-center">
-                                            <span className={`inline-flex px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${
-                                                app.status === 'PENDING' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' :
-                                                app.status === 'REVIEWING' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
-                                                app.status === 'INTERVIEW' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' :
-                                                app.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
-                                                'bg-red-500/10 text-red-600 dark:text-red-400'
-                                            }`}>
+                                            <span className={`inline-flex px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${app.status === 'PENDING' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' :
+                                                    app.status === 'REVIEWING' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
+                                                        app.status === 'INTERVIEW' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' :
+                                                            app.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                                                                'bg-red-500/10 text-red-600 dark:text-red-400'
+                                                }`}>
                                                 {STATUS_MAP[app.status]?.label || app.status}
                                             </span>
                                         </td>
@@ -226,13 +224,12 @@ export default function AdminAgentApplicationsPage() {
                                         <p className="text-sm text-[var(--muted-foreground)] truncate">{selected.email}</p>
                                     </div>
                                     <div className="flex flex-col items-end gap-1">
-                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                                            selected.status === 'PENDING' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' :
-                                            selected.status === 'REVIEWING' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
-                                            selected.status === 'INTERVIEW' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' :
-                                            selected.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
-                                            'bg-red-500/10 text-red-600 dark:text-red-400'
-                                        }`}>
+                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${selected.status === 'PENDING' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' :
+                                                selected.status === 'REVIEWING' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
+                                                    selected.status === 'INTERVIEW' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' :
+                                                        selected.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                                                            'bg-red-500/10 text-red-600 dark:text-red-400'
+                                            }`}>
                                             {STATUS_MAP[selected.status]?.label}
                                         </span>
                                         <p className="text-[10px] text-[var(--muted-foreground)]">ID: {selected.id.slice(-8).toUpperCase()}</p>

@@ -196,9 +196,6 @@ export default function WalletPage() {
       <div className="page-header">
         <div className="page-header-content">
           <h1 className="page-title">Ví Môi Giới</h1>
-          <p className="page-subtitle">
-            Quản lý tài chính, nạp tiền và thanh toán dịch vụ.
-          </p>
         </div>
       </div>
 

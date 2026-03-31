@@ -64,14 +64,11 @@ export default async function AdminListingsPage(props: {
       <div className="page-header">
         <div className="page-header-content">
           <h1 className="page-title">Quản lý tin đăng</h1>
-          <p className="page-subtitle">
-            Tổng hợp tất cả tin đăng bất động sản trên hệ thống.
-          </p>
         </div>
       </div>
 
-      <ListingsAdminClient 
-        initialListings={listings} 
+      <ListingsAdminClient
+        initialListings={listings}
         totalPages={totalPages}
         currentPage={currentPage}
       />

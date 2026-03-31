@@ -596,7 +596,10 @@ function SearchContent() {
                       onMouseEnter={() => setHoveredListingId(listing.id)}
                       onMouseLeave={() => setHoveredListingId(null)}
                     >
-                      <PropertyCard listing={listing} />
+                      <PropertyCard 
+                        listing={listing} 
+                        onClick={viewMode === "split" ? (id) => setSelectedListingId(id) : undefined}
+                      />
                     </div>
                   ))}
                 </div>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { useConfig } from "@/components/providers/ConfigProvider";
 
 const footerLinks = {
   explore: [
@@ -33,6 +34,18 @@ const socialLinks = [
 export function Footer() {
   const currentYear = new Date().getFullYear();
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const { get } = useConfig();
+
+  const companyName = get("company_name", "AloNha. Cu Tien Nam");
+  const footerDesc = get("footer_description", "Nền tảng bất động sản thông minh ứng dụng AI, giúp bạn tìm kiếm và kết nối nhanh chóng.");
+  const supportEmail = get("contact_email");
+  
+  const socialLinksDynamic = [
+    { href: get("social_facebook", "#"), label: "Facebook" },
+    { href: get("social_tiktok", "#"), label: "TikTok" },
+    { href: get("social_instagram", "#"), label: "Instagram" },
+    { href: get("social_zalo", "#"), label: "Zalo" },
+  ].filter(s => s.href && s.href !== "#");
 
   useEffect(() => {
     // Initial theme detection
@@ -76,21 +89,31 @@ export function Footer() {
               </div>
             </Link>
             <p className="text-sm text-[var(--muted-foreground)] leading-relaxed max-w-xs mb-6">
-              Nền tảng bất động sản thông minh ứng dụng AI, giúp bạn tìm kiếm và kết nối nhanh chóng.
+              {footerDesc}
             </p>
 
             {/* Social Links */}
-            <div className="flex items-center gap-3">
-              {socialLinks.map((social) => (
+            <div className="flex flex-wrap items-center gap-2">
+              {socialLinksDynamic.map((social) => (
                 <a
                   key={social.label}
                   href={social.href}
+                  target="_blank"
+                  rel="noreferrer"
                   aria-label={social.label}
                   className="px-3 py-1.5 text-xs font-medium text-[var(--muted-foreground)] border border-[var(--border)] rounded-lg hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all"
                 >
                   {social.label}
                 </a>
               ))}
+              {supportEmail && (
+                <a
+                  href={`mailto:${supportEmail}`}
+                  className="px-3 py-1.5 text-xs font-medium text-[var(--muted-foreground)] border border-[var(--border)] rounded-lg hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all"
+                >
+                  Email
+                </a>
+              )}
             </div>
           </div>
 
@@ -168,7 +191,7 @@ export function Footer() {
         <div className="layout-container py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-sm text-[var(--muted-foreground)] text-center sm:text-left">
-              © {currentYear} <span className="font-bold text-[var(--foreground)]">AloNha</span>. Cu Tien Nam
+              © {currentYear} <span className="font-bold text-[var(--foreground)]">{companyName}</span>
             </p>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />

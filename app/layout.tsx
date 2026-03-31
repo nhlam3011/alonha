@@ -4,6 +4,8 @@ import "leaflet/dist/leaflet.css";
 import "./globals.css";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { AppShell } from "@/components/layout/AppShell";
+import { ConfigProvider } from "@/components/providers/ConfigProvider";
+import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
   title: {
@@ -42,23 +44,54 @@ const themeInitScript = `
 })();
 `;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const configs = await prisma.systemConfig.findMany();
+  const configMap = configs.reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {} as Record<string, string | null>);
+
   return (
     <html lang="vi" suppressHydrationWarning>
       <head>
         <Script id="theme-init" strategy="beforeInteractive">
           {themeInitScript}
         </Script>
+        <Script id="console-protect" strategy="afterInteractive">
+          {`
+            (() => {
+              if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return;
+              
+              const notice = () => {
+                console.log("%cDỪNG LẠI!", "color:red;font-family:sans-serif;font-size:4rem;-webkit-text-stroke:1px black;font-weight:bold");
+                console.log("%cĐây là tính năng dành cho nhà phát triển. Nếu ai đó bảo bạn sao chép-dán nội dung nào đó vào đây, rất có thể họ đang cố gắng đánh cắp thông tin của bạn.", "font-size:1.5rem;font-family:sans-serif;");
+              };
+
+              // Clear console immediately and then periodically
+              setInterval(() => {
+                console.clear();
+                notice();
+              }, 2000);
+
+              // Overwrite default loggers
+              const noop = () => {};
+              console.log = noop;
+              console.warn = noop;
+              console.error = noop;
+              console.info = noop;
+              console.debug = noop;
+            })();
+          `}
+        </Script>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="antialiased bg-[var(--background)] text-[var(--foreground)]">
         <SessionProvider>
-          <AppShell>{children}</AppShell>
+          <ConfigProvider configs={configMap}>
+            <AppShell>{children}</AppShell>
+          </ConfigProvider>
         </SessionProvider>
       </body>
     </html>

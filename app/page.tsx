@@ -142,13 +142,18 @@ export default async function HomePage() {
   }));
   const provinces = provincesUnsorted.filter(p => p.listingCount > 0).sort((a, b) => b.listingCount - a.listingCount).slice(0, 12);
 
+  const heroBgConfig = await prisma.systemConfig.findUnique({
+    where: { key: "hero_background" }
+  });
+  const heroBg = heroBgConfig?.value || "https://batdongsanbien.com.vn/wp-content/uploads/2025/01/phoi-canh-the-gio-riverside.jpg";
+
   return (
     <div suppressHydrationWarning className="bg-[var(--background)] min-h-screen overflow-x-hidden">
       {/* ━━━ HERO — Cinematic & Premium ━━━ */}
       <section className="relative h-screen flex flex-col pt-10">
         <div className="absolute inset-0 z-0 overflow-hidden">
           <img
-            src="https://batdongsanbien.com.vn/wp-content/uploads/2025/01/phoi-canh-the-gio-riverside.jpg"
+            src={heroBg}
             alt="Luxury Architecture"
             className="w-full h-full object-cover select-none scale-100 animate-pulse-slow origin-center"
             draggable={false}

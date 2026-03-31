@@ -132,36 +132,38 @@ export function AdminClientLayout({ children }: { children: React.ReactNode }) {
         `}
       >
         {/* User Info */}
-        <div className={`flex h-16 items-center border-b border-[var(--sidebar-border)] shrink-0 ${collapsed ? "justify-center px-3" : "justify-between px-4"}`}>
-          <div className="flex items-center gap-3 overflow-hidden min-w-0">
-            <div className="relative h-9 w-9 shrink-0">
+        <div className={`flex h-[88px] items-center shrink-0 justify-between px-6 ${collapsed ? "lg:justify-center lg:px-3" : ""} transition-all duration-300`}>
+          <div className="flex items-center overflow-hidden min-w-0">
+            <div className="relative h-11 w-11 shrink-0 transition-all duration-300">
               {avatar ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={avatar} alt={name} className="h-full w-full rounded-full object-cover ring-2 ring-[var(--border)]" />
+                <img src={avatar} alt={name} className="h-full w-full rounded-full object-cover ring-2 ring-[var(--sidebar-bg)] border border-[var(--border)]" />
               ) : (
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-purple-600 text-white font-bold text-sm shadow-md">
+                <div className="flex h-full w-full items-center justify-center rounded-full bg-indigo-500 text-white font-bold text-base shadow-sm">
                   {name.charAt(0)}
                 </div>
               )}
-              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-[var(--sidebar-bg)]" />
+              <div className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-emerald-500 ring-[3px] ring-[var(--sidebar-bg)]" />
             </div>
-            {!collapsed && (
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-[var(--foreground)]">{name}</p>
-                <p className="text-[11px] text-[var(--muted-foreground)]">Quản trị viên</p>
-              </div>
-            )}
+            <div className={`transition-all duration-300 overflow-hidden whitespace-nowrap flex flex-col justify-center max-w-[150px] opacity-100 ml-3.5 ${collapsed ? "lg:max-w-0 lg:opacity-0 lg:ml-0" : ""}`}>
+              <p className="truncate text-[15px] font-semibold text-[var(--foreground)] tracking-tight">{name}</p>
+              <p className="text-[13px] text-[var(--muted-foreground)]">Quản trị viên</p>
+            </div>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-2 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--sidebar-hover)] transition-colors"
+            className="lg:hidden p-2 -mr-2 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--sidebar-hover)] transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
 
+        <div className="px-6 pb-4">
+          <div className="h-px bg-[var(--sidebar-border)] w-full"></div>
+        </div>
+
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2 lg:px-4 py-4 space-y-1.5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {navItems.map((item) => {
             const isActive = item.href === "/admin"
               ? pathname === "/admin"
@@ -172,26 +174,47 @@ export function AdminClientLayout({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 title={collapsed ? item.label : ""}
-                className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200
+                className={`group flex items-center rounded-[14px] transition-all duration-200
                 ${isActive
-                    ? "bg-[var(--sidebar-active)] text-[var(--sidebar-active-fg)] shadow-sm"
-                    : "text-[var(--sidebar-fg)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)]"
-                  } ${collapsed ? "justify-center px-2" : ""}`}
+                    ? "bg-blue-600 text-white dark:bg-blue-500/15 dark:text-blue-500 font-semibold shadow-md shadow-blue-500/20"
+                    : "text-slate-900 hover:bg-slate-200 hover:text-slate-900 dark:text-slate-700 dark:hover:bg-slate-700/50 dark:hover:text-slate-50 font-medium"
+                  } px-4 py-3 w-full ${collapsed ? "lg:justify-center lg:p-0 lg:w-[48px] lg:h-[48px] lg:mx-auto" : ""}`}
               >
-                <span className={`shrink-0 transition-colors ${isActive ? "text-[var(--sidebar-active-fg)]" : "text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]"}`}>
+                <span className={`shrink-0 transition-colors`}>
                   {item.icon}
                 </span>
-                {!collapsed && <span className="truncate">{item.label}</span>}
+                <span className={`truncate transition-all duration-300 overflow-hidden whitespace-nowrap max-w-[200px] opacity-100 ml-3.5 ${collapsed ? "lg:max-w-0 lg:opacity-0 lg:ml-0" : ""}`}>
+                  {item.label}
+                </span>
               </Link>
             );
           })}
+          
+          <div className="my-2 h-px bg-[var(--sidebar-border)] lg:hidden mx-2 transition-all duration-300"></div>
+          <Link
+            href="/"
+            title="Trang chủ"
+            className={`lg:hidden group flex items-center rounded-[14px] py-3 text-[14px] font-medium transition-all duration-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-50 w-full px-4`}
+          >
+            <span className="shrink-0 transition-colors">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+            </span>
+            <span className={`truncate transition-all duration-300 overflow-hidden whitespace-nowrap max-w-[200px] opacity-100 ml-3.5`}>
+               Về trang chủ
+            </span>
+          </Link>
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-[var(--sidebar-border)] p-3 flex justify-center">
+        <div className={`p-4 border-t border-[var(--sidebar-border)] flex flex-row items-center justify-between ${collapsed ? "lg:flex-col lg:items-center lg:justify-center lg:gap-3" : ""}`}>
+          <div className={`flex flex-1 justify-center lg:justify-start ${collapsed ? "lg:flex-initial lg:justify-center" : ""}`}>
+            <div className="bg-[var(--sidebar-hover)] border border-[var(--sidebar-border)] rounded-full overflow-hidden p-0.5 inline-flex items-center justify-center">
+              <ThemeToggle />
+            </div>
+          </div>
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="hidden lg:flex items-center justify-center h-8 w-8 rounded-lg text-[var(--muted-foreground)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors"
+            className={`hidden lg:flex items-center justify-center h-8 w-8 rounded-lg text-[var(--muted-foreground)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors shrink-0 ${collapsed ? "" : "ml-2"}`}
             title={collapsed ? "Mở rộng" : "Thu gọn"}
           >
             <svg className={`w-4 h-4 transition-transform duration-200 ${collapsed ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -213,34 +236,27 @@ export function AdminClientLayout({ children }: { children: React.ReactNode }) {
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
             {/* Breadcrumb style page title */}
-            <div className="hidden sm:flex items-center text-sm text-[var(--muted-foreground)]">
-              <Link href="/admin" className="hover:text-[var(--foreground)] transition-colors">Admin</Link>
+            <div className="flex items-center text-sm text-[var(--muted-foreground)] truncate max-w-[200px] sm:max-w-none">
+              <Link href="/admin" className="hover:text-[var(--foreground)] transition-colors truncate">Admin</Link>
               {pathname !== "/admin" && (
                 <>
-                  <svg className="w-4 h-4 mx-2 text-[var(--muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                  <span className="text-[var(--foreground)] font-medium">
+                  <svg className="w-4 h-4 mx-2 text-[var(--muted-foreground)] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                  <span className="text-[var(--foreground)] font-medium truncate">
                     {navItems.find(i => pathname.startsWith(i.href) && i.href !== "/admin")?.label || ""}
                   </span>
                 </>
               )}
-            </div>
-            {/* Mobile page title */}
-            <div className="sm:hidden">
-              <h1 className="text-base font-semibold text-[var(--foreground)]">
-                {navItems.find(i => pathname.startsWith(i.href))?.label || "Tổng quan"}
-              </h1>
             </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/"
-              className="flex items-center gap-2 rounded-xl bg-[var(--muted)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--muted)]/80 transition-colors"
+              className="hidden lg:flex items-center gap-2 rounded-xl bg-[var(--muted)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--muted)]/80 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
               <span className="hidden md:inline">Trang chủ</span>
             </Link>
-            <ThemeToggle />
           </div>
         </header>
 

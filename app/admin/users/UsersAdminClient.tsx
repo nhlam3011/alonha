@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { DashboardStats } from "@/components/dashboard/DashboardStats";
 
 export type UserRole = "USER" | "AGENT" | "ADMIN";
 
@@ -169,76 +170,63 @@ export function UsersAdminClient({
 
     return (
         <>
-            <div className="page-actions mb-4 flex justify-end">
-                <button
-                    onClick={() => router.refresh()}
-                    className="btn btn-outline btn-md"
-                >
-                    <svg className={`w-4 h-4`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                    Làm mới
-                </button>
-            </div>
-
             {/* Stats Cards */}
             <div className="dashboard-grid dashboard-grid-3">
-                <div className="dashboard-card">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-[var(--muted-foreground)]">Tổng người dùng</p>
-                            <p className="text-2xl font-bold text-[var(--foreground)] mt-1">{total}</p>
-                        </div>
-                        <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300">
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                        </div>
-                    </div>
-                </div>
-                <div className="dashboard-card">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-[var(--muted-foreground)]">Môi giới</p>
-                            <p className="text-2xl font-bold text-blue-600 mt-1">{brokers}</p>
-                        </div>
-                        <div className="h-10 w-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600">
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                        </div>
-                    </div>
-                </div>
-                <div className="dashboard-card">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-[var(--muted-foreground)]">Quản trị viên</p>
-                            <p className="text-2xl font-bold text-purple-600 mt-1">{admins}</p>
-                        </div>
-                        <div className="h-10 w-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600">
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                        </div>
-                    </div>
-                </div>
+                <DashboardStats
+                    label="Tổng người dùng"
+                    value={total}
+                    icon={<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>}
+                    color="sky"
+                />
+                <DashboardStats
+                    label="Môi giới"
+                    value={brokers}
+                    icon={<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
+                    color="blue"
+                />
+                <DashboardStats
+                    label="Quản trị viên"
+                    value={admins}
+                    icon={<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>}
+                    color="violet"
+                />
             </div>
 
             {/* Filters */}
-            <div className="filter-section">
-                <div className="filter-row">
+            <div className="filter-section mt-6">
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                        onClick={() => router.refresh()}
+                        className="btn btn-outline shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] hover:bg-[var(--muted)] hover:border-[var(--primary)]/30 transition-all shadow-sm h-[42px]"
+                        title="Làm mới dữ liệu"
+                    >
+                        <svg className={`w-4 h-4 text-[var(--muted-foreground)]`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                        Làm mới
+                    </button>
+                    
                     <div className="flex-1 relative">
-                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--muted-foreground)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--muted-foreground)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         <input
                             value={keyword}
                             onChange={(e) => setKeyword(e.target.value)}
                             placeholder="Tìm kiếm theo tên, email, số điện thoại..."
-                            className="filter-input !pl-10"
+                            className="w-full pl-10 pr-4 py-2 bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all shadow-sm h-[42px]"
                         />
                     </div>
-                    <div className="w-full sm:w-64">
+                    <div className="w-full sm:w-48 shrink-0 relative">
                         <select
                             value={roleFilter}
                             onChange={(e) => setRoleFilter(e.target.value as "ALL" | UserRole)}
-                            className="filter-input cursor-pointer"
+                            className="w-full pl-4 pr-10 py-2 bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all shadow-sm appearance-none cursor-pointer h-[42px]"
                         >
                             <option value="ALL">Tất cả vai trò</option>
                             {Object.entries(ROLE_CONFIG).map(([key, config]) => (
                                 <option key={key} value={key}>{config.label}</option>
                             ))}
                         </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[var(--muted-foreground)]">
+                           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                        </div>
                     </div>
                 </div>
             </div>

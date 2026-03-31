@@ -91,7 +91,7 @@ function createPriceIcon(
   return L.divIcon({
     className: "",
     html: `<div style="
-      background:${bg};color:${color};border:2px solid ${border};
+      background:${bg};color:${color};border:1px solid ${color};
       padding:4px 10px;border-radius:20px;font-weight:700;font-size:12px;
       white-space:nowrap;cursor:pointer;box-shadow:${shadow};
       transform:${scale};transition:all .2s ease;
@@ -179,14 +179,21 @@ function FocusSelected({ listingId, listings }: { listingId: string | null; list
   const prevId = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!listingId || prevId.current === listingId) return;
+    if (!listingId) return;
     const listing = listings.find(l => l.id === listingId);
     if (!listing) return;
-    prevId.current = listingId;
-
+    
+    // Always fly to when selection happens, but keep track of last to avoid loops if needed
+    // In this case, we want it to re-fly if user clicks the card again
     const t = setTimeout(() => {
       try {
         map.flyTo([listing.latitude, listing.longitude], 16, { duration: 0.5 });
+        // Find the marker and open its popup
+        map.eachLayer((layer) => {
+          if (layer instanceof L.Marker && layer.getLatLng().lat === listing.latitude && layer.getLatLng().lng === listing.longitude) {
+            layer.openPopup();
+          }
+        });
       } catch { }
     }, 50);
     return () => clearTimeout(t);
@@ -220,15 +227,15 @@ function MapToolbar({ listings, mapType, setMapType }: { listings: MapListingPoi
   return (
     <div className="absolute right-4 bottom-8 z-[1000] flex flex-col shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-[var(--border)] rounded-xl overflow-hidden divide-y divide-[var(--border)]">
       {/* Map Type Toggle */}
-      <button 
-        onClick={() => setMapType(mapType === 'm' ? 'y' : 'm')} 
-        className={btnClass} 
+      <button
+        onClick={() => setMapType(mapType === 'm' ? 'y' : 'm')}
+        className={btnClass}
         title={mapType === 'm' ? "Chuyển sang vệ tinh" : "Chuyển sang bản đồ"}
       >
         {mapType === 'm' ? (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" /></svg>
         ) : (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /><line x1="8" y1="2" x2="8" y2="18" /><line x1="16" y1="6" x2="16" y2="22" /></svg>
         )}
       </button>
 

@@ -1,22 +1,27 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
 import RegisterForm from "./RegisterForm";
+import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
   title: "Đăng ký | AloNha",
   description: "Đăng ký tài khoản mới trên hệ thống bất động sản AloNha.",
 };
 
-const BG_IMAGE = "https://images.unsplash.com/photo-1628624747186-a941c476b7ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80";
+const DEFAULT_BG_IMAGE = "https://images.unsplash.com/photo-1628624747186-a941c476b7ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80";
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  const bgConfig = await prisma.systemConfig.findUnique({
+    where: { key: "register_background" }
+  });
+  const bgImage = bgConfig?.value || DEFAULT_BG_IMAGE;
   return (
     <div className="min-h-screen flex selection:bg-[var(--primary)] selection:text-white relative">
 
       {/* ── Mobile: ảnh mờ làm background ── */}
       <div
         className="absolute inset-0 lg:hidden bg-cover bg-center"
-        style={{ backgroundImage: `url('${BG_IMAGE}')` }}
+        style={{ backgroundImage: `url('${bgImage}')` }}
       />
       <div className="absolute inset-0 lg:hidden bg-black/60 backdrop-blur-sm" />
 
@@ -24,7 +29,7 @@ export default function RegisterPage() {
       <div className="hidden lg:flex lg:w-1/2 relative bg-neutral-900 overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center transform hover:scale-105 transition-transform duration-[20s] ease-out"
-          style={{ backgroundImage: `url('${BG_IMAGE}')` }}
+          style={{ backgroundImage: `url('${bgImage}')` }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/70" />
         <div className="absolute inset-0 bg-[var(--primary)]/20 mix-blend-multiply" />

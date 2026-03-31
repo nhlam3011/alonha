@@ -210,7 +210,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                     </div>
 
                     {/* Contact Card */}
-                    <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6 shadow-sm sticky top-24">
+                    <div 
+                        className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6 shadow-sm sticky"
+                        style={{ top: 'calc(var(--header-height, 80px) + 1.5rem)' }}
+                    >
                         <h3 className="text-lg font-bold text-[var(--foreground)] mb-4">Liên hệ</h3>
                         <div className="space-y-3">
                             <Link

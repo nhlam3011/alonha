@@ -64,7 +64,6 @@ export default function MoiGioiLichHenPage() {
         <div className="page-header-content">
           <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">{todayLabel}</p>
           <h1 className="page-title">Lịch hẹn xem nhà</h1>
-          <p className="page-subtitle">Theo dõi và cập nhật trạng thái các lịch xem nhà.</p>
         </div>
       </div>
 

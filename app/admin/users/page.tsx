@@ -60,9 +60,6 @@ export default async function AdminUsersPage(props: {
       <div className="page-header">
         <div className="page-header-content">
           <h1 className="page-title">Quản lý người dùng</h1>
-          <p className="page-subtitle">
-            Phân quyền, khóa tài khoản và quản lý thông tin thành viên.
-          </p>
         </div>
       </div>
 

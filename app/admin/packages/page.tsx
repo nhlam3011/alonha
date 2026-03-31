@@ -38,7 +38,6 @@ export default async function AdminPackagesPage() {
       <div className="page-header">
         <div className="page-header-content">
           <h1 className="page-title">Gói dịch vụ VIP</h1>
-          <p className="page-subtitle">Cấu hình gói dịch vụ, giá bán và thời hạn.</p>
         </div>
       </div>
 

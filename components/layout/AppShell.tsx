@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { LayoutFooter } from "@/components/layout/LayoutFooter";
 import { LayoutChatbotTrigger } from "@/components/chat/LayoutChatbotTrigger";
+import { useConfig } from "@/components/providers/ConfigProvider";
 
 const HIDE_CHROME_PREFIXES = ["/admin", "/moi-gioi"];
 const NO_PADDING_PREFIXES = ["/dang-nhap", "/dang-ky", "/quen-mat-khau", "/dat-lai-mat-khau"];
@@ -12,6 +13,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const hideChrome = HIDE_CHROME_PREFIXES.some((prefix) => pathname.startsWith(prefix));
   const noPadding = NO_PADDING_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  const { get } = useConfig();
+  const hasAnnouncement = !!get("announcement_text");
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-x-clip bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300">
@@ -32,7 +35,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {!hideChrome && <Header />}
-      <main className={`relative flex-1 ${!hideChrome && !noPadding ? "pt-20" : ""}`}>{children}</main>
+      <main 
+        className={`relative flex-1 ${!hideChrome && !noPadding ? "pt-[var(--header-height,80px)]" : ""}`}
+        style={{ paddingTop: !hideChrome && !noPadding ? 'var(--header-height, 80px)' : undefined }}
+      >
+        {children}
+      </main>
       {!hideChrome && <LayoutFooter />}
       <LayoutChatbotTrigger />
     </div>

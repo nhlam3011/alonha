@@ -303,7 +303,7 @@ export function ListingManagementClient({ initialListings }: { initialListings: 
                                 value={keyword}
                                 onChange={(e) => setKeyword(e.target.value)}
                                 placeholder="Tìm theo mã tin, tiêu đề..."
-                                className="filter-input pl-9"
+                                className="filter-input !pl-9"
                             />
                         </div>
                     </div>

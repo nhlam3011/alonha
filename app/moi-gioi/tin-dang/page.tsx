@@ -41,17 +41,7 @@ export default async function TinDangPage() {
       <div className="page-header">
         <div className="page-header-content">
           <h1 className="page-title">Quản lý tin đăng</h1>
-          <p className="page-subtitle">
-            Theo dõi, chỉnh sửa và quản lý trạng thái hiển thị của các tin đăng.
-          </p>
         </div>
-        <Link
-          href="/dang-tin"
-          className="btn btn-primary btn-md"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-          <span>Đăng tin mới</span>
-        </Link>
       </div>
 
       {/* Render Client Component with Server initial data */}

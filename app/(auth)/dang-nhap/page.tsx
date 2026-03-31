@@ -1,22 +1,29 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
 import LoginForm from "./LoginForm";
+import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
   title: "Đăng nhập | AloNha",
   description: "Đăng nhập hệ thống để sử dụng các tính năng.",
 };
 
-const BG_IMAGE = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=2075&q=80";
+const DEFAULT_BG_IMAGE = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=2075&q=80";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const bgConfig = await prisma.systemConfig.findUnique({
+    where: { key: "login_background" }
+  });
+
+  const bgImage = bgConfig?.value || DEFAULT_BG_IMAGE;
+
   return (
     <div className="min-h-screen flex selection:bg-[var(--primary)] selection:text-white relative">
 
       {/* ── Mobile: ảnh mờ làm background ── */}
       <div
         className="absolute inset-0 lg:hidden bg-cover bg-center"
-        style={{ backgroundImage: `url('${BG_IMAGE}')` }}
+        style={{ backgroundImage: `url('${bgImage}')` }}
       />
       <div className="absolute inset-0 lg:hidden bg-black/60 backdrop-blur-sm" />
 
@@ -24,7 +31,7 @@ export default function LoginPage() {
       <div className="hidden lg:flex lg:w-1/2 relative bg-neutral-900 overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center transform hover:scale-105 transition-transform duration-[20s] ease-out"
-          style={{ backgroundImage: `url('${BG_IMAGE}')` }}
+          style={{ backgroundImage: `url('${bgImage}')` }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/70" />
         <div className="absolute inset-0 bg-[var(--primary)]/20 mix-blend-multiply" />

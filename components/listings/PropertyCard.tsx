@@ -34,6 +34,7 @@ type Props = {
   viewMode?: ViewMode;
   onHover?: (listingId: string) => void;
   onHoverEnd?: () => void;
+  onClick?: (listingId: string, e: React.MouseEvent) => void;
 };
 
 const placeholderImage = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80";
@@ -98,9 +99,17 @@ export function PropertyCardSkeleton({ viewMode = "grid" }: { viewMode?: ViewMod
   );
 }
 
-export function PropertyCard({ listing, viewMode = "grid", onHover, onHoverEnd }: Props) {
+export function PropertyCard({ listing, viewMode = "grid", onHover, onHoverEnd, onClick }: Props) {
   const href = `/bat-dong-san/${listing.slug}`;
   const img = listing.imageUrl || placeholderImage;
+
+  const handleItemClick = (e: React.MouseEvent) => {
+    if (onClick) {
+      e.preventDefault();
+      e.stopPropagation();
+      onClick(listing.id, e);
+    }
+  };
 
   const badges = [];
   if (listing.isVip) badges.push({ label: "VIP", className: "badge-vip" });
@@ -111,12 +120,14 @@ export function PropertyCard({ listing, viewMode = "grid", onHover, onHoverEnd }
   if (viewMode === "list") {
     return (
       <article
-        className="group flex w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm transition-all duration-300 hover:border-[var(--primary)]/50 hover:shadow-lg hover:-translate-y-0.5"
+        className={`group flex w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm transition-all duration-300 hover:border-[var(--primary)]/50 hover:shadow-lg hover:-translate-y-0.5 ${onClick ? 'cursor-pointer' : ''}`}
         onMouseEnter={() => onHover?.(listing.id)}
         onMouseLeave={() => onHoverEnd?.()}
+        onClick={handleItemClick}
       >
         <Link
           href={href}
+          onClick={handleItemClick}
           className="relative shrink-0 overflow-hidden bg-[var(--muted)] aspect-square w-28 sm:w-[132px]"
         >
           <ImageWithFallback
@@ -131,7 +142,7 @@ export function PropertyCard({ listing, viewMode = "grid", onHover, onHoverEnd }
           </span>
         </Link>
         <div className="min-w-0 flex flex-1 flex-col gap-1.5 px-3 py-3 sm:gap-2 sm:py-3.5">
-          <Link href={href} className="block">
+          <Link href={href} onClick={handleItemClick} className="block">
             <h3 className="mb-1 line-clamp-2 text-sm font-semibold leading-snug text-[var(--foreground)] transition-colors duration-200 group-hover:text-[var(--primary)]">
               {listing.title}
             </h3>
@@ -193,12 +204,13 @@ export function PropertyCard({ listing, viewMode = "grid", onHover, onHoverEnd }
 
   return (
     <article
-      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-1 hover:border-[var(--primary)]/30"
+      className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-1 hover:border-[var(--primary)]/30 ${onClick ? 'cursor-pointer' : ''}`}
       onMouseEnter={() => onHover?.(listing.id)}
       onMouseLeave={() => onHoverEnd?.()}
+      onClick={handleItemClick}
     >
       {/* Image Container */}
-      <Link href={href} className="relative aspect-[4/3] shrink-0 overflow-hidden bg-[var(--muted)]">
+      <Link href={href} onClick={handleItemClick} className="relative aspect-[4/3] shrink-0 overflow-hidden bg-[var(--muted)]">
         <ImageWithFallback
           src={img}
           alt={listing.title}
@@ -237,7 +249,7 @@ export function PropertyCard({ listing, viewMode = "grid", onHover, onHoverEnd }
       </Link>
 
       {/* Content */}
-      <Link href={href} className="flex min-h-0 flex-1 flex-col p-5">
+      <Link href={href} onClick={handleItemClick} className="flex min-h-0 flex-1 flex-col p-5">
         {/* Price */}
         <div className="mb-2 flex items-baseline gap-2">
           <p className="text-xl font-extrabold text-[var(--primary)] price-vnd tracking-tight">

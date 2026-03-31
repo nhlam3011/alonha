@@ -60,7 +60,10 @@ export function NewsClientFilters({
     };
 
     return (
-        <div className="sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--background)] shadow-sm">
+        <div 
+            className="sticky z-30 border-b border-[var(--border)] bg-[var(--background)] shadow-sm"
+            style={{ top: 'var(--header-height, 72px)' }}
+        >
             <div className="layout-container px-4 md:px-10">
                 <UnifiedSearchHeader
                     total={total}

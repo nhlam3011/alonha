@@ -232,46 +232,48 @@ export function ListingsAdminClient({
 
     return (
         <>
-            <div className="page-actions mb-4 flex justify-end">
-                <button
-                    onClick={() => router.refresh()}
-                    className="btn btn-outline btn-md"
-                >
-                    <svg className={`w-4 h-4`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                    Làm mới
-                </button>
-                {pendingCount > 0 && (
-                    <button
-                        onClick={() => setStatus("PENDING")}
-                        className="btn btn-primary btn-md ml-2"
-                    >
-                        <span className="relative flex h-2.5 w-2.5">
-                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-200 opacity-75"></span>
-                            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-white"></span>
-                        </span>
-                        {pendingCount} Tin chờ duyệt
-                    </button>
-                )}
-            </div>
+
 
             {/* Filters */}
-            <div className="filter-section">
-                <div className="filter-row">
+            <div className="filter-section mt-6">
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                        onClick={() => router.refresh()}
+                        className="btn btn-outline shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] hover:bg-[var(--muted)] hover:border-[var(--primary)]/30 transition-all shadow-sm h-[42px]"
+                        title="Làm mới dữ liệu"
+                    >
+                        <svg className={`w-4 h-4 text-[var(--muted-foreground)]`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                        Làm mới
+                    </button>
+
+                    {pendingCount > 0 && (
+                        <button
+                            onClick={() => setStatus("PENDING")}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2 shrink-0 h-[42px]"
+                        >
+                            <span className="relative flex h-2 w-2">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-100 opacity-75"></span>
+                                <span className="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
+                            </span>
+                            {pendingCount} Tin chờ duyệt
+                        </button>
+                    )}
+
                     <div className="flex-1 relative">
-                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--muted-foreground)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--muted-foreground)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         <input
                             type="text"
                             value={keyword}
                             onChange={(e) => setKeyword(e.target.value)}
                             placeholder="Tìm kiếm theo tiêu đề, người đăng..."
-                            className="filter-input !pl-10"
+                            className="w-full pl-10 pr-4 py-2 bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all shadow-sm h-[42px]"
                         />
                     </div>
-                    <div className="w-full sm:w-64">
+                    <div className="w-full sm:w-56 shrink-0 relative">
                         <select
                             value={status}
                             onChange={(e) => setStatus(e.target.value as any)}
-                            className="filter-input cursor-pointer"
+                            className="w-full pl-4 pr-10 py-2 bg-[var(--card)] border border-[var(--border)] rounded-xl text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all shadow-sm appearance-none cursor-pointer h-[42px]"
                         >
                             <option value="ALL">Tất cả trạng thái</option>
                             <option value="PENDING">Chờ duyệt</option>
@@ -280,6 +282,9 @@ export function ListingsAdminClient({
                             <option value="EXPIRED">Hết hạn</option>
                             <option value="HIDDEN">Đã ẩn</option>
                         </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[var(--muted-foreground)]">
+                           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                        </div>
                     </div>
                 </div>
             </div>

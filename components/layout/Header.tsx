@@ -7,6 +7,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { ThemeToggle } from "./ThemeToggle";
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
+import { useConfig } from "@/components/providers/ConfigProvider";
 
 type SubItem = {
   href: string;
@@ -212,6 +213,9 @@ function MobileNavItem({ item, isActive, onClose }: { item: NavItem; isActive: b
 }
 
 export function Header() {
+  const { get } = useConfig();
+  const announcementText = get("announcement_text");
+  const announcementLink = get("announcement_link");
   const pathname = usePathname();
   const { data: session, status } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -248,6 +252,25 @@ export function Header() {
   }, []);
 
   useEffect(() => {
+    const updateHeaderHeight = () => {
+      const banner = document.getElementById("announcement-banner");
+      const navbar = document.getElementById("main-navbar");
+      if (banner && navbar) {
+        const height = banner.offsetHeight + navbar.offsetHeight;
+        document.documentElement.style.setProperty("--header-height", `${height}px`);
+      } else if (navbar) {
+        document.documentElement.style.setProperty("--header-height", `${navbar.offsetHeight}px`);
+      } else {
+        document.documentElement.style.setProperty("--header-height", "80px"); // Fallback
+      }
+    };
+
+    updateHeaderHeight();
+    window.addEventListener("resize", updateHeaderHeight);
+    return () => window.removeEventListener("resize", updateHeaderHeight);
+  }, [announcementText]);
+
+  useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       setScrolled(currentScrollY > 10);
@@ -269,7 +292,19 @@ export function Header() {
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out ${hidden ? "-translate-y-full" : "translate-y-0"
         }`}
     >
+      {announcementText && (
+        <div id="announcement-banner" className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white text-xs sm:text-sm font-medium text-center py-2 px-4 shadow-sm">
+          {announcementLink ? (
+            <Link href={announcementLink} className="hover:underline underline-offset-2">
+              {announcementText}
+            </Link>
+          ) : (
+            <span>{announcementText}</span>
+          )}
+        </div>
+      )}
       <div
+        id="main-navbar"
         className={`transition-all duration-500 ${scrolled
           ? "bg-[var(--background)]/80 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.08)] border-b border-[var(--border)]/60"
           : "bg-[var(--background)]"
@@ -282,8 +317,8 @@ export function Header() {
             <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
               <div className="relative w-28 h-8 lg:w-44 lg:h-12 origin-left transition-transform duration-300 scale-100 lg:scale-[0.7] group-hover:scale-105 lg:group-hover:scale-[0.75] bg-[var(--logo-bg)] rounded-md p-1">
                 <Image
-                  src={theme === "dark" ? "/logo-dark.png" : "/logo-light.png"}
-                  alt="AloNha"
+                  src={theme === "dark" ? get("site_logo_dark", "/logo-dark.png") : get("site_logo_light", "/logo-light.png")}
+                  alt={get("site_title", "AloNha")}
                   fill
                   sizes="(max-width: 1024px) 160px, 208px"
                   className="object-contain"
