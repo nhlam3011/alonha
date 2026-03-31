@@ -63,24 +63,27 @@ export default async function RootLayout({
             (() => {
               if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return;
               
+              const _log = console.log;
+              const _clear = console.clear;
+
               const notice = () => {
-                console.log("%cDỪNG LẠI!", "color:red;font-family:sans-serif;font-size:4rem;-webkit-text-stroke:1px black;font-weight:bold");
-                console.log("%cĐây là tính năng dành cho nhà phát triển. Nếu ai đó bảo bạn sao chép-dán nội dung nào đó vào đây, rất có thể họ đang cố gắng đánh cắp thông tin của bạn.", "font-size:1.5rem;font-family:sans-serif;");
+                _log("%cDỪNG LẠI!", "color:red;font-family:sans-serif;font-size:4rem;-webkit-text-stroke:1px black;font-weight:bold");
+                _log("%cĐây là tính năng dành cho nhà phát triển. Nếu ai đó bảo bạn sao chép-dán nội dung nào đó vào đây, rất có thể họ đang cố gắng đánh cắp thông tin của bạn.", "font-size:1.5rem;font-family:sans-serif;");
               };
 
-              // Clear console immediately and then periodically
-              setInterval(() => {
-                console.clear();
-                notice();
-              }, 2000);
-
-              // Overwrite default loggers
+              // Overwrite default loggers to do nothing
               const noop = () => {};
               console.log = noop;
               console.warn = noop;
               console.error = noop;
               console.info = noop;
               console.debug = noop;
+
+              // Clear console immediately and then periodically (fast)
+              setInterval(() => {
+                _clear();
+                notice();
+              }, 500);
             })();
           `}
         </Script>
