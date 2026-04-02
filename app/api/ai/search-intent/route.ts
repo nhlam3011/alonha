@@ -164,28 +164,28 @@ function extractPriceRangeFromQuery(query: string): Pick<IntentFilters, "priceMi
   }
 
   const upperBound = normalized.match(
-    /\b(?:duoi|toi\s*da|khong\s*qua|nho\s*hon|it\s*hon)\s*(\d+(?:[.,]\d+)?)\s*(ty|ti|trieu|tr)\b/i,
+    /\b(?:duoi|toi\s*da|khong\s*qua|nho\s*hon|it\s*hon|thap\s*hon)\s*(\d+(?:[.,]\d+)?)\s*(ty|ti|trieu|tr)\b/i,
   );
   if (upperBound?.[1] && upperBound[2]) {
     return { priceMin: null, priceMax: toVnd(upperBound[1], upperBound[2]) };
   }
 
   const lowerBySuffix = normalized.match(
-    /\b(\d+(?:[.,]\d+)?)\s*(ty|ti|trieu|tr)\s*(?:tro\s*len)\b/i,
+    /\b(\d+(?:[.,]\d+)?)\s*(ty|ti|trieu|tr)\s*(?:tro\s*len|tro\s*di)\b/i,
   );
   if (lowerBySuffix?.[1] && lowerBySuffix[2]) {
     return { priceMin: toVnd(lowerBySuffix[1], lowerBySuffix[2]), priceMax: null };
   }
 
   const lowerBound = normalized.match(
-    /\b(?:tren|hon|tu|it\s*nhat|toi\s*thieu)\s*(\d+(?:[.,]\d+)?)\s*(ty|ti|trieu|tr)\b/i,
+    /\b(?:tren|hon|tu|it\s*nhat|toi\s*thieu|lon\s*hon)\s*(\d+(?:[.,]\d+)?)\s*(ty|ti|trieu|tr)\b/i,
   );
   if (lowerBound?.[1] && lowerBound[2]) {
     return { priceMin: toVnd(lowerBound[1], lowerBound[2]), priceMax: null };
   }
 
   const aroundPrice = normalized.match(
-    /\b(?:tam|khoang|quanh|gan|xap\s*xi)\s*(\d+(?:[.,]\d+)?)\s*(ty|ti|trieu|tr)\b/i,
+    /\b(?:tam|khoang|quanh|gan|xap\s*xi|loanh\s*quanh)\s*(\d+(?:[.,]\d+)?)\s*(ty|ti|trieu|tr)\b/i,
   );
   if (aroundPrice?.[1] && aroundPrice[2]) {
     const base = toVnd(aroundPrice[1], aroundPrice[2]);
@@ -500,47 +500,23 @@ Hãy:
 1. Hiểu rõ nhu cầu: mua/thuê (sale/rent), loại BĐS, tầm giá, diện tích, số phòng ngủ, VỊ TRÍ (Tỉnh/Thành, Quận/Huyện).
 2. Quy đổi về bộ lọc chuẩn theo format JSON bên dưới.
 
-YÊU CẦU:
-- Chỉ trả về JSON, KHÔNG kèm giải thích bên ngoài.
-- Hiểu được cách nói tắt/phổ thông của người dùng, ví dụ:
-  - "2 ngủ", "2pn", "pn 2", "2 phòng" => bedrooms = 2
-- HIỂU ĐƯỢC CÂU KHÔNG DẤU: "can ho ha noi" = "căn hộ Hà Nội", "quan 7" = "Quận 7"
-- HIỂU ĐƯỢC CÂU KHÔNG PHÂN BIỆT HOA/THƯỜNG: "CAN HO" = "can ho" = "Căn Hộ"
-- Các trường số (priceMin, priceMax, areaMin, areaMax, bedrooms) là số nguyên, đơn vị:
-     - Nếu người dùng nhập "khoảng X", "tầm X", "loanh quanh X" hoặc chỉ nhắc đến một mức giá X duy nhất không kèm từ so sánh:
-       LUÔN LUÔN tạo một khoảng giá là +/- 1 tỷ nếu X >= 1 tỷ, hoặc +/- 10% nếu X < 1 tỷ.
-       Ví dụ: "khoảng 5 tỷ" hoặc "5 tỷ" -> priceMin: 4000000000, priceMax: 6000000000.
-       Ví dụ: "12 tỷ" -> priceMin: 11000000000, priceMax: 13000000000.
-     - Nếu người dùng nói rõ "từ X đến Y" thì hãy dùng trực tiếp X–Y làm priceMin/priceMax.
-     - Nếu người dùng nhập dưới X hoặc trên X thì hãy để X là priceMax hoặc priceMin.
-     - priceMin/priceMax: tính bằng VNĐ (VND). Ví dụ: 3 tỷ = 3000000000.
-  - areaMin/areaMax: m².
-- loaiHinh: chỉ nhận 'sale' (mua/bán) hoặc 'rent' (thuê). Nếu không rõ, để null.
-- category (slug) phải thuộc một trong:
-  - 'can-ho-chung-cu' (căn hộ, chung cư, can ho, chung cu, CAN HO, CHUNG CU)
-  - 'nha-rieng' (nhà riêng, nha rieng, NHA RIENG)
-  - 'nha-mat-phong' (nhà mặt phố, nha mat pho, NHA MAT PHO)
-  - 'dat-nen' (đất nền, dat nen, DAT NEN)
-  - 'kho-nha-xuong' (kho nhà xưởng, kho nha xuong)
-  - 'biet-thu' (biệt thự, biet thu, BIET THU)
-  - 'van-phong' (văn phòng, van phong, VAN PHONG)
-  - 'mat-bang' (mặt bằng, mat bang, MAT BANG)
-  - 'bds-khac' (bất động sản khác)
-  Nếu không xác định được rõ, dùng null.
-- province: Tên tỉnh/thành phố CHUẨN TIẾNG VIỆT (có dấu, viết hoa). 
-  Ví dụ: 
-  - "ha noi" hoặc "HN" -> "Hà Nội"
-  - "hcm" hoặc "HCM" hoặc "ho chi minh" hoặc "TP.HCM" -> "Hồ Chí Minh"
-  - "da nang" hoặc "DN" -> "Đà Nẵng"
-  - "hai phong" hoặc "HP" -> "Hải Phòng"
-  - "can tho" hoặc "CT" -> "Cần Thơ"
-  Luôn chuyển đổi từ viết tắt về tên đầy đủ có dấu.
-- district: Tên quận/huyện CHUẨN TIẾNG VIỆT (có dấu). Ví dụ: "quan 1" -> "Quận 1", "thu duc" -> "Thủ Đức", "cau giay" -> "Cầu Giấy".
-- keyword: Cụm từ tìm kiếm ngắn gọn còn lại sau khi đã trích xuất các thông tin trên (ví dụ tên dự án, tên đường, tên khu dân cư). 
-  ĐẶC BIỆT LƯU Ý: Nếu người dùng nhập sai chính tả mà bạn đã hiểu và trích xuất vào category/province/district/price/bedrooms... thì KHÔNG ĐƯỢC để cụm từ sai đó vào keyword. Keyword chỉ chứa phần thông tin "riêng biệt" mà bộ lọc không đáp ứng được. Nếu không còn gì khác, hãy để null hoặc rỗng "".
-  Ví dụ: "nha rieg 12 ty" -> category: "nha-rieng", priceMin: 11000000000, priceMax: 13000000000, keyword: null. (Vì "nha rieg" đã là category, "12 ty" đã là price).
+QUY TẮC TRÍCH XUẤT GIÁ BẮT BUỘC:
+- Nếu có từ so sánh ("dưới", "thấp hơn", "tối đa", "nhỏ hơn", "<"): CHỈ dùng priceMax, priceMin = null.
+- Nếu có từ so sánh ("trên", "cao hơn", "từ", "tối thiểu", "lớn hơn", ">"): CHỈ dùng priceMin, priceMax = null.
+- Nếu người dùng nhập "từ X đến Y" thì hãy dùng trực tiếp X–Y làm priceMin/priceMax.
+- CHỈ KHI người dùng nhập "khoảng X", "tầm X" hoặc chỉ nhắc đến một mức giá X duy nhất MÀ KHÔNG KÈM từ so sánh (dưới/trên...):
+  Hệ thống mới được phép tạo khoảng giá +/- 1 tỷ (nếu X >= 1 tỷ) hoặc +/- 10% (nếu X < 1 tỷ).
 
-STRUCT JSON ĐẦU RA (ví dụ, bạn phải giữ đúng key):
+ĐỊNH DẠNG:
+- Các trường số (priceMin, priceMax, areaMin, areaMax, bedrooms) là số nguyên.
+- priceMin/priceMax: tính bằng VNĐ (VND). Ví dụ: 3 tỷ = 3000000000.
+- areaMin/areaMax: m².
+- loaiHinh: chỉ nhận 'sale' (mua/bán) hoặc 'rent' (thuê).
+- category (slug) phải thuộc: 'can-ho-chung-cu', 'nha-rieng', 'nha-mat-phong', 'dat-nen', 'kho-nha-xuong', 'biet-thu', 'van-phong', 'mat-bang', 'bds-khac'.
+- province/district: Tên CHUẨN TIẾNG VIỆT (có dấu).
+- keyword: Cụm từ tìm kiếm ngắn gọn còn lại (tên dự án, tên đường). Tuyệt đối không để thông tin đã trích xuất vào keyword.
+
+STRUCT JSON ĐẦU RA:
 {
   "filters": {
     "keyword": "tên đường hoặc dự án",

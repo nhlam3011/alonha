@@ -51,16 +51,21 @@ Phân tích câu sau và trả về JSON. Chỉ trả về JSON hợp lệ, khô
 
 Câu: "${query}"
 
-Quy tắc trích xuất Giá (priceMin, priceMax) BẮT BUỘC:
-1. Nếu có từ so sánh "dưới", "thấp hơn", "tối đa", "<": CHỈ trích xuất priceMax = X, priceMin = null (hoặc 0).
-   Ví dụ: "dưới 10 tỷ" -> priceMin: null, priceMax: 10000000000.
-2. Nếu có từ so sánh "trên", "cao hơn", "từ", "tối thiểu", ">": CHỈ trích xuất priceMin = X, priceMax = null.
-   Ví dụ: "từ 5 tỷ" -> priceMin: 5000000000, priceMax: null.
-3. Nếu người dùng nhập "khoảng X", "tầm X", "loanh quanh X" hoặc chỉ nhắc đến một mức giá X duy nhất KHÔNG kèm từ so sánh (dưới/trên):
-   Hãy tự động tạo một khoảng giá linh hoạt (±20% giá trị X, tối đa ±1 tỷ) để kết quả đa dạng hơn.
-   Ví dụ: "5 tỷ" -> priceMin: 4500000000, priceMax: 5500000000.
-4. "priceMin", "priceMax" phải là số nguyên (VNĐ).
-5. Nếu người dùng nhập "X tỷ Y triệu" (ví dụ: 5 tỷ 200 triệu), thì giá trị X = 5.200.000.000.
+Quy tắc trích xuất Giá (priceMin, priceMax) BẮT BUỘC (Tuân thủ theo thứ tự ưu tiên):
+1. ƯU TIÊN SỐ 1 - Có từ so sánh giới hạn:
+   - Nếu có từ "dưới", "thấp hơn", "tối đa", "nhỏ hơn", "<": CHỈ trích xuất priceMax = X, priceMin = null (hoặc 0). TUYỆT ĐỐI không áp dụng Rule 3.
+     *Ví dụ: "dưới 12 tỷ" -> { priceMin: null, priceMax: 12000000000 }*
+   - Nếu có từ "trên", "cao hơn", "từ", "tối thiểu", "lớn hơn", ">": CHỈ trích xuất priceMin = X, priceMax = null. TUYỆT ĐỐI không áp dụng Rule 3.
+     *Ví dụ: "trên 5 tỷ" -> { priceMin: 5000000000, priceMax: null }*
+   - Nếu có từ "đến", "tới", "trong khoảng X đến Y": Trích xuất cả priceMin và priceMax.
+     *Ví dụ: "từ 3 đến 5 tỷ" -> { priceMin: 3000000000, priceMax: 5000000000 }*
+
+2. ƯU TIÊN SỐ 2 - Không có từ so sánh (Giá ước lượng):
+   - Nếu người dùng nhập "khoảng X", "tầm X", "loanh quanh X" hoặc chỉ nhắc đến một mức giá X duy nhất (ví dụ: "nhà 5 tỷ") MÀ KHÔNG kèm các từ giới hạn (dưới/trên/tối đa...):
+     Hãy tự động tạo một khoảng giá linh hoạt (±20% giá trị X, tối đa ±1 tỷ) để kết quả đa dạng hơn.
+     *Ví dụ: "5 tỷ" hoặc "tầm 5 tỷ" -> { priceMin: 4500000000, priceMax: 5500000000 }*
+
+3. Định dạng: "priceMin", "priceMax" phải là số nguyên (VNĐ). "X tỷ Y triệu" (ví dụ: 5 tỷ 200 triệu) -> 5.200.000.000.
 
 Quy tắc khác:
 - "loaiHinh": "sale" (mua bán) hoặc "rent" (cho thuê). null nếu không rõ.
