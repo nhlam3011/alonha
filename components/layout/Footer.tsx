@@ -14,7 +14,9 @@ const footerLinks = {
   ],
   tools: [
     { href: "/cong-cu/tinh-vay", label: "Tính lãi vay" },
+    { href: "/cong-cu/dinh-gia", label: "Định giá BĐS" },
     { href: "/cong-cu/so-sanh", label: "So sánh BĐS" },
+    { href: "/cong-cu/dau-tu", label: "Phân tích đầu tư" },
     { href: "/cong-cu/phong-thuy", label: "Phong thủy" },
   ],
   support: [
@@ -25,11 +27,30 @@ const footerLinks = {
   ],
 };
 
-const socialLinks = [
-  { href: "#", label: "TikTok" },
-  { href: "#", label: "Instagram" },
-  { href: "#", label: "Zalo" },
-];
+function FooterCollapsible({ title, children }: { title: string; children: React.ReactNode }) {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div className="border-b border-[var(--border)] sm:border-none">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex w-full items-center justify-between py-4 sm:cursor-default sm:py-0 sm:pointer-events-none"
+      >
+        <h3 className="text-sm font-bold text-[var(--foreground)]">{title}</h3>
+        <svg
+          className={`size-4 text-[var(--muted-foreground)] transition-transform duration-300 sm:hidden ${isOpen ? "rotate-180" : ""}`}
+          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <div className={`overflow-hidden transition-all duration-300 sm:max-h-none ${isOpen ? "max-h-96 pb-4" : "max-h-0 sm:mt-4"}`}>
+        <ul className="space-y-3">
+          {children}
+        </ul>
+      </div>
+    </div>
+  );
+}
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -119,48 +140,36 @@ export function Footer() {
 
           {/* Links */}
           <div className="lg:col-span-3">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
-              {/* Explore */}
-              <div>
-                <h3 className="text-sm font-bold text-[var(--foreground)] mb-4">Khám phá</h3>
-                <ul className="space-y-3">
-                  {footerLinks.explore.map(({ href, label }) => (
-                    <li key={href}>
-                      <Link href={href} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors">
-                        {label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 sm:gap-8">
+              <FooterCollapsible title="Khám phá">
+                {footerLinks.explore.map(({ href, label }) => (
+                  <li key={href}>
+                    <Link href={href} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors">
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </FooterCollapsible>
 
-              {/* Tools */}
-              <div>
-                <h3 className="text-sm font-bold text-[var(--foreground)] mb-4">Công cụ</h3>
-                <ul className="space-y-3">
-                  {footerLinks.tools.map(({ href, label }) => (
-                    <li key={href}>
-                      <Link href={href} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors">
-                        {label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <FooterCollapsible title="Công cụ">
+                {footerLinks.tools.map(({ href, label }) => (
+                  <li key={href}>
+                    <Link href={href} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors">
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </FooterCollapsible>
 
-              {/* Support */}
-              <div>
-                <h3 className="text-sm font-bold text-[var(--foreground)] mb-4">Hỗ trợ</h3>
-                <ul className="space-y-3">
-                  {footerLinks.support.map(({ href, label }) => (
-                    <li key={href}>
-                      <Link href={href} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors">
-                        {label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <FooterCollapsible title="Hỗ trợ">
+                {footerLinks.support.map(({ href, label }) => (
+                  <li key={href}>
+                    <Link href={href} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-colors">
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </FooterCollapsible>
             </div>
 
             {/* Newsletter */}

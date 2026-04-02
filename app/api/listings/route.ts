@@ -80,11 +80,9 @@ export async function GET(req: Request) {
     const query = listingSearchSchema.parse(raw);
     const {
       keyword,
-      aiQuery, // hiện tại chỉ dùng để truyền qua tracking, chưa lọc riêng
       loaiHinh = "sale",
       category,
       provinceId,
-      districtId,
       wardId,
       priceMin,
       priceMax,
@@ -116,7 +114,7 @@ export async function GET(req: Request) {
           { slug: { contains: effectiveKeyword, mode: "insensitive" } },
         ];
 
-        const keywordParts = effectiveKeyword.split(/\\s+/).filter(Boolean);
+        const keywordParts = effectiveKeyword.split(/\s+/).filter(Boolean);
         if (keywordParts.length > 1) {
           orConditions.push({
             AND: keywordParts.map((part) => ({
@@ -226,13 +224,12 @@ export async function GET(req: Request) {
     }
 
     if (wardId) {
-      andConditions.push({ wardCode: String(wardId).trim() } as any);
+      const wardCodeStr = String(wardId).trim();
+      andConditions.push({ wardCode: wardCodeStr });
     } else {
       if (provinceId) {
         const provinceCode = String(provinceId).trim();
-        andConditions.push({
-          provinceCode,
-        } as any);
+        andConditions.push({ provinceCode });
       }
     }
 
@@ -402,7 +399,10 @@ export async function POST(req: Request) {
       }
       listing = await prisma.listing.update({
         where: { id: draft.id },
-        data: listingData,
+        data: {
+          ...listingData,
+          slug: body.slug?.trim() || slug, // Cập nhật slug nếu có hoặc dùng slug mới từ title
+        },
         select: { id: true, slug: true },
       });
       await prisma.listingImage.deleteMany({ where: { listingId: draft.id } });

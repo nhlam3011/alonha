@@ -62,6 +62,17 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     });
     const listings = listingsDb.map(toListingCard);
 
+    // Fetch nearby projects (in the same province)
+    const nearbyProjects = await prisma.project.findMany({
+        where: {
+            provinceCode: project.provinceCode,
+            id: { not: project.id },
+            isActive: true,
+        },
+        take: 4,
+        orderBy: { updatedAt: "desc" },
+    });
+
     return (
         <div className="layout-container page-section">
             {/* Breadcrumb */}
@@ -241,6 +252,51 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                     </div>
                 </div>
             </div>
+
+            {/* Nearby Projects */}
+            {nearbyProjects.length > 0 && (
+                <section className="mt-16 pt-12 border-t border-[var(--border)]">
+                    <div className="flex items-center justify-between mb-8">
+                        <div>
+                            <h2 className="text-2xl font-bold text-[var(--foreground)]">Dự án lân cận</h2>
+                            <p className="text-[var(--muted-foreground)] mt-1">Khám phá các dự án khác tại khu vực này</p>
+                        </div>
+                        <Link href="/du-an" className="text-sm font-bold text-[var(--primary)] hover:underline flex items-center gap-1">
+                            Xem tất cả
+                            <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                        </Link>
+                    </div>
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                        {nearbyProjects.map((p) => (
+                            <Link 
+                                key={p.id} 
+                                href={`/du-an/${p.slug}`}
+                                className="group block bg-[var(--card)] rounded-2xl border border-[var(--border)] overflow-hidden hover:shadow-xl transition-all duration-300"
+                            >
+                                <div className="relative aspect-[4/3] overflow-hidden">
+                                    <ImageWithFallback
+                                        src={p.imageUrl || DEFAULT_PROJECT_IMAGE}
+                                        alt={p.name}
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    />
+                                    {p.isActive && (
+                                        <span className="absolute top-3 left-3 px-2 py-1 rounded-md bg-white/90 backdrop-blur-sm text-[10px] font-bold text-[var(--success)] shadow-sm">
+                                            ĐANG BÁN
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="p-4">
+                                    <h3 className="font-bold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors line-clamp-1">{p.name}</h3>
+                                    <p className="text-xs text-[var(--muted-foreground)] mt-1 line-clamp-1 flex items-center gap-1">
+                                        <svg className="size-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                        {p.provinceName || "Đang cập nhật"}
+                                    </p>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </section>
+            )}
         </div>
     );
 }

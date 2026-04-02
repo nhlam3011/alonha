@@ -27,6 +27,30 @@ const PRICE_RANGES = [
 
 type SearchType = "sale" | "rent";
 
+type Province = { id: string; code?: string; name: string };
+
+function normalizeForMatch(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function findProvinceCode(provinces: Province[], name: string): string | null {
+  const normalized = normalizeForMatch(name);
+  const match = provinces.find(
+    (p) =>
+      normalizeForMatch(p.name) === normalized ||
+      normalizeForMatch(p.name).includes(normalized) ||
+      normalized.includes(normalizeForMatch(p.name))
+  );
+  return match ? (match.code || match.id) : null;
+}
+
 export function HeroSearch({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
   const [type, setType] = useState<SearchType>("sale");
@@ -38,6 +62,14 @@ export function HeroSearch({ embedded = false }: { embedded?: boolean }) {
   const [isListening, setIsListening] = useState(false);
   const [aiQuery, setAiQuery] = useState("");
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [provinces, setProvinces] = useState<Province[]>([]);
+
+  useEffect(() => {
+    fetch("/api/provinces")
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data)) setProvinces(data); })
+      .catch(() => { });
+  }, []);
 
   const startListening = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -77,7 +109,7 @@ export function HeroSearch({ embedded = false }: { embedded?: boolean }) {
     recognition.start();
   };
 
-  const searchHref = () => {
+  const buildParams = (overrides?: Record<string, string | null>) => {
     const params = new URLSearchParams();
     if (keyword.trim()) params.set("keyword", keyword.trim());
     params.set("loaiHinh", type);
@@ -87,8 +119,16 @@ export function HeroSearch({ embedded = false }: { embedded?: boolean }) {
       if (min) params.set("priceMin", min);
       if (max) params.set("priceMax", max);
     }
-    return `/bat-dong-san?${params.toString()}`;
+    if (overrides) {
+      Object.entries(overrides).forEach(([k, v]) => {
+        if (v === null || v === "") params.delete(k);
+        else params.set(k, v);
+      });
+    }
+    return params;
   };
+
+  const searchHref = () => `/bat-dong-san?${buildParams().toString()}`;
 
   const handleAiSearch = async () => {
     if (!aiQuery.trim()) return;
@@ -108,24 +148,36 @@ export function HeroSearch({ embedded = false }: { embedded?: boolean }) {
         if (filters.keyword) params.set("keyword", filters.keyword);
         if (filters.category) params.set("category", filters.category);
         if (filters.loaiHinh) params.set("loaiHinh", filters.loaiHinh);
-        else params.set("loaiHinh", type); // fallback to selected type
+        else params.set("loaiHinh", type);
 
         if (filters.priceMin) params.set("priceMin", filters.priceMin.toString());
         if (filters.priceMax) params.set("priceMax", filters.priceMax.toString());
         if (filters.areaMin) params.set("areaMin", filters.areaMin.toString());
         if (filters.areaMax) params.set("areaMax", filters.areaMax.toString());
         if (filters.bedrooms) params.set("bedrooms", filters.bedrooms.toString());
-        if (filters.province) params.set("provinceStr", filters.province);
-        if (filters.district) params.set("districtStr", filters.district);
 
-        params.set("ai_powered", "true");
+        if (filters.province) {
+          const provCode = findProvinceCode(provinces, filters.province);
+          if (provCode) params.set("provinceId", provCode);
+          else {
+            const existing = params.get("keyword");
+            params.set("keyword", [existing, filters.province].filter(Boolean).join(" "));
+          }
+        }
+
+        if (filters.district) {
+          const existing = params.get("keyword");
+          params.set("keyword", [existing, filters.district].filter(Boolean).join(" "));
+        }
+
+        params.set("aiQuery", aiQuery.trim());
         router.push(`/bat-dong-san?${params.toString()}`);
       } else {
-        router.push(`/bat-dong-san?keyword=${encodeURIComponent(aiQuery.trim())}&loaiHinh=${type}&ai_powered=true`);
+        router.push(`/bat-dong-san?keyword=${encodeURIComponent(aiQuery.trim())}&loaiHinh=${type}&aiQuery=${encodeURIComponent(aiQuery.trim())}`);
       }
     } catch (e) {
       console.error("AI Search failed", e);
-      router.push(`/bat-dong-san?keyword=${encodeURIComponent(aiQuery.trim())}&loaiHinh=${type}`);
+      router.push(`/bat-dong-san?keyword=${encodeURIComponent(aiQuery.trim())}&loaiHinh=${type}&aiQuery=${encodeURIComponent(aiQuery.trim())}`);
     } finally {
       setIsAiLoading(false);
     }
@@ -231,17 +283,17 @@ export function HeroSearch({ embedded = false }: { embedded?: boolean }) {
           <div className="p-1 animate-fade-in">
             <div className="flex items-center gap-2 text-sm font-medium text-violet-600 dark:text-violet-400 mb-3">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-              Mô tả ngôi nhà bạn muốn tìm bằng ngôn ngữ tự nhiên
+              Tìm nhà bằng AI (thử: "Biệt thự sân vườn giá dưới 10 tỷ...")
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
+              <div className="relative flex-1 group">
                 <input
                   type="text"
                   placeholder="VD: Căn hộ 2 phòng ngủ gần quận 7, giá dưới 3 tỷ..."
                   value={aiQuery}
                   onChange={(e) => setAiQuery(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleAiSearch()}
-                  className="w-full h-12 pl-4 pr-12 rounded-xl bg-[var(--background)] border-2 border-violet-200 dark:border-violet-900/50 text-[var(--foreground)] text-sm focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all placeholder:text-[var(--muted-foreground)]/70"
+                  className="w-full h-12 pl-4 pr-12 rounded-xl bg-[var(--background)] border-2 border-violet-200 dark:border-violet-900/50 text-[var(--foreground)] text-sm focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all placeholder:text-[var(--muted-foreground)]/70 font-medium"
                 />
                 <button
                   onClick={startListening}
@@ -265,10 +317,23 @@ export function HeroSearch({ embedded = false }: { embedded?: boolean }) {
                 )}
               </button>
             </div>
-            <div className="mt-3 flex flex-wrap gap-2 text-xs">
-              <span className="text-[var(--muted-foreground)]">Gợi ý:</span>
-              <button onClick={() => setAiQuery("Nhà phố mặt tiền quận 1 giá dưới 20 tỷ để kinh doanh")} className="px-2 py-1 rounded bg-[var(--muted)] text-[var(--muted-foreground)] hover:bg-violet-100 hover:text-violet-700 dark:hover:bg-violet-900/40 dark:hover:text-violet-300 transition-colors">Nhà phố mặt tiền Q1 dưới 20 tỷ</button>
-              <button onClick={() => setAiQuery("Căn hộ 3PN có ban công view sông tại Thủ Thiêm cao cấp")} className="px-2 py-1 rounded bg-[var(--muted)] text-[var(--muted-foreground)] hover:bg-violet-100 hover:text-violet-700 dark:hover:bg-violet-900/40 dark:hover:text-violet-300 transition-colors">Căn hộ view sông Thủ Thiêm</button>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider mr-1">Gợi ý:</span>
+              {[
+                "Biệt thự sân vườn Long An",
+                "Chung cư 2PN Quận 7 dưới 4 tỷ",
+                "Nhà phố mặt tiền kinh doanh Q1",
+                "Đất nền thổ cư sổ sẵn",
+                "Phòng trọ sinh viên giá rẻ"
+              ].map((q) => (
+                <button
+                  key={q}
+                  onClick={() => setAiQuery(q)}
+                  className="px-3 py-1.5 rounded-full bg-[var(--muted)]/50 text-[var(--muted-foreground)] border border-[var(--border)] hover:border-violet-400 hover:bg-violet-50 hover:text-violet-600 dark:hover:bg-violet-900/40 dark:hover:text-violet-300 transition-all text-xs font-semibold whitespace-nowrap"
+                >
+                  {q}
+                </button>
+              ))}
             </div>
           </div>
         )}

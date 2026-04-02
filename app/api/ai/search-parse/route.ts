@@ -51,23 +51,25 @@ Phân tích câu sau và trả về JSON. Chỉ trả về JSON hợp lệ, khô
 
 Câu: "${query}"
 
-Quy tắc trích xuất Giá (priceMin, priceMax):
-1. Nếu người dùng nhập "dưới X": priceMax = X, priceMin = null.
-2. Nếu người dùng nhập "trên X" hoặc "từ X": priceMin = X, priceMax = null.
-3. Nếu người dùng nhập "khoảng X", "tầm X", "loanh quanh X" hoặc chỉ nhắc đến một mức giá X duy nhất không kèm từ so sánh:
-   Hãy tự động tạo một khoảng giá linh hoạt (±1 tỷ% giá trị X) để kết quả đa dạng hơn.
-   Ví dụ: "khoảng 5 tỷ" hoặc "5 tỷ" -> priceMin: 4000000000, priceMax: 6000000000.
+Quy tắc trích xuất Giá (priceMin, priceMax) BẮT BUỘC:
+1. Nếu có từ so sánh "dưới", "thấp hơn", "tối đa", "<": CHỈ trích xuất priceMax = X, priceMin = null (hoặc 0).
+   Ví dụ: "dưới 10 tỷ" -> priceMin: null, priceMax: 10000000000.
+2. Nếu có từ so sánh "trên", "cao hơn", "từ", "tối thiểu", ">": CHỈ trích xuất priceMin = X, priceMax = null.
+   Ví dụ: "từ 5 tỷ" -> priceMin: 5000000000, priceMax: null.
+3. Nếu người dùng nhập "khoảng X", "tầm X", "loanh quanh X" hoặc chỉ nhắc đến một mức giá X duy nhất KHÔNG kèm từ so sánh (dưới/trên):
+   Hãy tự động tạo một khoảng giá linh hoạt (±20% giá trị X, tối đa ±1 tỷ) để kết quả đa dạng hơn.
+   Ví dụ: "5 tỷ" -> priceMin: 4500000000, priceMax: 5500000000.
 4. "priceMin", "priceMax" phải là số nguyên (VNĐ).
-5. Nếu người dùng nhập "X tỷ X triệu" (ví dụ: 5 tỷ 200 triệu), thì priceMin = X-1 tỷ , priceMax = X+1 tỷ.
+5. Nếu người dùng nhập "X tỷ Y triệu" (ví dụ: 5 tỷ 200 triệu), thì giá trị X = 5.200.000.000.
 
 Quy tắc khác:
 - "loaiHinh": "sale" (mua bán) hoặc "rent" (cho thuê). null nếu không rõ.
-- "category": một trong các giá trị sau: "can-ho-chung-cu" | "nha-rieng" | "nha-mat-phong" | "dat-nen" | "kho-nha-xuong" | "biet-thu" | "bds-khac". null nếu không rõ.
-  Lưu ý: "căn hộ", "chung cư" → "can-ho-chung-cu"; "nhà phố", "nhà mặt phố" → "nha-mat-phong"; "đất nền" → "dat-nen"; "biệt thự" → "biet-thu".
+- "category": một trong các giá trị sau: "can-ho-chung-cu" | "nha-rieng" | "nha-mat-pho" | "dat-nen" | "kho-nha-xuong" | "biet-thu" | "bds-khac". null nếu không rõ.
+  Lưu ý: Bạn phải hiểu được các biến thể không dấu, sai chính tả nhẹ (nha rieg, can ho...) để trích xuất vào category. "nhà phố" -> "nha-mat-pho".
 - "provinceName": Tên tỉnh/thành phố đầy đủ tiếng Việt có dấu, hoặc null.
 - "bedrooms": số phòng ngủ (số nguyên), hoặc null.
 - "areaMin", "areaMax": diện tích m² (số nguyên), hoặc null.
-- "keyword": Phần từ khóa còn lại sau khi đã trích xuất các thông tin trên. Nếu không còn gì rõ ràng thì để "".
+- "keyword": Phần từ khóa còn lại sau khi đã trích xuất các thông tin trên. Nếu đã trích xuất hết ý nghĩa vào các trường khác thì để "". Tuyệt đối không để lại các từ đã được phân loại vào category/province... trong keyword.
 
 JSON Template:
 {

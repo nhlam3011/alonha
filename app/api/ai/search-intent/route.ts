@@ -36,6 +36,7 @@ const ALLOWED_CATEGORY_SLUGS = new Set([
   "van-phong",
   "mat-bang",
   "bds-khac",
+  "nha-mat-pho",
 ]);
 
 const BEDROOM_WORD_TO_NUMBER: Record<string, number> = {
@@ -189,6 +190,11 @@ function extractPriceRangeFromQuery(query: string): Pick<IntentFilters, "priceMi
   if (aroundPrice?.[1] && aroundPrice[2]) {
     const base = toVnd(aroundPrice[1], aroundPrice[2]);
     if (base == null) return { priceMin: null, priceMax: null };
+
+    // Nếu giá >= 1 tỷ, dùng +/- 1 tỷ
+    if (base >= 1e9) {
+      return normalizeRange(base - 1e9, base + 1e9);
+    }
     return normalizeRange(Math.round(base * 0.9), Math.round(base * 1.1));
   }
 
@@ -196,6 +202,12 @@ function extractPriceRangeFromQuery(query: string): Pick<IntentFilters, "priceMi
   if (singlePrice?.[1] && singlePrice[2]) {
     const base = toVnd(singlePrice[1], singlePrice[2]);
     if (base == null) return { priceMin: null, priceMax: null };
+
+    // Nếu giá >= 1 tỷ, dùng +/- 1 tỷ như trong prompt ví dụ
+    if (base >= 1e9) {
+      return normalizeRange(base - 1e9, base + 1e9);
+    }
+    // Nếu dưới 1 tỷ, dùng +/- 10%
     return normalizeRange(Math.round(base * 0.9), Math.round(base * 1.1));
   }
 
@@ -245,7 +257,7 @@ function inferCategory(query: string): IntentFilters["category"] {
 
   if (/\b(can\s*ho|chung\s*cu|cc\s*mini|apartment|studio)\b/i.test(normalized)) return "can-ho-chung-cu";
   if (/\b(biet\s*thu|villa)\b/i.test(normalized)) return "biet-thu";
-  if (/\b(nha\s*mat\s*pho|nha\s*pho|mat\s*tien|shophouse)\b/i.test(normalized)) return "nha-mat-phong";
+  if (/\b(nha\s*mat\s*pho|nha\s*pho|mat\s*tien|shophouse)\b/i.test(normalized)) return "nha-mat-pho";
   if (/\b(nha\s*rieng)\b/i.test(normalized)) return "nha-rieng";
   if (/\b(dat\s*nen)\b/i.test(normalized)) return "dat-nen";
   if (/\b(van\s*phong|office)\b/i.test(normalized)) return "van-phong";
@@ -463,20 +475,20 @@ export async function POST(req: Request) {
   try {
     const systemPrompt = `Bạn là trợ lý AI cho nền tảng bất động sản Alonha tại Việt Nam. Nhiệm vụ là phân tích câu mô tả nhu cầu của khách (tiếng Việt) và trích xuất các bộ lọc tìm kiếm cấu trúc. Chỉ làm việc với nhà đất tại Việt Nam.
 
-QUAN TRỌNG: Bạn PHẢI hiểu được câu KHÔNG DẤU và KHÔNG PHÂN BIỆT CHỮ HOA/THƯỜNG. Ví dụ:
-- "can ho ha noi" hoặc "CAN HO HA NOI" hoặc "Căn Hộ Hà Nội" -> đều hiểu là căn hộ tại Hà Nội
-- "quan 7" hoặc "QUAN 7" hoặc "Quận 7" -> đều hiểu là Quận 7
-- "nha rieng" hoặc "NHA RIENG" -> đều hiểu là nhà riêng
+QUAN TRỌNG: Bạn PHẢI hiểu được câu KHÔNG DẤU, SAI CHÍNH TẢ PHỔ BIẾN và KHÔNG PHÂN BIỆT CHỮ HOA/THƯỜNG. Ví dụ:
+- "nha rieg", "nha riên", "nha rêng" -> đều hiểu là "nhà riêng" (category: nha-rieng)
+- "can ho", "can ho chung cu" -> "căn hộ chung cư" (category: can-ho-chung-cu)
+- "biet thu", "biệt thư" -> "biệt thự" (category: biet-thu)
+- "đât nèn", "dat nen" -> "đất nền" (category: dat-nen)
+- "quan 7", "q7", "q.7" -> "Quận 7"
+- "hcm", "tp hcm", "saigon" -> "Hồ Chí Minh"
 
 QUAN TRỌNG VỀ TỪ VIẾT TẮT ĐỊA ĐIỂM:
 Bạn PHẢI tự động nhận diện và chuyển đổi các từ viết tắt phổ biến về tên đầy đủ:
-- "HCM" hoặc "hcm" hoặc "HCM" -> "Hồ Chí Minh" (TP.HCM, thành phố Hồ Chí Minh)
-- "HN" hoặc "hn" hoặc "Ha Noi" -> "Hà Nội"
-- "DN" hoặc "dn" hoặc "Da Nang" -> "Đà Nẵng"
-- "HP" hoặc "hp" -> "Hải Phòng"
-- "CT" hoặc "ct" -> "Cần Thơ"
-- "Q1", "Q2", "Q3"... -> "Quận 1", "Quận 2", "Quận 3"...
-- "TP" hoặc "tp" -> có thể là "Thành phố" (cần ngữ cảnh)
+- "HCM" hoặc "hcm" -> "Hồ Chí Minh"
+- "HN" hoặc "hn" -> "Hà Nội"
+- "DN" hoặc "dn" -> "Đà Nẵng"
+- "Q1", "Q.1", "q1" -> "Quận 1"
 
 Luôn tự động chuẩn hóa tên địa điểm về dạng có dấu CHUẨN tiếng Việt trong kết quả.`;
 
@@ -495,12 +507,13 @@ YÊU CẦU:
 - HIỂU ĐƯỢC CÂU KHÔNG DẤU: "can ho ha noi" = "căn hộ Hà Nội", "quan 7" = "Quận 7"
 - HIỂU ĐƯỢC CÂU KHÔNG PHÂN BIỆT HOA/THƯỜNG: "CAN HO" = "can ho" = "Căn Hộ"
 - Các trường số (priceMin, priceMax, areaMin, areaMax, bedrooms) là số nguyên, đơn vị:
-  - Nếu người dùng chỉ nêu một con số giá (ví dụ: "5 tỷ", "tầm 3 tỷ", "khoảng 7 tỷ") thì hãy hiểu đó là KHOẢNG GIÁ XUNG QUANH GIÁ ĐÓ, KHÔNG phải giá cố định:
-    - priceMin ≈ 0.9 * giá
-    - priceMax ≈ 1.1 * giá
-    (Ví dụ: 5 tỷ → priceMin ≈ 4500000000, priceMax ≈ 5500000000)
-  - Nếu người dùng nói rõ "từ X đến Y" thì hãy dùng trực tiếp X–Y làm priceMin/priceMax.
-  - priceMin/priceMax: tính bằng VNĐ (VND). Ví dụ: 3 tỷ = 3000000000.
+     - Nếu người dùng nhập "khoảng X", "tầm X", "loanh quanh X" hoặc chỉ nhắc đến một mức giá X duy nhất không kèm từ so sánh:
+       LUÔN LUÔN tạo một khoảng giá là +/- 1 tỷ nếu X >= 1 tỷ, hoặc +/- 10% nếu X < 1 tỷ.
+       Ví dụ: "khoảng 5 tỷ" hoặc "5 tỷ" -> priceMin: 4000000000, priceMax: 6000000000.
+       Ví dụ: "12 tỷ" -> priceMin: 11000000000, priceMax: 13000000000.
+     - Nếu người dùng nói rõ "từ X đến Y" thì hãy dùng trực tiếp X–Y làm priceMin/priceMax.
+     - Nếu người dùng nhập dưới X hoặc trên X thì hãy để X là priceMax hoặc priceMin.
+     - priceMin/priceMax: tính bằng VNĐ (VND). Ví dụ: 3 tỷ = 3000000000.
   - areaMin/areaMax: m².
 - loaiHinh: chỉ nhận 'sale' (mua/bán) hoặc 'rent' (thuê). Nếu không rõ, để null.
 - category (slug) phải thuộc một trong:
@@ -523,7 +536,9 @@ YÊU CẦU:
   - "can tho" hoặc "CT" -> "Cần Thơ"
   Luôn chuyển đổi từ viết tắt về tên đầy đủ có dấu.
 - district: Tên quận/huyện CHUẨN TIẾNG VIỆT (có dấu). Ví dụ: "quan 1" -> "Quận 1", "thu duc" -> "Thủ Đức", "cau giay" -> "Cầu Giấy".
-- keyword: cụm từ tìm kiếm ngắn gọn còn lại sau khi đã trích xuất các thông tin trên (ví dụ tên dự án, tên đường). Nếu đã trích xuất hết ý nghĩa vào các trường khác thì để null hoặc rỗng.
+- keyword: Cụm từ tìm kiếm ngắn gọn còn lại sau khi đã trích xuất các thông tin trên (ví dụ tên dự án, tên đường, tên khu dân cư). 
+  ĐẶC BIỆT LƯU Ý: Nếu người dùng nhập sai chính tả mà bạn đã hiểu và trích xuất vào category/province/district/price/bedrooms... thì KHÔNG ĐƯỢC để cụm từ sai đó vào keyword. Keyword chỉ chứa phần thông tin "riêng biệt" mà bộ lọc không đáp ứng được. Nếu không còn gì khác, hãy để null hoặc rỗng "".
+  Ví dụ: "nha rieg 12 ty" -> category: "nha-rieng", priceMin: 11000000000, priceMax: 13000000000, keyword: null. (Vì "nha rieg" đã là category, "12 ty" đã là price).
 
 STRUCT JSON ĐẦU RA (ví dụ, bạn phải giữ đúng key):
 {
@@ -592,7 +607,7 @@ STRUCT JSON ĐẦU RA (ví dụ, bạn phải giữ đúng key):
     const keyword =
       aiKeyword && heuristicKeyword && normalizeForMatch(aiKeyword) === normalizeForMatch(query)
         ? heuristicKeyword
-        : (aiKeyword ?? heuristicKeyword ?? (hasStructuredSignal ? null : query));
+        : (aiKeyword ?? (hasStructuredSignal ? null : (heuristicKeyword ?? query)));
 
     const filters: IntentFilters = {
       ...baseFilters,

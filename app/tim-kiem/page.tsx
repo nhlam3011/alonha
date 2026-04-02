@@ -115,6 +115,7 @@ function SearchContent() {
   const [viewMode, setViewMode] = useState<"split" | "list" | "map">(initialView);
   const [isMobile, setIsMobile] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false); // Mặc định thu gọn trên mobile
 
   const [listings, setListings] = useState<ListingCardData[]>([]);
   const [total, setTotal] = useState(0);
@@ -347,184 +348,192 @@ function SearchContent() {
             keyword={displayQuery}
             onSearch={handleAiSearchSubmit}
             searchPlaceholder="Tìm kiếm..."
+            isFiltersExpanded={isFiltersExpanded}
+            onToggleFilters={() => setIsFiltersExpanded(!isFiltersExpanded)}
           />
 
-          <UnifiedFilterBar
-            sortOptions={SORT_OPTIONS}
-            activeSort={sort}
-            onSortChange={(val) => updateParam("sort", val)}
-            appendRight={
-              <div className="hidden lg:flex items-center p-1 rounded-full bg-[var(--card)] border border-[var(--border)] shrink-0 shadow-inner ml-auto">
-                {(["split", "list", "map"] as const).map(m => (
-                  <button
-                    key={m}
-                    onClick={() => setViewMode(m)}
-                    className={`flex items-center gap-1.5 px-3 h-9 rounded-full text-sm font-medium transition-all ${viewMode === m ? "bg-[var(--primary)] text-primary-foreground shadow-md" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--foreground)]/5"}`}
-                    title={m === "split" ? "Chia đôi" : m === "list" ? "Danh sách" : "Bản đồ"}
-                  >
-                    {m === "split" && <><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="18" rx="1.5" /><rect x="14" y="3" width="7" height="18" rx="1.5" /></svg> <span className="hidden xl:inline">Chia màn</span></>}
-                    {m === "list" && <><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><circle cx="4" cy="6" r="1.5" /><circle cx="4" cy="12" r="1.5" /><circle cx="4" cy="18" r="1.5" /></svg> <span className="hidden xl:inline">Danh sách</span></>}
-                    {m === "map" && <><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" strokeLinejoin="round" /></svg> <span className="hidden xl:inline">Bản đồ</span></>}
-                  </button>
-                ))}
-              </div>
-            }
-          >
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 w-full">
-              {/* Loại hình bất động sản (Category) */}
-              <SearchableSelect
-                options={CATEGORY_OPTIONS.map(c => ({ value: c.value, label: c.label }))}
-                value={category}
-                onChange={(val) => updateParam("category", val)}
-                placeholder="Loại nhà đất"
-                variant="filter"
-                className="min-w-[120px] !text-xs h-9"
-              />
-
-              {/* Tỉnh/thành */}
-              <SearchableSelect
-                options={provinces.map(p => ({ value: p.code ?? p.id, label: p.name }))}
-                value={provinceId}
-                onChange={(val) => { const p = new URLSearchParams(searchParams.toString()); if (val) p.set("provinceId", val); else p.delete("provinceId"); p.delete("wardId"); router.push(`/tim-kiem?${p.toString()}`); }}
-                placeholder="Tỉnh/thành"
-                variant="filter"
-                className="min-w-[120px] !text-xs h-9"
-              />
-
-              {/* Phường/xã */}
-              {provinceId && wards.length > 0 && (
+          <div className={`overflow-hidden transition-all duration-300 md:max-h-none ${isFiltersExpanded ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0 md:opacity-100"}`}>
+            <UnifiedFilterBar
+              sortOptions={SORT_OPTIONS}
+              activeSort={sort}
+              onSortChange={(val) => updateParam("sort", val)}
+              appendRight={
+                <div className="hidden lg:flex items-center p-1 rounded-full bg-[var(--card)] border border-[var(--border)] shrink-0 shadow-inner ml-auto">
+                  {(["split", "list", "map"] as const).map(m => (
+                    <button
+                      key={m}
+                      onClick={() => setViewMode(m)}
+                      className={`flex items-center gap-1.5 px-3 h-9 rounded-full text-sm font-medium transition-all ${viewMode === m ? "bg-[var(--primary)] text-primary-foreground shadow-md" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--foreground)]/5"}`}
+                      title={m === "split" ? "Chia đôi" : m === "list" ? "Danh sách" : "Bản đồ"}
+                    >
+                      {m === "split" && <><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="18" rx="1.5" /><rect x="14" y="3" width="7" height="18" rx="1.5" /></svg> <span className="hidden xl:inline">Chia màn</span></>}
+                      {m === "list" && <><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><circle cx="4" cy="6" r="1.5" /><circle cx="4" cy="12" r="1.5" /><circle cx="4" cy="18" r="1.5" /></svg> <span className="hidden xl:inline">Danh sách</span></>}
+                      {m === "map" && <><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" strokeLinejoin="round" /></svg> <span className="hidden xl:inline">Bản đồ</span></>}
+                    </button>
+                  ))}
+                </div>
+              }
+            >
+              <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 w-full">
+                {/* Loại hình bất động sản (Category) */}
                 <SearchableSelect
-                  options={wards.map(w => ({ value: String(w.code), label: w.name }))}
-                  value={wardId}
-                  onChange={(val) => updateParam("wardId", val)}
-                  placeholder="Phường/xã"
+                  options={CATEGORY_OPTIONS.map(c => ({ value: c.value, label: c.label }))}
+                  value={category}
+                  onChange={(val) => updateParam("category", val)}
+                  placeholder="Loại nhà đất"
                   variant="filter"
                   className="min-w-[120px] !text-xs h-9"
                 />
-              )}
 
-              {/* Khoảng giá */}
-              <SearchableSelect
-                options={PRICE_PRESETS.map(p => ({ value: p.min === "" && p.max === "" ? "" : `${p.min}-${p.max}`, label: p.label }))}
-                value={priceMin === "" && priceMax === "" ? "" : `${priceMin}-${priceMax}`}
-                onChange={(val) => {
-                  const p = new URLSearchParams(searchParams.toString());
-                  if (val === "") { p.delete("priceMin"); p.delete("priceMax"); }
-                  else { const [min, max] = val.split("-"); if (min) p.set("priceMin", min); else p.delete("priceMin"); if (max) p.set("priceMax", max); else p.delete("priceMax"); }
-                  router.push(`/tim-kiem?${p.toString()}`);
-                }}
-                placeholder="Mức giá"
-                variant="filter"
-                className="min-w-[120px] !text-xs h-9"
-              />
+                {/* Tỉnh/thành */}
+                <SearchableSelect
+                  options={provinces.map(p => ({ value: p.code ?? p.id, label: p.name }))}
+                  value={provinceId}
+                  onChange={(val) => { const p = new URLSearchParams(searchParams.toString()); if (val) p.set("provinceId", val); else p.delete("provinceId"); p.delete("wardId"); router.push(`/tim-kiem?${p.toString()}`); }}
+                  placeholder="Tỉnh/thành"
+                  variant="filter"
+                  className="min-w-[120px] !text-xs h-9"
+                />
 
-              {/* Diện tích */}
-              <SearchableSelect
-                options={AREA_PRESETS.map(a => ({ value: a.min === "" && a.max === "" ? "" : `${a.min}-${a.max}`, label: a.label }))}
-                value={areaMin === "" && areaMax === "" ? "" : `${areaMin}-${areaMax}`}
-                onChange={(val) => {
-                  const p = new URLSearchParams(searchParams.toString());
-                  if (val === "") { p.delete("areaMin"); p.delete("areaMax"); }
-                  else { const [min, max] = val.split("-"); if (min) p.set("areaMin", min); else p.delete("areaMin"); if (max) p.set("areaMax", max); else p.delete("areaMax"); }
-                  router.push(`/tim-kiem?${p.toString()}`);
-                }}
-                placeholder="Diện tích"
-                variant="filter"
-                className="min-w-[120px] !text-xs h-9"
-              />
-            </div>
-
-            {/* Bộ lọc thêm Toggle */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setFiltersOpen((o) => !o)}
-                className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-10 px-5 text-sm font-medium transition ${filtersOpen || direction || legalStatus || bedrooms
-                  ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
-                  : "border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--primary)]/50"
-                  }`}
-              >
-                <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-                Lọc thêm
-              </button>
-
-              <button
-                onClick={() => setViewMode(viewMode === "map" ? "list" : "map")}
-                className="flex md:hidden shrink-0 items-center justify-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] h-9 px-4 text-xs font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
-              >
-                {viewMode === "map" ? (
-                  <>
-                    <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
-                    Danh sách
-                  </>
-                ) : (
-                  <>
-                    <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg>
-                    Bản đồ
-                  </>
+                {/* Phường/xã */}
+                {provinceId && wards.length > 0 && (
+                  <SearchableSelect
+                    options={wards.map(w => ({ value: String(w.code), label: w.name }))}
+                    value={wardId}
+                    onChange={(val) => updateParam("wardId", val)}
+                    placeholder="Phường/xã"
+                    variant="filter"
+                    className="min-w-[120px] !text-xs h-9"
+                  />
                 )}
-              </button>
-            </div>
-          </UnifiedFilterBar>
 
-          {/* More filters panel */}
-          {filtersOpen && (
-            <div className="border-t border-[var(--border)] py-3 animate-fade-in-up">
-              <div className="flex flex-wrap items-end gap-5">
-                <div>
-                  <label className="mb-1.5 block text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Phòng ngủ</label>
-                  <div className="flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--card)] p-[3px]">
-                    {BEDROOM_OPTIONS.map((b) => (
-                      <button
-                        key={b.value}
-                        onClick={() => updateParam("bedrooms", b.value)}
-                        className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition ${bedrooms === b.value
-                          ? "bg-[var(--primary)] text-primary-foreground shadow-sm"
-                          : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]"
-                          }`}
-                      >
-                        {b.label}
-                      </button>
-                    ))}
+                {/* Khoảng giá */}
+                <SearchableSelect
+                  options={PRICE_PRESETS.map(p => ({ value: p.min === "" && p.max === "" ? "" : `${p.min}-${p.max}`, label: p.label }))}
+                  value={priceMin === "" && priceMax === "" ? "" : `${priceMin}-${priceMax}`}
+                  onChange={(val) => {
+                    const p = new URLSearchParams(searchParams.toString());
+                    if (val === "") { p.delete("priceMin"); p.delete("priceMax"); }
+                    else { const [min, max] = val.split("-"); if (min) p.set("priceMin", min); else p.delete("priceMin"); if (max) p.set("priceMax", max); else p.delete("priceMax"); }
+                    router.push(`/tim-kiem?${p.toString()}`);
+                  }}
+                  placeholder="Mức giá"
+                  variant="filter"
+                  className="min-w-[120px] !text-xs h-9"
+                />
+
+                {/* Diện tích */}
+                <SearchableSelect
+                  options={AREA_PRESETS.map(a => ({ value: a.min === "" && a.max === "" ? "" : `${a.min}-${a.max}`, label: a.label }))}
+                  value={areaMin === "" && areaMax === "" ? "" : `${areaMin}-${areaMax}`}
+                  onChange={(val) => {
+                    const p = new URLSearchParams(searchParams.toString());
+                    if (val === "") { p.delete("areaMin"); p.delete("areaMax"); }
+                    else { const [min, max] = val.split("-"); if (min) p.set("areaMin", min); else p.delete("areaMin"); if (max) p.set("areaMax", max); else p.delete("areaMax"); }
+                    router.push(`/tim-kiem?${p.toString()}`);
+                  }}
+                  placeholder="Diện tích"
+                  variant="filter"
+                  className="min-w-[120px] !text-xs h-9"
+                />
+              </div>
+
+              {/* Bộ lọc thêm Toggle */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setFiltersOpen((o) => !o)}
+                  className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-10 px-5 text-sm font-medium transition ${filtersOpen || direction || legalStatus || bedrooms
+                    ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                    : "border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--primary)]/50"
+                    }`}
+                >
+                  <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                  Lọc thêm
+                </button>
+
+                <button
+                  onClick={() => {
+                      const newMode = viewMode === "map" ? "list" : "map";
+                      setViewMode(newMode);
+                      if (newMode === "map") setIsFiltersExpanded(false); // Tự động thu gọn khi xem map
+                  }}
+                  className="flex md:hidden shrink-0 items-center justify-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] h-9 px-4 text-xs font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                >
+                  {viewMode === "map" ? (
+                    <>
+                      <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                      Danh sách
+                    </>
+                  ) : (
+                    <>
+                      <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg>
+                      Bản đồ
+                    </>
+                  )}
+                </button>
+              </div>
+            </UnifiedFilterBar>
+
+            {/* More filters panel */}
+            {filtersOpen && (
+              <div className="border-t border-[var(--border)] py-3 animate-fade-in-up px-4 md:px-10">
+                <div className="flex flex-wrap items-end gap-5">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Phòng ngủ</label>
+                    <div className="flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--card)] p-[3px]">
+                      {BEDROOM_OPTIONS.map((b) => (
+                        <button
+                          key={b.value}
+                          onClick={() => updateParam("bedrooms", b.value)}
+                          className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition ${bedrooms === b.value
+                            ? "bg-[var(--primary)] text-primary-foreground shadow-sm"
+                            : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]"
+                            }`}
+                        >
+                          {b.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Hướng</label>
+                    <select value={direction} onChange={(e) => updateParam("direction", e.target.value)} className="filter-select min-w-[130px] text-sm bg-[var(--card)] text-[var(--foreground)] dark:bg-[var(--card)] dark:text-[var(--foreground)]">
+                      <option value="">Tất cả hướng</option>
+                      {DIRECTION_OPTIONS.map((d) => (<option key={d} value={d}>{d}</option>))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Pháp lý</label>
+                    <select value={legalStatus} onChange={(e) => updateParam("legalStatus", e.target.value)} className="filter-select min-w-[130px] text-sm bg-[var(--card)] text-[var(--foreground)] dark:bg-[var(--card)] dark:text-[var(--foreground)]">
+                      <option value="">Tất cả</option>
+                      {LEGAL_OPTIONS.map((s) => (<option key={s} value={s}>{s}</option>))}
+                    </select>
                   </div>
                 </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Hướng</label>
-                  <select value={direction} onChange={(e) => updateParam("direction", e.target.value)} className="filter-select min-w-[130px] text-sm bg-[var(--card)] text-[var(--foreground)] dark:bg-[var(--card)] dark:text-[var(--foreground)]">
-                    <option value="">Tất cả hướng</option>
-                    {DIRECTION_OPTIONS.map((d) => (<option key={d} value={d}>{d}</option>))}
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Pháp lý</label>
-                  <select value={legalStatus} onChange={(e) => updateParam("legalStatus", e.target.value)} className="filter-select min-w-[130px] text-sm bg-[var(--card)] text-[var(--foreground)] dark:bg-[var(--card)] dark:text-[var(--foreground)]">
-                    <option value="">Tất cả</option>
-                    {LEGAL_OPTIONS.map((s) => (<option key={s} value={s}>{s}</option>))}
-                  </select>
+              </div>
+            )}
+            
+            {/* ── Active filter chips inside container ── */}
+            {activeChips.length > 0 && (
+              <div className="px-4 pb-3 md:px-10 mt-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-medium text-[var(--muted-foreground)] mr-1 hidden sm:inline">Đang lọc:</span>
+                  {activeChips.map((chip) => (
+                    <span key={chip.label} className="inline-flex items-center gap-1.5 rounded-full bg-[var(--primary)]/10 px-3 py-1 text-[11px] font-semibold text-[var(--primary)] border border-[var(--primary)]/20 shadow-sm">
+                      {chip.label}
+                      <button onClick={chip.onClear} className="ml-1 rounded-full p-0.5 transition hover:bg-[var(--primary)]/20 hover:text-[var(--destructive)]">
+                        <svg className="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </span>
+                  ))}
+                  <button onClick={resetAll} className="ml-2 rounded-full border-none text-[11px] font-semibold text-[var(--destructive)] transition hover:text-red-600 underline underline-offset-2">
+                    Xoá hết
+                  </button>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* ── Active filter chips ── */}
-        {activeChips.length > 0 && (
-          <div className="layout-container px-4 pb-3 md:px-10">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-[var(--muted-foreground)] mr-1">Đang lọc:</span>
-              {activeChips.map((chip) => (
-                <span key={chip.label} className="inline-flex items-center gap-1.5 rounded-full bg-[var(--primary)]/10 px-3 py-1.5 text-sm font-semibold text-[var(--primary)] border border-[var(--primary)]/20 shadow-sm">
-                  {chip.label}
-                  <button onClick={chip.onClear} className="ml-1 rounded-full p-0.5 transition hover:bg-[var(--primary)]/20 hover:text-[var(--destructive)]">
-                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
-                  </button>
-                </span>
-              ))}
-              <button onClick={resetAll} className="ml-2 rounded-full border-none text-sm font-semibold text-[var(--destructive)] transition hover:text-red-600 underline underline-offset-2">
-                Xoá tất cả
-              </button>
-            </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* ── Stats & AI Explanation ── */}

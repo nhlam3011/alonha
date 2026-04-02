@@ -14,7 +14,7 @@ const CATEGORY_OPTIONS = [
     { value: "", label: "Tất cả" },
     { value: "can-ho-chung-cu", label: "Căn hộ" },
     { value: "nha-rieng", label: "Nhà riêng" },
-    { value: "nha-mat-phong", label: "Nhà phố" },
+    { value: "nha-mat-pho", label: "Nhà phố" },
     { value: "dat-nen", label: "Đất nền" },
     { value: "biet-thu", label: "Biệt thự" },
     { value: "kho-nha-xuong", label: "Kho xưởng" },
@@ -84,7 +84,7 @@ export function ClientFilters({
 
     const keyword = searchParams.get("keyword") ?? "";
     const aiQuery = searchParams.get("aiQuery") ?? "";
-    const displayQuery = keyword || aiQuery;
+    const displayQuery = aiQuery || keyword;
     const loaiHinh = searchParams.get("loaiHinh") ?? "sale";
     const category = searchParams.get("category") ?? "";
     const provinceId = searchParams.get("provinceId") ?? "";
@@ -102,6 +102,7 @@ export function ClientFilters({
     const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
     const [wards, setWards] = useState<Ward[]>([]);
     const [aiLoading, setAiLoading] = useState(false);
+    const [isFiltersExpanded, setIsFiltersExpanded] = useState(false); // Mặc định thu gọn trên mobile
 
     useEffect(() => {
         if (!provinceId) {
@@ -138,34 +139,44 @@ export function ClientFilters({
         }
         setAiLoading(true);
         try {
-            const res = await fetch("/api/ai/search-parse", {
+            const res = await fetch("/api/ai/search-intent", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ query: q, mode: "listing" }),
+                body: JSON.stringify({ query: q }),
             });
             const data = await res.json();
+            const filters = data.filters || {};
 
             const params = new URLSearchParams();
-            params.set("loaiHinh", data.loaiHinh || "sale");
-            if (data.keyword) params.set("keyword", data.keyword);
-            params.set("aiQuery", q);
-            if (data.category) params.set("category", data.category);
-            if (data.bedrooms != null) params.set("bedrooms", String(data.bedrooms));
-            if (data.priceMin != null) params.set("priceMin", String(data.priceMin));
-            if (data.priceMax != null) params.set("priceMax", String(data.priceMax));
-            if (data.areaMin != null) params.set("areaMin", String(data.areaMin));
-            if (data.areaMax != null) params.set("areaMax", String(data.areaMax));
-            if (data.provinceName) {
-                const matched = provinces.find(
-                    (p) => p.name.toLowerCase().includes(data.provinceName.toLowerCase()) ||
-                        data.provinceName.toLowerCase().includes(p.name.toLowerCase())
-                );
+            params.set("loaiHinh", filters.loaiHinh || "sale");
+            if (filters.keyword) params.set("keyword", filters.keyword);
+            if (filters.category) params.set("category", filters.category);
+            if (filters.bedrooms != null) params.set("bedrooms", String(filters.bedrooms));
+            if (filters.priceMin != null) params.set("priceMin", String(filters.priceMin));
+            if (filters.priceMax != null) params.set("priceMax", String(filters.priceMax));
+            if (filters.areaMin != null) params.set("areaMin", String(filters.areaMin));
+            if (filters.areaMax != null) params.set("areaMax", String(filters.areaMax));
+
+            if (filters.province) {
+                const normalized = filters.province.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d");
+                const matched = provinces.find((p) => {
+                    const pn = p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d");
+                    return pn === normalized || pn.includes(normalized) || normalized.includes(pn);
+                });
                 if (matched) params.set("provinceId", matched.code || matched.id);
             }
+
+            if (filters.district) {
+                const existing = params.get("keyword");
+                params.set("keyword", [existing, filters.district].filter(Boolean).join(" "));
+            }
+
+            params.set("aiQuery", q);
             router.push(`${pathname}?${params.toString()}`, { scroll: false });
         } catch {
             const params = new URLSearchParams();
             params.set("keyword", q);
+            params.set("aiQuery", q);
             params.set("loaiHinh", "sale");
             router.push(`${pathname}?${params.toString()}`, { scroll: false });
         } finally {
@@ -196,7 +207,7 @@ export function ClientFilters({
         <>
             <div 
                 className="sticky z-30 border-b border-[var(--border)] bg-[var(--background)] shadow-sm"
-                style={{ top: 'var(--header-height, 72px)' }}
+                style={{ top: 'var(--header-visible-height, 72px)' }}
             >
                 <div className="layout-container px-4 md:px-10">
                     <UnifiedSearchHeader
@@ -223,106 +234,113 @@ export function ClientFilters({
                         onSearch={handleAiSearch}
                         aiLoading={aiLoading}
                         searchPlaceholder="Tìm kiếm..."
+                        isFiltersExpanded={isFiltersExpanded}
+                        onToggleFilters={() => {
+                            if (isFiltersExpanded) setMoreFiltersOpen(false);
+                            setIsFiltersExpanded(!isFiltersExpanded);
+                        }}
                     />
 
-                    <UnifiedFilterBar
-                        sortOptions={SORT_OPTIONS}
-                        activeSort={sort}
-                        onSortChange={(val) => updateFilters({ sort: val })}
-                        appendRight={
-                            <button
-                                onClick={() => {
-                                    const newMode = viewMode === "grid" ? "list" : "grid";
-                                    setViewMode(newMode);
-                                    document.cookie = `viewMode=${newMode}; path=/; max-age=31536000`;
-                                    router.refresh();
-                                }}
-                                className="md:hidden ml-auto flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)]"
-                            >
-                                {viewMode === "grid" ? (
-                                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
-                                ) : (
-                                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-                                )}
-                            </button>
-                        }
-                    >
-                        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 w-full">
-                            <SearchableSelect
-                                options={CATEGORY_OPTIONS.map(c => ({ value: c.value, label: c.label }))}
-                                value={category}
-                                onChange={(val) => updateFilters({ category: val })}
-                                placeholder="Loại nhà đất"
-                                variant="filter"
-                                className="min-w-[120px] !text-xs h-9"
-                            />
-
-                            <SearchableSelect
-                                options={provinces.map(p => ({ value: p.code || p.id, label: p.name }))}
-                                value={provinceId}
-                                onChange={(val) => updateFilters({ provinceId: val, wardId: null })}
-                                placeholder="Tỉnh/thành"
-                                variant="filter"
-                                className="min-w-[120px] !text-xs h-9"
-                            />
-
-                            {provinceId && wards.length > 0 && (
+                    <div className={`overflow-hidden transition-all duration-300 md:max-h-none ${isFiltersExpanded ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0 md:opacity-100"}`}>
+                        <UnifiedFilterBar
+                            sortOptions={SORT_OPTIONS}
+                            activeSort={sort}
+                            onSortChange={(val) => updateFilters({ sort: val })}
+                            appendRight={
+                                <button
+                                    onClick={() => {
+                                        const newMode = viewMode === "grid" ? "list" : "grid";
+                                        setViewMode(newMode);
+                                        document.cookie = `viewMode=${newMode}; path=/; max-age=31536000`;
+                                        router.refresh();
+                                    }}
+                                    className="md:hidden ml-auto flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)]"
+                                >
+                                    {viewMode === "grid" ? (
+                                        <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                                    ) : (
+                                        <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                                    )}
+                                </button>
+                            }
+                        >
+                            <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 w-full">
                                 <SearchableSelect
-                                    options={wards.map(w => ({ value: String(w.code), label: w.name }))}
-                                    value={wardId}
-                                    onChange={(val) => updateFilters({ wardId: val })}
-                                    placeholder="Phường/xã"
+                                    options={CATEGORY_OPTIONS.map(c => ({ value: c.value, label: c.label }))}
+                                    value={category}
+                                    onChange={(val) => updateFilters({ category: val })}
+                                    placeholder="Loại nhà đất"
                                     variant="filter"
                                     className="min-w-[120px] !text-xs h-9"
                                 />
-                            )}
 
-                            <SearchableSelect
-                                options={PRICE_PRESETS.map(p => ({ value: p.min === "" && p.max === "" ? "" : `${p.min}-${p.max}`, label: p.label }))}
-                                value={priceMin === "" && priceMax === "" ? "" : `${priceMin}-${priceMax}`}
-                                onChange={(val) => {
-                                    if (val === "") updateFilters({ priceMin: null, priceMax: null });
-                                    else { const [min, max] = val.split("-"); updateFilters({ priceMin: min, priceMax: max }); }
-                                }}
-                                placeholder="Mức giá"
-                                variant="filter"
-                                className="min-w-[120px] !text-xs h-9"
-                            />
+                                <SearchableSelect
+                                    options={provinces.map(p => ({ value: p.code || p.id, label: p.name }))}
+                                    value={provinceId}
+                                    onChange={(val) => updateFilters({ provinceId: val, wardId: null })}
+                                    placeholder="Tỉnh/thành"
+                                    variant="filter"
+                                    className="min-w-[120px] !text-xs h-9"
+                                />
 
-                            <SearchableSelect
-                                options={AREA_PRESETS.map(a => ({ value: a.min === "" && a.max === "" ? "" : `${a.min}-${a.max}`, label: a.label }))}
-                                value={areaMin === "" && areaMax === "" ? "" : `${areaMin}-${areaMax}`}
-                                onChange={(val) => {
-                                    if (val === "") updateFilters({ areaMin: null, areaMax: null });
-                                    else { const [min, max] = val.split("-"); updateFilters({ areaMin: min, areaMax: max }); }
-                                }}
-                                placeholder="Diện tích"
-                                variant="filter"
-                                className="min-w-[120px] !text-xs h-9"
-                            />
-                        </div>
+                                {provinceId && wards.length > 0 && (
+                                    <SearchableSelect
+                                        options={wards.map(w => ({ value: String(w.code), label: w.name }))}
+                                        value={wardId}
+                                        onChange={(val) => updateFilters({ wardId: val })}
+                                        placeholder="Phường/xã"
+                                        variant="filter"
+                                        className="min-w-[120px] !text-xs h-9"
+                                    />
+                                )}
 
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => setMoreFiltersOpen((o) => !o)}
-                                className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-10 px-5 text-sm font-medium transition ${moreFiltersOpen || direction || legalStatus || bedrooms
-                                    ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
-                                    : "border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--primary)]/50"
-                                    }`}
-                            >
-                                <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-                                Lọc thêm
-                            </button>
+                                <SearchableSelect
+                                    options={PRICE_PRESETS.map(p => ({ value: p.min === "" && p.max === "" ? "" : `${p.min}-${p.max}`, label: p.label }))}
+                                    value={priceMin === "" && priceMax === "" ? "" : `${priceMin}-${priceMax}`}
+                                    onChange={(val) => {
+                                        if (val === "") updateFilters({ priceMin: null, priceMax: null });
+                                        else { const [min, max] = val.split("-"); updateFilters({ priceMin: min, priceMax: max }); }
+                                    }}
+                                    placeholder="Mức giá"
+                                    variant="filter"
+                                    className="min-w-[120px] !text-xs h-9"
+                                />
 
-                            <Link
-                                href={buildMapLink()}
-                                className="flex md:hidden shrink-0 items-center justify-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] h-10 px-5 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
-                            >
-                                <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg>
-                                Bản đồ
-                            </Link>
-                        </div>
-                    </UnifiedFilterBar>
+                                <SearchableSelect
+                                    options={AREA_PRESETS.map(a => ({ value: a.min === "" && a.max === "" ? "" : `${a.min}-${a.max}`, label: a.label }))}
+                                    value={areaMin === "" && areaMax === "" ? "" : `${areaMin}-${areaMax}`}
+                                    onChange={(val) => {
+                                        if (val === "") updateFilters({ areaMin: null, areaMax: null });
+                                        else { const [min, max] = val.split("-"); updateFilters({ areaMin: min, areaMax: max }); }
+                                    }}
+                                    placeholder="Diện tích"
+                                    variant="filter"
+                                    className="min-w-[120px] !text-xs h-9"
+                                />
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setMoreFiltersOpen((o) => !o)}
+                                    className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-10 px-5 text-sm font-medium transition ${moreFiltersOpen || direction || legalStatus || bedrooms
+                                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                                        : "border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--primary)]/50"
+                                        }`}
+                                >
+                                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                                    Lọc thêm
+                                </button>
+
+                                <Link
+                                    href={buildMapLink()}
+                                    className="flex md:hidden shrink-0 items-center justify-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] h-10 px-5 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                                >
+                                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg>
+                                    Bản đồ
+                                </Link>
+                            </div>
+                        </UnifiedFilterBar>
+                    </div>
 
                     {moreFiltersOpen && (
                         <div className="border-t border-[var(--border)] py-3 animate-fade-in-up">

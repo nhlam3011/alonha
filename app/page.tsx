@@ -157,7 +157,7 @@ export default async function HomePage() {
             alt="Luxury Architecture"
             className="w-full h-full object-cover select-none scale-100 animate-pulse-slow origin-center"
             draggable={false}
-            style={{ animationDuration: '20s' }}
+            style={{ animationDuration: '10s' }}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/40 to-[var(--background)] z-10" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)] z-10" />

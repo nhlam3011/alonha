@@ -74,7 +74,7 @@ function canPostListing(role?: string) {
 }
 
 /* ─── Desktop Dropdown Item ─── */
-function NavDropdown({ item, isActive }: { item: NavItem; isActive: boolean }) {
+function NavDropdown({ item, isActive, disableDropdown }: { item: NavItem; isActive: boolean; disableDropdown?: boolean }) {
   const [open, setOpen] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const ref = useRef<HTMLDivElement>(null);
@@ -87,8 +87,8 @@ function NavDropdown({ item, isActive }: { item: NavItem; isActive: boolean }) {
     timeoutRef.current = setTimeout(() => setOpen(false), 150);
   };
 
-  // If no children, render a simple link
-  if (!item.children || item.children.length === 0) {
+  // If no children or dropdown is disabled, render a simple link
+  if (!item.children || item.children.length === 0 || disableDropdown) {
     return (
       <Link
         href={item.href}
@@ -113,12 +113,14 @@ function NavDropdown({ item, isActive }: { item: NavItem; isActive: boolean }) {
           }`}
       >
         {item.label}
-        <svg
-          className={`size-3.5 transition-transform duration-200 ${open ? "rotate-180" : ""} ${isActive ? "text-white/70" : "text-[var(--muted-foreground)]/60"}`}
-          fill="none" stroke="currentColor" viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-        </svg>
+        {!disableDropdown && (
+          <svg
+            className={`size-3.5 transition-transform duration-200 ${open ? "rotate-180" : ""} ${isActive ? "text-white/70" : "text-[var(--muted-foreground)]/60"}`}
+            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+          </svg>
+        )}
       </Link>
 
       {/* Dropdown panel */}
@@ -156,10 +158,10 @@ function NavDropdown({ item, isActive }: { item: NavItem; isActive: boolean }) {
 }
 
 /* ─── Mobile Accordion Item ─── */
-function MobileNavItem({ item, isActive, onClose }: { item: NavItem; isActive: boolean; onClose: () => void }) {
+function MobileNavItem({ item, isActive, onClose, disableDropdown }: { item: NavItem; isActive: boolean; onClose: () => void; disableDropdown?: boolean }) {
   const [expanded, setExpanded] = useState(false);
 
-  if (!item.children || item.children.length === 0) {
+  if (!item.children || item.children.length === 0 || disableDropdown) {
     return (
       <Link
         href={item.href}
@@ -178,19 +180,21 @@ function MobileNavItem({ item, isActive, onClose }: { item: NavItem; isActive: b
     <div>
       <button
         type="button"
-        onClick={() => setExpanded(!expanded)}
+        onClick={() => !disableDropdown && setExpanded(!expanded)}
         className={`w-full flex items-center justify-between px-4 py-3 text-[15px] font-semibold rounded-xl transition-colors ${isActive
           ? "bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white shadow-md shadow-[var(--primary)]/20"
           : "text-[var(--foreground)] hover:bg-[var(--muted)]"
           }`}
       >
         <span>{item.label}</span>
-        <svg
-          className={`size-4 transition-transform duration-200 ${expanded ? "rotate-180" : ""} ${isActive ? "text-white/70" : "text-[var(--muted-foreground)]"}`}
-          fill="none" stroke="currentColor" viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        {!disableDropdown && (
+          <svg
+            className={`size-4 transition-transform duration-200 ${expanded ? "rotate-180" : ""} ${isActive ? "text-white/70" : "text-[var(--muted-foreground)]"}`}
+            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        )}
       </button>
 
       {expanded && (
@@ -255,20 +259,26 @@ export function Header() {
     const updateHeaderHeight = () => {
       const banner = document.getElementById("announcement-banner");
       const navbar = document.getElementById("main-navbar");
+      let height = 0;
       if (banner && navbar) {
-        const height = banner.offsetHeight + navbar.offsetHeight;
-        document.documentElement.style.setProperty("--header-height", `${height}px`);
+        height = banner.offsetHeight + navbar.offsetHeight;
       } else if (navbar) {
-        document.documentElement.style.setProperty("--header-height", `${navbar.offsetHeight}px`);
+        height = navbar.offsetHeight;
       } else {
-        document.documentElement.style.setProperty("--header-height", "80px"); // Fallback
+        height = 80;
+      }
+      
+      const heightStr = `${height}px`;
+      document.documentElement.style.setProperty("--header-height", heightStr);
+      if (!hidden) {
+        document.documentElement.style.setProperty("--header-visible-height", heightStr);
       }
     };
 
     updateHeaderHeight();
     window.addEventListener("resize", updateHeaderHeight);
     return () => window.removeEventListener("resize", updateHeaderHeight);
-  }, [announcementText]);
+  }, [announcementText, hidden]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -276,8 +286,11 @@ export function Header() {
       setScrolled(currentScrollY > 10);
       if (currentScrollY > lastScrollY.current && currentScrollY > 60) {
         setHidden(true);
+        document.documentElement.style.setProperty("--header-visible-height", "0px");
       } else {
         setHidden(false);
+        const headerHeight = document.documentElement.style.getPropertyValue("--header-height");
+        document.documentElement.style.setProperty("--header-visible-height", headerHeight || "72px");
       }
       lastScrollY.current = currentScrollY;
     };
@@ -334,6 +347,7 @@ export function Header() {
                   key={item.href}
                   item={item}
                   isActive={isLinkActive(item.href)}
+                  disableDropdown={true}
                 />
               ))}
             </nav>
@@ -485,6 +499,7 @@ export function Header() {
                   item={item}
                   isActive={isLinkActive(item.href)}
                   onClose={() => setMobileOpen(false)}
+                  disableDropdown={true}
                 />
               ))}
             </nav>

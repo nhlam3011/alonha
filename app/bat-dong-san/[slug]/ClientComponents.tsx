@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { useEffect } from "react";
 
 export function PhoneContact({
     displayPhone,
@@ -18,7 +19,11 @@ export function PhoneContact({
     return (
         <>
             {showPhone ? (
-                <a href={`tel:${displayPhone}`} className="mt-4 block text-center text-lg font-semibold text-[var(--primary)]">
+                <a
+                    href={`tel:${displayPhone}`}
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--primary)]/10 py-3 text-center text-lg font-bold text-[var(--primary)] border border-[var(--primary)]/30 hover:bg-[var(--primary)] hover:text-white transition-all duration-300 dark:bg-[var(--primary)]/20 dark:text-[var(--primary)] dark:border-[var(--primary)]/40 hover:dark:bg-[var(--primary)] hover:dark:text-[var(--primary-foreground)]"
+                >
+                    <svg className="size-5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                     {displayPhone}
                 </a>
             ) : (
@@ -31,9 +36,10 @@ export function PhoneContact({
                         }
                         setShowPhone(true);
                     }}
-                    className="mt-4 w-full rounded-xl bg-[var(--primary)] py-3 font-semibold text-white hover:bg-[var(--primary-hover)] transition-colors"
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--primary)] py-3 font-bold text-white hover:bg-[var(--primary-hover)] shadow-lg shadow-[var(--primary)]/25 transition-all duration-300 active:scale-95"
                 >
-                    {maskedPhone} (Hiện số)
+                    <svg className="size-5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                    {maskedPhone}
                 </button>
             )}
 
@@ -41,7 +47,7 @@ export function PhoneContact({
                 href={`https://zalo.me/${displayPhone.replace(/\D/g, "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--border)] py-3 font-medium hover:bg-[var(--background)] transition-colors"
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] py-3 font-semibold text-[var(--foreground)] shadow-sm hover:border-[var(--primary)]/50 hover:bg-[var(--primary)] hover:text-white transition-all duration-300 dark:bg-white/5 dark:hover:bg-[var(--primary)]"
             >
                 Chat Zalo
             </a>
@@ -381,23 +387,27 @@ export function ImageGallery({ images, title }: { images: { url: string }[], tit
         document.body.style.overflow = "auto";
     };
 
+    const validImages = images.filter(img => img?.url && img.url !== "" && img.url !== "undefined");
+    const mainImg = validImages[0]?.url || "/images/placeholder-real-estate.png";
+    const placeholder = "/images/placeholder-real-estate.png";
+
     const nextImage = (e?: React.MouseEvent) => {
         e?.stopPropagation();
-        setCurrentIndex((prev) => (prev + 1) % images.length);
+        if (validImages.length === 0) return;
+        setCurrentIndex((prev) => (prev + 1) % validImages.length);
     };
 
     const prevImage = (e?: React.MouseEvent) => {
         e?.stopPropagation();
-        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+        if (validImages.length === 0) return;
+        setCurrentIndex((prev) => (prev - 1 + validImages.length) % validImages.length);
     };
-
-    const mainImg = images[0]?.url || "/images/placeholder-real-estate.png";
 
     return (
         <>
             <div className="relative grid grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)]">
                 {/* Main Image */}
-                <div 
+                <div
                     className="relative col-span-4 row-span-2 min-h-[240px] sm:col-span-2 sm:row-span-2 sm:aspect-auto sm:h-full group cursor-pointer"
                     onClick={() => openGallery(0)}
                 >
@@ -406,32 +416,36 @@ export function ImageGallery({ images, title }: { images: { url: string }[], tit
                             src={mainImg}
                             alt={title}
                             className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            onError={(e) => { e.currentTarget.src = placeholder; }}
                         />
                     </div>
-                    <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); openGallery(0); }}
-                        className="absolute bottom-3 right-3 rounded-lg bg-black/60 px-3 py-2 text-sm font-medium text-white hover:bg-black/80 sm:bottom-4 sm:right-4 backdrop-blur-sm transition-colors"
-                    >
-                        Xem tất cả ({images.length} ảnh)
-                    </button>
+                    {validImages.length > 0 && (
+                        <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); openGallery(0); }}
+                            className="absolute bottom-3 right-3 rounded-lg bg-black/60 px-3 py-2 text-sm font-medium text-white hover:bg-black/80 sm:bottom-4 sm:right-4 backdrop-blur-sm transition-colors"
+                        >
+                            Xem tất cả ({validImages.length} ảnh)
+                        </button>
+                    )}
                 </div>
-                
-                {/* Sub images for desktop */}
+
+                {/* Sub images for desktop - Chỉ render nếu có ảnh tương ứng */}
                 {[1, 2, 3, 4].map((i) => (
-                    <div 
-                        key={i} 
+                    <div
+                        key={i}
                         className="relative aspect-[4/3] hidden sm:block overflow-hidden cursor-pointer"
-                        onClick={() => openGallery(i < images.length ? i : 0)}
+                        onClick={() => openGallery(i < validImages.length ? i : 0)}
                     >
                         <img
-                            src={images[i]?.url || images[0]?.url || "/images/placeholder-real-estate.png"}
+                            src={validImages[i]?.url || placeholder}
                             alt=""
                             className="h-full w-full object-cover transition-transform duration-700 hover:scale-110"
+                            onError={(e) => { e.currentTarget.src = placeholder; }}
                         />
-                        {i === 4 && images.length > 5 && (
+                        {i === 4 && validImages.length > 5 && (
                             <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-xl font-bold text-white">
-                                +{images.length - 5}
+                                +{validImages.length - 5}
                             </div>
                         )}
                     </div>
@@ -440,7 +454,7 @@ export function ImageGallery({ images, title }: { images: { url: string }[], tit
 
             {/* Lightbox / Modal */}
             {isOpen && (
-                <div 
+                <div
                     className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 sm:p-10 backdrop-blur-sm"
                     onClick={closeGallery}
                     onKeyDown={(e) => {
@@ -450,34 +464,35 @@ export function ImageGallery({ images, title }: { images: { url: string }[], tit
                     }}
                     tabIndex={0}
                 >
-                    <button 
-                        onClick={closeGallery} 
+                    <button
+                        onClick={closeGallery}
                         className="absolute top-4 right-4 z-[110] rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition-colors"
                     >
                         <svg className="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
 
                     <div className="relative flex h-full w-full items-center justify-center" onClick={(e) => e.stopPropagation()}>
-                        <button 
-                            onClick={prevImage} 
+                        <button
+                            onClick={prevImage}
                             className="absolute left-0 z-[110] rounded-full bg-white/10 p-3 text-white hover:bg-white/20 sm:left-4"
                         >
                             <svg className="size-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                         </button>
 
                         <div className="relative max-h-full max-w-full overflow-hidden rounded-lg shadow-2xl">
-                            <img 
-                                src={images[currentIndex]?.url} 
-                                alt={`${title} - ${currentIndex + 1}`} 
+                            <img
+                                src={validImages[currentIndex]?.url || placeholder}
+                                alt={`${title} - ${currentIndex + 1}`}
                                 className="max-h-[85vh] object-contain"
+                                onError={(e) => { e.currentTarget.src = placeholder; }}
                             />
                             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-4 py-1.5 text-sm text-white">
-                                {currentIndex + 1} / {images.length}
+                                {currentIndex + 1} / {validImages.length}
                             </div>
                         </div>
 
-                        <button 
-                            onClick={nextImage} 
+                        <button
+                            onClick={nextImage}
                             className="absolute right-0 z-[110] rounded-full bg-white/10 p-3 text-white hover:bg-white/20 sm:right-4"
                         >
                             <svg className="size-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
@@ -485,17 +500,22 @@ export function ImageGallery({ images, title }: { images: { url: string }[], tit
                     </div>
 
                     {/* Thumbnails at bottom */}
-                    <div 
+                    <div
                         className="absolute bottom-6 left-0 right-0 hidden justify-center gap-2 overflow-x-auto px-4 py-2 sm:flex"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {images.map((img, idx) => (
-                            <button 
-                                key={idx} 
+                        {validImages.map((img, idx) => (
+                            <button
+                                key={idx}
                                 onClick={() => setCurrentIndex(idx)}
                                 className={`size-16 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${idx === currentIndex ? "border-[var(--primary)] scale-110 shadow-lg" : "border-transparent opacity-50 hover:opacity-100"}`}
                             >
-                                <img src={img.url} alt="" className="h-full w-full object-cover" />
+                                <img
+                                    src={img.url}
+                                    alt=""
+                                    className="h-full w-full object-cover"
+                                    onError={(e) => { e.currentTarget.src = placeholder; }}
+                                />
                             </button>
                         ))}
                     </div>
@@ -504,3 +524,4 @@ export function ImageGallery({ images, title }: { images: { url: string }[], tit
         </>
     );
 }
+

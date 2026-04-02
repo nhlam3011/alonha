@@ -60,7 +60,8 @@ export function ProjectClientFilters({
 
     const [viewMode, setViewMode] = useState<"grid" | "list">(initialViewMode);
     const [aiLoading, setAiLoading] = useState(false);
-    const [moreFiltersOpen, setMoreFiltersOpen] = useState(false); // Renamed filtersOpen to moreFiltersOpen
+    const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
+    const [isFiltersExpanded, setIsFiltersExpanded] = useState(false); // Thêm state thu gọn bộ lọc trên mobile
 
     const updateFilters = (updates: Record<string, string | null>) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -133,7 +134,7 @@ export function ProjectClientFilters({
         <>
             <div 
                 className="sticky z-30 border-b border-[var(--border)] bg-[var(--background)] shadow-sm"
-                style={{ top: 'var(--header-height, 72px)' }}
+                style={{ top: 'var(--header-visible-height, 72px)' }}
             >
                 <div className="layout-container px-4 md:px-10">
                     <UnifiedSearchHeader
@@ -155,142 +156,147 @@ export function ProjectClientFilters({
                         onSearch={handleSearch}
                         aiLoading={aiLoading}
                         searchPlaceholder="Tìm kiếm dự án bất động sản..."
+                        isFiltersExpanded={isFiltersExpanded}
+                        onToggleFilters={() => setIsFiltersExpanded(!isFiltersExpanded)}
                     />
 
-                    <UnifiedFilterBar
-                        sortOptions={SORT_OPTIONS}
-                        activeSort={sort}
-                        onSortChange={(val) => updateFilters({ sort: val })}
-                        appendRight={
-                            <button
-                                onClick={() => {
-                                    const newMode = viewMode === "grid" ? "list" : "grid";
-                                    setViewMode(newMode);
-                                    document.cookie = `project_viewMode=${newMode}; path=/; max-age=31536000`;
-                                    router.refresh();
-                                }}
-                                className="md:hidden ml-auto flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)]"
-                            >
-                                {viewMode === "grid" ? (
-                                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
-                                ) : (
-                                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-                                )}
-                            </button>
-                        }
-                    >
-                        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 w-full flex-1">
-                            {/* Trạng thái */}
-                            <SearchableSelect
-                                options={STATUS_OPTIONS.map(s => ({ value: s.value, label: s.label }))}
-                                value={status}
-                                onChange={(val) => updateFilters({ status: val })}
-                                placeholder="Trạng thái"
-                                variant="filter"
-                                className="min-w-[110px] !text-xs h-9"
-                            />
-
-                            {/* Tỉnh/thành */}
-                            <SearchableSelect
-                                options={provinces.map(p => ({ value: p.code || p.id, label: p.name }))}
-                                value={provinceId}
-                                onChange={(val) => updateFilters({ provinceId: val })}
-                                placeholder="Tỉnh/thành"
-                                variant="filter"
-                                className="min-w-[120px] !text-xs h-9"
-                            />
-
-                            {/* Nút Lọc thêm */}
-                            <div className="flex items-center gap-2">
+                    <div className={`overflow-hidden transition-all duration-300 md:max-h-none ${isFiltersExpanded ? "max-h-[500px] opacity-100 pb-3" : "max-h-0 opacity-0 md:opacity-100"}`}>
+                        <UnifiedFilterBar
+                            sortOptions={SORT_OPTIONS}
+                            activeSort={sort}
+                            onSortChange={(val) => updateFilters({ sort: val })}
+                            appendRight={
                                 <button
-                                    onClick={() => setMoreFiltersOpen((o) => !o)}
-                                    className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-10 px-5 text-sm font-medium transition ${moreFiltersOpen || status || provinceId
-                                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
-                                        : "border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--primary)]/50"
-                                        }`}
+                                    onClick={() => {
+                                        const newMode = viewMode === "grid" ? "list" : "grid";
+                                        setViewMode(newMode);
+                                        document.cookie = `project_viewMode=${newMode}; path=/; max-age=31536000`;
+                                        router.refresh();
+                                    }}
+                                    className="md:hidden ml-auto flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)]"
                                 >
-                                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-                                    Lọc thêm
+                                    {viewMode === "grid" ? (
+                                        <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                                    ) : (
+                                        <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                                    )}
                                 </button>
+                            }
+                        >
+                            <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 w-full flex-1">
+                                {/* Trạng thái */}
+                                <SearchableSelect
+                                    options={STATUS_OPTIONS.map(s => ({ value: s.value, label: s.label }))}
+                                    value={status}
+                                    onChange={(val) => updateFilters({ status: val })}
+                                    placeholder="Trạng thái"
+                                    variant="filter"
+                                    className="min-w-[110px] !text-xs h-9"
+                                />
 
-                                <Link
-                                    href={buildMapLink()}
-                                    className="flex md:hidden shrink-0 items-center justify-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] h-10 px-5 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
-                                >
-                                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg>
-                                    Bản đồ
-                                </Link>
-                            </div>
-                        </div>
-                    </UnifiedFilterBar>
+                                {/* Tỉnh/thành */}
+                                <SearchableSelect
+                                    options={provinces.map(p => ({ value: p.code || p.id, label: p.name }))}
+                                    value={provinceId}
+                                    onChange={(val) => updateFilters({ provinceId: val })}
+                                    placeholder="Tỉnh/thành"
+                                    variant="filter"
+                                    className="min-w-[120px] !text-xs h-9"
+                                />
 
-                    {/* Panel lọc mở rộng */}
-                    {moreFiltersOpen && ( // Changed filtersOpen to moreFiltersOpen
-                        <div className="border-t border-[var(--border)] py-3 animate-fade-in-up">
-                            <div className="flex flex-wrap items-end gap-4">
-                                {/* Diện tích */}
-                                <div>
-                                    <label className="mb-1.5 block text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Diện tích</label>
-                                    <SearchableSelect
-                                        options={AREA_PRESETS.map(a => ({ value: a.value, label: a.label }))}
-                                        value={areaMin === "" && areaMax === "" ? "" : `${areaMin}-${areaMax}`}
-                                        onChange={(val) => {
-                                            if (val === "") {
-                                                updateFilters({ areaMin: null, areaMax: null });
-                                            } else {
-                                                const [min, max] = val.split("-");
-                                                updateFilters({ areaMin: min || null, areaMax: max || null });
-                                            }
-                                        }}
-                                        placeholder="Diện tích"
-                                        variant="filter"
-                                        className="min-w-[120px] !text-xs h-9"
-                                    />
+                                {/* Nút Lọc thêm */}
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setMoreFiltersOpen((o) => !o)}
+                                        className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-10 px-5 text-sm font-medium transition ${moreFiltersOpen || status || provinceId
+                                            ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                                            : "border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--primary)]/50"
+                                            }`}
+                                    >
+                                        <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                                        Lọc thêm
+                                    </button>
+
+                                    <Link
+                                        href={buildMapLink()}
+                                        className="flex md:hidden shrink-0 items-center justify-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] h-10 px-5 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                                    >
+                                        <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg>
+                                        Bản đồ
+                                    </Link>
                                 </div>
-
-                                {/* Chủ đầu tư */}
-                                <div>
-                                    <label className="mb-1.5 block text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Chủ đầu tư</label>
-                                    <input
-                                        type="text"
-                                        value={developer}
-                                        onChange={(e) => updateFilters({ developer: e.target.value || null })}
-                                        placeholder="Tìm chủ đầu tư..."
-                                        className="min-w-[160px] text-xs h-9 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
-                                    />
-                                </div>
-
-                                {/* Nút reset */}
-                                <button
-                                    onClick={resetAll}
-                                    className="mb-0.5 rounded-lg px-4 py-2 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors"
-                                >
-                                    Xoá tất cả
-                                </button>
                             </div>
-                        </div>
-                    )}
-                </div>
-            </div>
+                        </UnifiedFilterBar>
 
-            {activeChips.length > 0 && (
-                <div className="layout-container px-4 pt-4 pb-2 md:px-10">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm font-medium text-[var(--muted-foreground)]">Đang lọc:</span>
-                        {activeChips.map((chip) => (
-                            <span key={chip.label} className="inline-flex items-center gap-1.5 rounded-full bg-[var(--primary)]/10 px-3 py-1.5 text-sm font-semibold text-[var(--primary)] border border-[var(--primary)]/20 shadow-sm">
-                                {chip.label}
-                                <button onClick={chip.onClear} className="ml-0.5 rounded-full p-0.5 transition hover:bg-[var(--primary)]/20 hover:text-red-500">
-                                    <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
-                                </button>
-                            </span>
-                        ))}
-                        <button onClick={resetAll} className="ml-1 rounded-full text-xs font-semibold text-red-500 hover:text-red-600 underline underline-offset-2 transition-colors">
-                            Xoá tất cả
-                        </button>
+                        {/* Panel lọc mở rộng */}
+                        {moreFiltersOpen && (
+                            <div className="border-t border-[var(--border)] py-3 animate-fade-in-up">
+                                <div className="flex flex-wrap items-end gap-4">
+                                    {/* Diện tích */}
+                                    <div>
+                                        <label className="mb-1.5 block text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Diện tích</label>
+                                        <SearchableSelect
+                                            options={AREA_PRESETS.map(a => ({ value: a.value, label: a.label }))}
+                                            value={areaMin === "" && areaMax === "" ? "" : `${areaMin}-${areaMax}`}
+                                            onChange={(val) => {
+                                                if (val === "") {
+                                                    updateFilters({ areaMin: null, areaMax: null });
+                                                } else {
+                                                    const [min, max] = val.split("-");
+                                                    updateFilters({ areaMin: min || null, areaMax: max || null });
+                                                }
+                                            }}
+                                            placeholder="Diện tích"
+                                            variant="filter"
+                                            className="min-w-[120px] !text-xs h-9"
+                                        />
+                                    </div>
+
+                                    {/* Chủ đầu tư */}
+                                    <div>
+                                        <label className="mb-1.5 block text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Chủ đầu tư</label>
+                                        <input
+                                            type="text"
+                                            value={developer}
+                                            onChange={(e) => updateFilters({ developer: e.target.value || null })}
+                                            placeholder="Tìm chủ đầu tư..."
+                                            className="min-w-[160px] text-xs h-9 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
+                                        />
+                                    </div>
+
+                                    {/* Nút reset */}
+                                    <button
+                                        onClick={resetAll}
+                                        className="mb-0.5 rounded-lg px-4 py-2 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors"
+                                    >
+                                        Xoá tất cả
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ── Active filter chips inside container ── */}
+                        {activeChips.length > 0 && (
+                            <div className="mt-3">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-[11px] font-medium text-[var(--muted-foreground)] mr-1 hidden sm:inline">Đang lọc:</span>
+                                    {activeChips.map((chip) => (
+                                        <span key={chip.label} className="inline-flex items-center gap-1.5 rounded-full bg-[var(--primary)]/10 px-3 py-1 text-[11px] font-semibold text-[var(--primary)] border border-[var(--primary)]/20 shadow-sm">
+                                            {chip.label}
+                                            <button onClick={chip.onClear} className="ml-0.5 rounded-full p-0.5 transition hover:bg-[var(--primary)]/20 hover:text-red-500">
+                                                <svg className="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                                            </button>
+                                        </span>
+                                    ))}
+                                    <button onClick={resetAll} className="ml-1 rounded-full text-[11px] font-semibold text-red-500 hover:text-red-600 underline underline-offset-2 transition-colors">
+                                        Xoá hết
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
-            )}
+            </div>
         </>
     );
 }

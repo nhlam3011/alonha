@@ -167,23 +167,92 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               </p>
             )}
 
-            {/* 3 stat boxes */}
-            <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-center shadow-sm">
-                <p className="text-2xl font-bold text-[var(--primary)]">{listing.bedrooms ?? "—"}</p>
-                <p className="text-sm text-[var(--muted-foreground)]">Phòng ngủ</p>
+            <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 md:gap-6">
+              {/* Bedrooms Card */}
+              <div className="group relative overflow-hidden rounded-2xl border border-[var(--primary)]/10 bg-[var(--primary)]/5 p-5 backdrop-blur-sm transition-all duration-300 hover:scale-[1.03] hover:shadow-xl hover:shadow-[var(--primary)]/5">
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <div className="rounded-full bg-white/50 p-2.5 text-[var(--primary)] shadow-sm dark:bg-[var(--card)]/50">
+                    <svg className="size-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 10V18C3 19.1046 3.89543 20 5 20H19C20.1046 20 21 19.1046 21 18V10M3 10L5 10M3 10L3 6C3 4.89543 3.89543 4 5 4H19C20.1046 4 21 4.89543 21 6V10M21 10L19 10M10 4V10M14 4V10M5 10H19" />
+                    </svg>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold tracking-tight text-[var(--primary)]">{listing.bedrooms ?? "—"}</p>
+                    <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted-foreground)]">Phòng ngủ</p>
+                  </div>
+                </div>
               </div>
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-center shadow-sm">
-                <p className="text-2xl font-bold text-[var(--primary)]">{listing.bathrooms ?? "—"}</p>
-                <p className="text-sm text-[var(--muted-foreground)]">Phòng tắm</p>
+
+              {/* Bathrooms Card */}
+              <div className="group relative overflow-hidden rounded-2xl border border-[var(--primary)]/10 bg-[var(--primary)]/5 p-5 backdrop-blur-sm transition-all duration-300 hover:scale-[1.03] hover:shadow-xl hover:shadow-[var(--primary)]/5">
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <div className="rounded-full bg-white/50 p-2.5 text-[var(--primary)] shadow-sm dark:bg-[var(--card)]/50">
+                    <svg className="size-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 11a1 1 0 0 1 1 1v1h14v-1a1 1 0 0 1 1-1 2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2zm10-3h4M7 8h4m-4 10a2 2 0 1 0 4 0a2 2 0 0 0-4 0zm10 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0z" />
+                    </svg>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold tracking-tight text-[var(--primary)]">{listing.bathrooms ?? "—"}</p>
+                    <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted-foreground)]">Phòng tắm</p>
+                  </div>
+                </div>
               </div>
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-center shadow-sm">
-                <p className="text-2xl font-bold text-[var(--primary)]">{listing.area} m²</p>
-                <p className="text-sm text-[var(--muted-foreground)]">Diện tích</p>
+
+              {/* Area Card */}
+              <div className="group relative col-span-2 overflow-hidden rounded-2xl border border-[var(--primary)]/10 bg-[var(--primary)]/5 p-5 backdrop-blur-sm transition-all duration-300 hover:scale-[1.03] hover:shadow-xl hover:shadow-[var(--primary)]/5 sm:col-span-1">
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <div className="rounded-full bg-white/50 p-2.5 text-[var(--primary)] shadow-sm dark:bg-[var(--card)]/50">
+                    <svg className="size-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold tracking-tight text-[var(--primary)]">{listing.area} m²</p>
+                    <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted-foreground)]">Diện tích</p>
+                  </div>
+                </div>
               </div>
             </div>
 
             <AIFeatures description={listing.description || ""} descShort={descShort} descFull={descFull} showMore={showMore} />
+
+            {/* Project Spotlight */}
+            {listing.project && (
+              <section className="mt-8 overflow-hidden rounded-2xl border border-[var(--border)] bg-gradient-to-br from-[var(--primary)]/5 to-transparent p-6 shadow-sm">
+                <div className="flex flex-col gap-6 md:flex-row md:items-center">
+                  <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-xl md:w-48">
+                    <ImageWithFallback
+                      src={listing.project.imageUrl || "/images/placeholder-project.png"}
+                      alt={listing.project.name}
+                      className="h-full w-full object-cover"
+                      fallbackSrc="/images/placeholder-project.png"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                       <span className="rounded-full bg-[var(--primary)]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Dự án Tiêu điểm</span>
+                       <h3 className="text-xl font-bold text-[var(--foreground)]">{listing.project.name}</h3>
+                    </div>
+                    <p className="mt-2 text-sm text-[var(--muted-foreground)] line-clamp-2">
+                      {listing.project.description || "Dự án cao cấp với đầy đủ tiện ích hiện đại, vị trí đắc địa."}
+                    </p>
+                    <div className="mt-4 flex flex-wrap items-center gap-4">
+                       <div className="flex items-center gap-1.5 text-xs text-[var(--foreground)] font-medium">
+                         <span className="text-[var(--primary)] opacity-70">🏢</span>
+                         {listing.project.developer || "Chủ đầu tư uy tín"}
+                       </div>
+                       <Link 
+                         href={`/du-an/${listing.project.slug}`}
+                         className="inline-flex items-center gap-1 text-sm font-bold text-[var(--primary)] hover:underline"
+                       >
+                         Xem chi tiết dự án
+                         <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                       </Link>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
 
             {/* Tiện ích & Đặc điểm */}
             <section className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
@@ -253,8 +322,8 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           {/* Sidebar: Liên hệ */}
           <div className="lg:col-span-1">
             <div 
-              className="sticky rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm"
-              style={{ top: 'calc(var(--header-height, 80px) + 1.5rem)' }}
+              className="sticky self-start rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm"
+              style={{ top: 'calc(var(--header-visible-height, 80px) + 1.5rem)' }}
             >
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] text-white overflow-hidden ring-2 ring-[var(--border)] shadow-md">
@@ -293,6 +362,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           </div>
         </div>
       </div>
+
     </div>
   );
 }
