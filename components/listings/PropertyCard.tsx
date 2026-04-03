@@ -120,7 +120,7 @@ export function PropertyCard({ listing, viewMode = "grid", onHover, onHoverEnd, 
   if (viewMode === "list") {
     return (
       <article
-        className={`group flex w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm transition-all duration-300 hover:border-[var(--primary)]/50 hover:shadow-lg hover:-translate-y-0.5 ${onClick ? 'cursor-pointer' : ''}`}
+        className={`group flex items-center w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm transition-all duration-300 hover:border-[var(--primary)]/50 hover:shadow-lg hover:-translate-y-0.5 ${onClick ? 'cursor-pointer' : ''}`}
         onMouseEnter={() => onHover?.(listing.id)}
         onMouseLeave={() => onHoverEnd?.()}
         onClick={handleItemClick}
@@ -128,7 +128,7 @@ export function PropertyCard({ listing, viewMode = "grid", onHover, onHoverEnd, 
         <Link
           href={href}
           onClick={handleItemClick}
-          className="relative shrink-0 overflow-hidden bg-[var(--muted)] aspect-square w-28 sm:w-[132px]"
+          className="relative shrink-0 overflow-hidden bg-[var(--muted)] w-24 h-24 sm:w-[132px] sm:h-[132px]"
         >
           <ImageWithFallback
             src={img}
@@ -141,11 +141,19 @@ export function PropertyCard({ listing, viewMode = "grid", onHover, onHoverEnd, 
             {listing.listingType === "SALE" ? "Bán" : "Thuê"}
           </span>
         </Link>
-        <div className="min-w-0 flex flex-1 flex-col gap-1.5 px-3 py-3 sm:gap-2 sm:py-3.5">
+        <div className="min-w-0 flex flex-1 flex-col gap-1 px-2.5 py-2.5 sm:gap-2 sm:py-3.5">
+          <div className="flex items-start justify-between gap-2">
+            <Link href={href} onClick={handleItemClick} className="flex-1 min-w-0">
+              <h3 className="mb-1 line-clamp-2 text-sm font-semibold leading-snug text-[var(--foreground)] transition-colors duration-200 group-hover:text-[var(--primary)]">
+                {listing.title}
+              </h3>
+            </Link>
+            <div className="shrink-0 md:opacity-0 md:-translate-y-2 md:group-hover:opacity-100 md:group-hover:translate-y-0 opacity-100 translate-y-0 transition-all duration-300">
+              <CompareButton listingId={listing.id} compact className="inline-flex items-center justify-center rounded-lg bg-[var(--card)] p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-bold text-[var(--foreground)] transition-transform hover:scale-105 border border-[var(--border)] shadow-sm" />
+            </div>
+          </div>
+
           <Link href={href} onClick={handleItemClick} className="block">
-            <h3 className="mb-1 line-clamp-2 text-sm font-semibold leading-snug text-[var(--foreground)] transition-colors duration-200 group-hover:text-[var(--primary)]">
-              {listing.title}
-            </h3>
             <div className="mb-1 flex items-center gap-2">
               <p className="text-base font-bold text-[var(--primary)] price-vnd">
                 {listing.price === 0 ? "Thỏa thuận" : formatPrice(listing.price)}
@@ -158,20 +166,17 @@ export function PropertyCard({ listing, viewMode = "grid", onHover, onHoverEnd, 
             </div>
           </Link>
 
-          <div className="flex flex-col gap-1.5 flex-1 relative">
-            <div className="absolute top-0 right-0 z-20 md:opacity-0 md:-translate-y-2 md:group-hover:opacity-100 md:group-hover:translate-y-0 opacity-100 translate-y-0 transition-all duration-300 drop-shadow-md">
-              <CompareButton listingId={listing.id} compact className="inline-flex items-center justify-center rounded-lg bg-[var(--card)] px-2.5 py-1.5 text-xs font-bold text-[var(--foreground)] transition-transform hover:scale-105 border border-[var(--border)]" />
-            </div>
-            <div className="flex flex-wrap items-center gap-2.5 text-xs text-[var(--muted-foreground)]">
+          <div className="flex flex-col gap-1.5 flex-1">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2.5 text-[11px] sm:text-xs text-[var(--muted-foreground)]">
               <span className="flex items-center gap-1 font-semibold text-[var(--foreground)]">
-                <svg className="size-3.5 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="size-3 sm:size-3.5 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                 </svg>
                 {listing.area} m²
               </span>
               {listing.bedrooms != null && (
                 <span className="flex items-center gap-1">
-                  <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                   </svg>
                   <span className="font-medium text-[var(--foreground)]">{listing.bedrooms}</span> PN
@@ -179,7 +184,7 @@ export function PropertyCard({ listing, viewMode = "grid", onHover, onHoverEnd, 
               )}
               {listing.bathrooms != null && (
                 <span className="flex items-center gap-1">
-                  <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
                   <span className="font-medium text-[var(--foreground)]">{listing.bathrooms}</span> WC
@@ -210,7 +215,7 @@ export function PropertyCard({ listing, viewMode = "grid", onHover, onHoverEnd, 
       onClick={handleItemClick}
     >
       {/* Image Container */}
-      <Link href={href} onClick={handleItemClick} className="relative aspect-[4/3] shrink-0 overflow-hidden bg-[var(--muted)]">
+      <Link href={href} onClick={handleItemClick} className="relative aspect-[16/10] shrink-0 overflow-hidden bg-[var(--muted)]">
         <ImageWithFallback
           src={img}
           alt={listing.title}
@@ -317,7 +322,7 @@ export function PropertyCard({ listing, viewMode = "grid", onHover, onHoverEnd, 
           </span>
           <span className="flex items-center gap-1 text-xs font-semibold text-[var(--primary)] transition-all duration-200 group-hover:gap-2">
             Xem chi tiết
-            <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="size-3.5 block sm:hidden text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
             </svg>
           </span>

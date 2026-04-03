@@ -271,7 +271,7 @@ export function ClientFilters({
                                     onChange={(val) => updateFilters({ category: val })}
                                     placeholder="Loại nhà đất"
                                     variant="filter"
-                                    className="min-w-[120px] !text-xs h-9"
+                                    className="min-w-[100px] md:min-w-[120px] !text-[11px] md:!text-xs h-8 md:h-9"
                                 />
 
                                 <SearchableSelect
@@ -280,7 +280,7 @@ export function ClientFilters({
                                     onChange={(val) => updateFilters({ provinceId: val, wardId: null })}
                                     placeholder="Tỉnh/thành"
                                     variant="filter"
-                                    className="min-w-[120px] !text-xs h-9"
+                                    className="min-w-[100px] md:min-w-[120px] !text-[11px] md:!text-xs h-8 md:h-9"
                                 />
 
                                 {provinceId && wards.length > 0 && (
@@ -290,7 +290,7 @@ export function ClientFilters({
                                         onChange={(val) => updateFilters({ wardId: val })}
                                         placeholder="Phường/xã"
                                         variant="filter"
-                                        className="min-w-[120px] !text-xs h-9"
+                                        className="min-w-[100px] md:min-w-[120px] !text-[11px] md:!text-xs h-8 md:h-9"
                                     />
                                 )}
 
@@ -303,7 +303,7 @@ export function ClientFilters({
                                     }}
                                     placeholder="Mức giá"
                                     variant="filter"
-                                    className="min-w-[120px] !text-xs h-9"
+                                    className="min-w-[100px] md:min-w-[120px] !text-[11px] md:!text-xs h-8 md:h-9"
                                 />
 
                                 <SearchableSelect
@@ -315,27 +315,28 @@ export function ClientFilters({
                                     }}
                                     placeholder="Diện tích"
                                     variant="filter"
-                                    className="min-w-[120px] !text-xs h-9"
+                                    className="min-w-[100px] md:min-w-[120px] !text-[11px] md:!text-xs h-8 md:h-9"
                                 />
                             </div>
 
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => setMoreFiltersOpen((o) => !o)}
-                                    className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-10 px-5 text-sm font-medium transition ${moreFiltersOpen || direction || legalStatus || bedrooms
+                                    className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-8 md:h-10 px-3 md:px-5 text-xs md:text-sm font-medium transition ${moreFiltersOpen || direction || legalStatus || bedrooms
                                         ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
                                         : "border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--primary)]/50"
                                         }`}
                                 >
-                                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-                                    Lọc thêm
+                                    <svg className="size-3.5 md:size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                                    <span className="hidden xs:inline">Lọc thêm</span>
+                                    <span className="xs:hidden">Lọc</span>
                                 </button>
 
                                 <Link
                                     href={buildMapLink()}
-                                    className="flex md:hidden shrink-0 items-center justify-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] h-10 px-5 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                                    className="flex md:hidden shrink-0 items-center justify-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] h-8 px-3 text-xs font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
                                 >
-                                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg>
+                                    <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg>
                                     Bản đồ
                                 </Link>
                             </div>

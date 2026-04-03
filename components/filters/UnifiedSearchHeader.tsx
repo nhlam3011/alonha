@@ -60,18 +60,18 @@ export function UnifiedSearchHeader({
     );
 
     return (
-        <div className="flex flex-col gap-3 py-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-2 py-2 md:py-3 md:gap-3 md:flex-row md:items-center md:justify-between">
             {/* ─── Left: Tabs & Count ─── */}
-            <div className={`flex items-center gap-4 ${!isFiltersExpanded ? "hidden md:flex" : "flex"}`}>
+            <div className={`flex items-center gap-2 md:gap-4 ${!isFiltersExpanded ? "hidden md:flex" : "flex"}`}>
                 {tabs && tabs.length > 0 && (
-                    <div className="flex rounded-xl border border-[var(--border)] bg-[var(--card)] p-1">
+                    <div className="flex rounded-xl border border-[var(--border)] bg-[var(--card)] p-0.5 md:p-1">
                         {tabs.map((tab) => {
                             const isActive = activeTab === tab.value;
                             return (
                                 <button
                                     key={tab.value}
                                     onClick={() => onTabChange?.(tab.value)}
-                                    className={`rounded-lg px-4 py-1.5 text-sm font-semibold transition-all ${isActive
+                                    className={`rounded-lg px-2.5 py-1.5 md:px-4 text-xs md:text-sm font-semibold transition-all ${isActive
                                         ? tab.colorClass || "bg-[var(--primary)] text-white shadow-sm"
                                         : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                                         }`}
@@ -84,19 +84,21 @@ export function UnifiedSearchHeader({
                 )}
 
                 {!hideCount && (
-                    <div className="flex items-center gap-1.5 md:gap-2">
-                        <span className="text-base sm:text-xl font-bold text-[var(--foreground)]">
+                    <div className="flex items-center gap-1 md:gap-2">
+                        <span className="text-base md:text-xl font-bold text-[var(--foreground)]">
                             {loading ? "..." : total.toLocaleString("vi-VN")}
                         </span>
-                        <span className="text-xs sm:text-sm text-[var(--muted-foreground)] whitespace-nowrap">{unitLabel}</span>
+                        <span className="text-[10px] md:text-sm text-[var(--muted-foreground)] whitespace-nowrap">
+                            {unitLabel}
+                        </span>
                     </div>
                 )}
             </div>
 
             {/* ─── Right: Search & View Modes ─── */}
-            <div className="flex flex-1 items-center justify-end gap-3 min-w-0 md:max-w-xl lg:max-w-max">
+            <div className="flex flex-1 items-center justify-end gap-2 md:gap-3 min-w-0 md:max-w-xl lg:max-w-max">
                 {onSearch && (
-                    <div className="flex h-11 flex-1 items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--card)] px-2 transition-all focus-within:border-[var(--primary)] focus-within:ring-2 focus-within:ring-[var(--primary)]/20 md:max-w-xl lg:max-w-lg shadow-sm">
+                    <div className="flex h-10 md:h-11 flex-1 items-center gap-1.5 md:gap-2 rounded-2xl border border-[var(--border)] bg-[var(--card)] px-1.5 md:px-2 transition-all focus-within:border-[var(--primary)] focus-within:ring-2 focus-within:ring-[var(--primary)]/20 md:max-w-xl lg:max-w-lg shadow-sm">
                         <div className="pl-2 pr-1 text-[var(--muted-foreground)] shrink-0">
                             <svg
                                 className="h-5 w-5"
@@ -114,7 +116,7 @@ export function UnifiedSearchHeader({
                             placeholder={searchPlaceholder}
                             defaultValue={keyword}
                             onKeyDown={handleKeyDown}
-                            className="h-full min-w-0 flex-1 bg-transparent border-none text-base sm:text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted-foreground)]/60 font-medium"
+                            className="h-full min-w-0 flex-1 bg-transparent border-none text-base md:text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted-foreground)]/60 font-medium"
                         />
                         <button
                             disabled={aiLoading}
@@ -122,12 +124,15 @@ export function UnifiedSearchHeader({
                                 const input = document.querySelector('input[placeholder="' + searchPlaceholder + '"]') as HTMLInputElement;
                                 if (input) onSearch(input.value);
                             }}
-                            className="h-8 shrink-0 rounded-xl bg-[var(--primary)] px-4 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50 flex items-center justify-center min-w-[60px] shadow-sm shadow-[var(--primary)]/20"
+                            className="h-8 shrink-0 rounded-xl bg-[var(--primary)] px-2.5 md:px-4 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50 flex items-center justify-center min-w-[36px] md:min-w-[60px] shadow-sm shadow-[var(--primary)]/20"
                         >
                             {aiLoading ? (
                                 <span className="h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
                             ) : (
-                                "Tìm"
+                                <>
+                                    <span className="hidden xs:inline">Tìm</span>
+                                    <svg className="size-4 xs:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" /></svg>
+                                </>
                             )}
                         </button>
 

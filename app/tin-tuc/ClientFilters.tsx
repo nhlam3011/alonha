@@ -67,6 +67,9 @@ export function NewsClientFilters({
         >
             <div className="layout-container px-4 md:px-10">
                 <UnifiedSearchHeader
+                    tabs={[{ value: "tin-tuc", label: "Tin tức", colorClass: "bg-[var(--primary)] text-primary-foreground shadow-sm" }]}
+                    activeTab="tin-tuc"
+                    onTabChange={() => { }}
                     total={total}
                     loading={false}
                     unitLabel="bài viết"
@@ -78,46 +81,12 @@ export function NewsClientFilters({
                     onToggleFilters={() => setIsFiltersExpanded(!isFiltersExpanded)}
                 />
 
-                <div className={`overflow-hidden transition-all duration-300 md:max-h-none ${isFiltersExpanded ? "max-h-[200px] opacity-100 pb-2" : "max-h-0 opacity-0 md:opacity-100"}`}>
-                    {/* Filter Bar Redesign */}
-                    <div className="flex items-center justify-between py-2 border-t border-[var(--border)] gap-4">
-                        {/* Left: Category & Source Filters */}
-                        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none flex-1">
-                            <SearchableSelect
-                                options={NEWS_CATEGORIES}
-                                value={selectedCategory}
-                                onChange={(val) => updateFilters({ category: val })}
-                                placeholder="Danh mục"
-                                variant="filter"
-                                className="min-w-[120px] !text-xs h-9"
-                            />
-                            <SearchableSelect
-                                options={[{ value: "", label: "Tất cả nguồn" }, ...sources.map(s => ({ value: s.id, label: s.name }))]}
-                                value={selectedSource}
-                                onChange={(val) => updateFilters({ source: val })}
-                                placeholder="Nguồn tin"
-                                variant="filter"
-                                className="min-w-[140px] !text-xs h-9"
-                            />
-                        </div>
-
-                        {/* Right: Sort & View Toggle */}
-                        <div className="flex items-center gap-4 shrink-0">
-                            {/* Native Sort Dropdown */}
-                            <div className="relative flex items-center group cursor-pointer">
-                                <select
-                                    value={sort}
-                                    onChange={(e) => updateFilters({ sort: e.target.value })}
-                                    className="appearance-none bg-transparent border-none text-[15px] font-medium text-[var(--foreground)] pr-7 py-2 focus:ring-0 cursor-pointer outline-none z-10"
-                                >
-                                    {SORT_OPTIONS.map((o) => (
-                                        <option key={o.value} value={o.value}>{o.label}</option>
-                                    ))}
-                                </select>
-                                <svg className="size-4 text-[var(--muted-foreground)] absolute right-1 group-hover:text-[var(--primary)] transition-colors pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                            </div>
-
-                            {/* View Mode Toggle */}
+                <div className={`overflow-hidden transition-all duration-300 md:max-h-none ${isFiltersExpanded ? "max-h-[500px] opacity-100 pb-3" : "max-h-0 opacity-0 md:opacity-100"}`}>
+                    <UnifiedFilterBar
+                        sortOptions={SORT_OPTIONS}
+                        activeSort={sort}
+                        onSortChange={(val) => updateFilters({ sort: val })}
+                        appendRight={
                             <button
                                 onClick={() => {
                                     const newMode = viewMode === "grid" ? "list" : "grid";
@@ -125,7 +94,7 @@ export function NewsClientFilters({
                                     document.cookie = `news_viewMode=${newMode}; path=/; max-age=31536000`;
                                     router.refresh();
                                 }}
-                                className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] bg-white dark:bg-[var(--card)] shadow-sm hover:shadow-md hover:border-[var(--primary)] text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-all"
+                                className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full border border-[var(--border)] bg-white dark:bg-[var(--card)] shadow-sm hover:shadow-md hover:border-[var(--primary)] text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-all"
                                 title={viewMode === "grid" ? "Chuyển sang dạng danh sách" : "Chuyển sang dạng lưới"}
                             >
                                 {viewMode === "grid" ? (
@@ -134,8 +103,27 @@ export function NewsClientFilters({
                                     <svg className="size-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 6h16M4 12h16M4 18h16" /></svg>
                                 )}
                             </button>
+                        }
+                    >
+                        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 w-full flex-1">
+                            <SearchableSelect
+                                options={NEWS_CATEGORIES}
+                                value={selectedCategory}
+                                onChange={(val) => updateFilters({ category: val })}
+                                placeholder="Danh mục"
+                                variant="filter"
+                                className="min-w-[100px] md:min-w-[120px] !text-[11px] md:!text-xs h-8 md:h-9"
+                            />
+                            <SearchableSelect
+                                options={[{ value: "", label: "Tất cả nguồn" }, ...sources.map(s => ({ value: s.id, label: s.name }))]}
+                                value={selectedSource}
+                                onChange={(val) => updateFilters({ source: val })}
+                                placeholder="Nguồn tin"
+                                variant="filter"
+                                className="min-w-[120px] md:min-w-[140px] !text-[11px] md:!text-xs h-8 md:h-9"
+                            />
                         </div>
-                    </div>
+                    </UnifiedFilterBar>
                 </div>
             </div>
         </div>

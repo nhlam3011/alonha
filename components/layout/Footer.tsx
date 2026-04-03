@@ -33,17 +33,17 @@ function FooterCollapsible({ title, children }: { title: string; children: React
     <div className="border-b border-[var(--border)] sm:border-none">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between py-4 sm:cursor-default sm:py-0 sm:pointer-events-none"
+        className="flex w-full items-center justify-between px-3 sm:px-0 py-4 sm:cursor-default sm:py-0 sm:pointer-events-none"
       >
         <h3 className="text-sm font-bold text-[var(--foreground)]">{title}</h3>
         <svg
-          className={`size-4 text-[var(--muted-foreground)] transition-transform duration-300 sm:hidden ${isOpen ? "rotate-180" : ""}`}
+          className={`block size-4 text-[var(--muted-foreground)] transition-transform duration-300 sm:hidden ${isOpen ? "rotate-180" : ""}`}
           fill="none" stroke="currentColor" viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
-      <div className={`overflow-hidden transition-all duration-300 sm:max-h-none ${isOpen ? "max-h-96 pb-4" : "max-h-0 sm:mt-4"}`}>
+      <div className={`overflow-hidden transition-all duration-300 sm:max-h-none px-3 sm:px-0 ${isOpen ? "max-h-96 pb-4" : "max-h-0 sm:mt-4"}`}>
         <ul className="space-y-3">
           {children}
         </ul>
@@ -60,7 +60,7 @@ export function Footer() {
   const companyName = get("company_name", "AloNha. Cu Tien Nam");
   const footerDesc = get("footer_description", "Nền tảng bất động sản thông minh ứng dụng AI, giúp bạn tìm kiếm và kết nối nhanh chóng.");
   const supportEmail = get("contact_email");
-  
+
   const socialLinksDynamic = [
     { href: get("social_facebook", "#"), label: "Facebook" },
     { href: get("social_tiktok", "#"), label: "TikTok" },
@@ -95,9 +95,9 @@ export function Footer() {
 
       {/* Main Footer */}
       <div className="layout-container relative z-10 py-16">
-        <div className="grid gap-12 lg:grid-cols-4">
+        <div className="grid gap-8 lg:gap-12 lg:grid-cols-12">
           {/* Brand */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-4">
             <Link href="/" className="flex items-center gap-2.5 group mb-4">
               <div className="relative w-32 h-10 bg-[var(--logo-bg)] rounded-md p-1">
                 <Image
@@ -109,7 +109,7 @@ export function Footer() {
                 />
               </div>
             </Link>
-            <p className="text-sm text-[var(--muted-foreground)] leading-relaxed max-w-xs mb-6">
+            <p className="text-sm text-[var(--muted-foreground)] leading-relaxed max-w-sm mb-6">
               {footerDesc}
             </p>
 
@@ -139,8 +139,8 @@ export function Footer() {
           </div>
 
           {/* Links */}
-          <div className="lg:col-span-3">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 sm:gap-8">
+          <div className="lg:col-span-8">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 sm:gap-8 lg:gap-12">
               <FooterCollapsible title="Khám phá">
                 {footerLinks.explore.map(({ href, label }) => (
                   <li key={href}>

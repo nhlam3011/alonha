@@ -265,10 +265,8 @@ export default async function ListingsPage({
   if (legalStatus) andConditions.push({ legalStatus: { contains: legalStatus.trim(), mode: "insensitive" } });
 
   const where: Prisma.ListingWhereInput = {
-    // Nếu trong DB không có tin đã duyệt, cho phép xem tất cả (cho dev/demo)
-    // Hoặc giữ nguyên logic chặt chẽ nhưng thêm fallback
-    status: { in: [APPROVED, "PENDING", "DRAFT"] }, 
-    publishedAt: { not: undefined }, // Relax this for now
+    status: APPROVED,
+    publishedAt: { not: null },
     AND: andConditions.length > 0 ? andConditions : undefined,
   };
 

@@ -382,7 +382,7 @@ function SearchContent() {
                   onChange={(val) => updateParam("category", val)}
                   placeholder="Loại nhà đất"
                   variant="filter"
-                  className="min-w-[120px] !text-xs h-9"
+                  className="min-w-[100px] md:min-w-[120px] !text-[11px] md:!text-xs h-8 md:h-9"
                 />
 
                 {/* Tỉnh/thành */}
@@ -392,7 +392,7 @@ function SearchContent() {
                   onChange={(val) => { const p = new URLSearchParams(searchParams.toString()); if (val) p.set("provinceId", val); else p.delete("provinceId"); p.delete("wardId"); router.push(`/tim-kiem?${p.toString()}`); }}
                   placeholder="Tỉnh/thành"
                   variant="filter"
-                  className="min-w-[120px] !text-xs h-9"
+                  className="min-w-[100px] md:min-w-[120px] !text-[11px] md:!text-xs h-8 md:h-9"
                 />
 
                 {/* Phường/xã */}
@@ -403,7 +403,7 @@ function SearchContent() {
                     onChange={(val) => updateParam("wardId", val)}
                     placeholder="Phường/xã"
                     variant="filter"
-                    className="min-w-[120px] !text-xs h-9"
+                    className="min-w-[100px] md:min-w-[120px] !text-[11px] md:!text-xs h-8 md:h-9"
                   />
                 )}
 
@@ -419,7 +419,7 @@ function SearchContent() {
                   }}
                   placeholder="Mức giá"
                   variant="filter"
-                  className="min-w-[120px] !text-xs h-9"
+                  className="min-w-[100px] md:min-w-[120px] !text-[11px] md:!text-xs h-8 md:h-9"
                 />
 
                 {/* Diện tích */}
@@ -434,7 +434,7 @@ function SearchContent() {
                   }}
                   placeholder="Diện tích"
                   variant="filter"
-                  className="min-w-[120px] !text-xs h-9"
+                  className="min-w-[100px] md:min-w-[120px] !text-[11px] md:!text-xs h-8 md:h-9"
                 />
               </div>
 
@@ -442,13 +442,14 @@ function SearchContent() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setFiltersOpen((o) => !o)}
-                  className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-10 px-5 text-sm font-medium transition ${filtersOpen || direction || legalStatus || bedrooms
+                  className={`flex shrink-0 items-center justify-center gap-1 md:gap-1.5 rounded-full border h-8 md:h-10 px-3 md:px-5 text-xs md:text-sm font-medium transition ${filtersOpen || direction || legalStatus || bedrooms
                     ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
                     : "border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--primary)]/50"
                     }`}
                 >
-                  <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-                  Lọc thêm
+                  <svg className="size-3.5 md:size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                  <span className="hidden xs:inline">Lọc thêm</span>
+                  <span className="xs:hidden">Lọc</span>
                 </button>
 
                 <button
@@ -457,7 +458,7 @@ function SearchContent() {
                       setViewMode(newMode);
                       if (newMode === "map") setIsFiltersExpanded(false); // Tự động thu gọn khi xem map
                   }}
-                  className="flex md:hidden shrink-0 items-center justify-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] h-9 px-4 text-xs font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                  className="flex md:hidden shrink-0 items-center justify-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] h-8 px-3 text-xs font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
                 >
                   {viewMode === "map" ? (
                     <>
@@ -538,20 +539,20 @@ function SearchContent() {
 
       {/* ── Stats & AI Explanation ── */}
       <div className="flex flex-col z-20 shrink-0">
-        <div className={`overflow-hidden bg-[var(--card)] transition-all duration-300 ease-in-out border-b border-[var(--border)] ${aiExplanation ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0 border-transparent'}`}>
-          <div className="flex items-center gap-2 px-4 py-3 bg-[var(--primary)]/5 text-sm md:text-base">
-            <div className="w-8 h-8 rounded-full bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
-              <svg className="w-4 h-4 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+        <div className={`overflow-hidden bg-[var(--card)] transition-all duration-300 ease-in-out border-b border-[var(--border)] ${aiExplanation ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0 border-transparent'}`}>
+          <div className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 bg-[var(--primary)]/5 text-xs md:text-base">
+            <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+              <svg className="w-3.5 h-3.5 md:w-4 md:h-4 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
             </div>
-            <span className="text-[var(--primary)] font-semibold flex-1 leading-snug break-words">AI đã lọc: {aiExplanation}</span>
-            <button onClick={() => setAiExplanation("")} className="w-8 h-8 flex items-center justify-center text-[var(--primary)]/50 hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-full transition-colors text-xl">×</button>
+            <span className="text-[var(--primary)] font-semibold flex-1 leading-snug break-words">AI: {aiExplanation}</span>
+            <button onClick={() => setAiExplanation("")} className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center text-[var(--primary)]/50 hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-full transition-colors text-lg md:text-xl">×</button>
           </div>
         </div>
 
         {/* Removed stats text total.toLocaleString from here, keeping it inside active tabs / list panel below or leave out. We can put it back as a small bar if needed */}
         {mapListings.length > 0 && mapListings.length < total && (
-          <div className="px-5 py-2 text-sm bg-[var(--card)] text-[var(--muted-foreground)] border-b border-[var(--border)] font-medium">
-            Hiển thị {mapListings.length} mốc trên bản đồ / {total} kết quả phù hợp
+          <div className="px-3 md:px-5 py-1.5 md:py-2 text-[11px] md:text-sm bg-[var(--card)] text-[var(--muted-foreground)] border-b border-[var(--border)] font-medium">
+            {mapListings.length} điểm / {total} kết quả
           </div>
         )}
       </div>

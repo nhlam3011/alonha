@@ -18,7 +18,7 @@ export function UnifiedFilterBar({
     appendRight,
 }: UnifiedFilterBarProps) {
     return (
-        <div className="flex flex-wrap items-center gap-2 py-2 w-full relative">
+        <div className="flex flex-wrap items-center gap-1.5 md:gap-2 py-1 md:py-2 w-full relative">
             {/* Container chứa các filter component (select, dropdown) do cha truyền vào */}
             {children}
 
@@ -27,7 +27,7 @@ export function UnifiedFilterBar({
                     <select
                         value={activeSort || ""}
                         onChange={(e) => onSortChange(e.target.value)}
-                        className="filter-select !shadow-none !border-none bg-transparent hover:!border-none focus:!border-none focus:!ring-0 min-w-[120px]"
+                        className="filter-select !shadow-none !border-none bg-transparent hover:!border-none focus:!border-none focus:!ring-0 min-w-[100px] md:min-w-[120px]"
                     >
                         {sortOptions.map((o) => (
                             <option key={o.value} value={o.value}>

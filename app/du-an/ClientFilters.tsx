@@ -132,7 +132,7 @@ export function ProjectClientFilters({
 
     return (
         <>
-            <div 
+            <div
                 className="sticky z-30 border-b border-[var(--border)] bg-[var(--background)] shadow-sm"
                 style={{ top: 'var(--header-visible-height, 72px)' }}
             >
@@ -191,7 +191,7 @@ export function ProjectClientFilters({
                                     onChange={(val) => updateFilters({ status: val })}
                                     placeholder="Trạng thái"
                                     variant="filter"
-                                    className="min-w-[110px] !text-xs h-9"
+                                    className="min-w-[100px] md:min-w-[110px] !text-[11px] md:!text-xs h-8 md:h-9"
                                 />
 
                                 {/* Tỉnh/thành */}
@@ -201,27 +201,28 @@ export function ProjectClientFilters({
                                     onChange={(val) => updateFilters({ provinceId: val })}
                                     placeholder="Tỉnh/thành"
                                     variant="filter"
-                                    className="min-w-[120px] !text-xs h-9"
+                                    className="min-w-[100px] md:min-w-[120px] !text-[11px] md:!text-xs h-8 md:h-9"
                                 />
 
                                 {/* Nút Lọc thêm */}
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => setMoreFiltersOpen((o) => !o)}
-                                        className={`flex shrink-0 items-center justify-center gap-1.5 rounded-full border h-10 px-5 text-sm font-medium transition ${moreFiltersOpen || status || provinceId
+                                        className={`flex shrink-0 items-center justify-center gap-1 md:gap-1.5 rounded-full border h-8 md:h-10 px-3 md:px-5 text-xs md:text-sm font-medium transition ${moreFiltersOpen || status || provinceId
                                             ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
                                             : "border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:border-[var(--primary)]/50"
                                             }`}
                                     >
-                                        <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-                                        Lọc thêm
+                                        <svg className="size-3.5 md:size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                                        <span className="hidden xs:inline">Lọc thêm</span>
+                                        <span className="xs:hidden">Lọc</span>
                                     </button>
 
                                     <Link
                                         href={buildMapLink()}
-                                        className="flex md:hidden shrink-0 items-center justify-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] h-10 px-5 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                                        className="flex md:hidden shrink-0 items-center justify-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] h-8 px-3 text-xs font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
                                     >
-                                        <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg>
+                                        <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg>
                                         Bản đồ
                                     </Link>
                                 </div>
