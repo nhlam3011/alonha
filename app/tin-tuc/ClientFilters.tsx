@@ -61,7 +61,7 @@ export function NewsClientFilters({
     };
 
     return (
-        <div 
+        <div
             className="sticky z-30 border-b border-[var(--border)] bg-[var(--background)] shadow-sm"
             style={{ top: 'var(--header-visible-height, 72px)' }}
         >
@@ -77,6 +77,14 @@ export function NewsClientFilters({
                     onSearch={handleSearch}
                     aiLoading={aiLoading}
                     searchPlaceholder="Tìm kiếm tin tức..."
+                    viewMode={viewMode}
+                    onViewChange={(mode) => {
+                        if (mode === "grid" || mode === "list") {
+                            setViewMode(mode);
+                            document.cookie = `news_viewMode=${mode}; path=/; max-age=31536000`;
+                            router.refresh();
+                        }
+                    }}
                     isFiltersExpanded={isFiltersExpanded}
                     onToggleFilters={() => setIsFiltersExpanded(!isFiltersExpanded)}
                 />
@@ -94,13 +102,12 @@ export function NewsClientFilters({
                                     document.cookie = `news_viewMode=${newMode}; path=/; max-age=31536000`;
                                     router.refresh();
                                 }}
-                                className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full border border-[var(--border)] bg-white dark:bg-[var(--card)] shadow-sm hover:shadow-md hover:border-[var(--primary)] text-[var(--muted-foreground)] hover:text-[var(--primary)] transition-all"
-                                title={viewMode === "grid" ? "Chuyển sang dạng danh sách" : "Chuyển sang dạng lưới"}
+                                className="md:hidden ml-auto flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)]"
                             >
                                 {viewMode === "grid" ? (
-                                    <svg className="size-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
                                 ) : (
-                                    <svg className="size-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 6h16M4 12h16M4 18h16" /></svg>
+                                    <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                                 )}
                             </button>
                         }
@@ -120,7 +127,7 @@ export function NewsClientFilters({
                                 onChange={(val) => updateFilters({ source: val })}
                                 placeholder="Nguồn tin"
                                 variant="filter"
-                                className="min-w-[120px] md:min-w-[140px] !text-[11px] md:!text-xs h-8 md:h-9"
+                                className="min-w-[100px] md:min-w-[120px] !text-[11px] md:!text-xs h-8 md:h-9"
                             />
                         </div>
                     </UnifiedFilterBar>

@@ -113,7 +113,7 @@ export default async function NewsPage(props: {
   let sources = RSS_SOURCES;
 
   try {
-    const response = await fetch(apiUrl.toString(), { next: { revalidate: 300 } });
+    const response = await fetch(apiUrl.toString(), { cache: "no-store" });
     if (response.ok) {
       const data = await response.json();
       articles = data.data || [];

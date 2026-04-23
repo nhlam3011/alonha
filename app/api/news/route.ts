@@ -193,6 +193,8 @@ function parseRSS(xml: string, source: typeof RSS_SOURCES[0]): RSSItem[] {
                 allImages,
             });
         }
+        
+        if (items.length >= 30) break; // Chỉ cần load trước 30 bài viết
     }
 
     return items;
@@ -376,23 +378,27 @@ export async function GET(request: NextRequest) {
             
             if ((now - lastCrawlMs) > AUTO_CRAWL_INTERVAL_MS || forceCrawl) {
                 isCrawling = true;
-                try {
-                    console.log(`[Auto-crawl] Bắt đầu tự động lấy tin...`);
-                    const count = await crawlAndSaveNews();
-                    console.log(`[Auto-crawl] Hoàn tất, thêm ${count} tin mới`);
-                    
-                    // Prevent infinite crawl loops if RSS is dead or returns empty
-                    if (latestNews?.id) {
-                        await prisma.news.update({ 
-                            where: { id: latestNews.id }, 
-                            data: { crawledAt: new Date() } 
-                        }).catch(() => {});
+                
+                // Chạy ngầm (background) quá trình lấy tin tức RSS
+                (async () => {
+                    try {
+                        console.log(`[Auto-crawl] Bắt đầu tự động lấy tin ngầm...`);
+                        const count = await crawlAndSaveNews();
+                        console.log(`[Auto-crawl] Hoàn tất chạy ngầm, thêm ${count} tin mới`);
+                        
+                        // Prevent infinite crawl loops if RSS is dead or returns empty
+                        if (latestNews?.id) {
+                            await prisma.news.update({ 
+                                where: { id: latestNews.id }, 
+                                data: { crawledAt: new Date() } 
+                            }).catch(() => {});
+                        }
+                    } catch (err) {
+                        console.error("[Auto-crawl] Lỗi:", err);
+                    } finally {
+                        isCrawling = false;
                     }
-                } catch (err) {
-                    console.error("[Auto-crawl] Lỗi:", err);
-                } finally {
-                    isCrawling = false;
-                }
+                })();
             }
         }
 
@@ -404,6 +410,14 @@ export async function GET(request: NextRequest) {
 
         if (source) {
             where.sourceId = source;
+        }
+
+        if (keyword) {
+            where.OR = [
+                { title: { contains: keyword, mode: "insensitive" } },
+                { excerpt: { contains: keyword, mode: "insensitive" } },
+                { content: { contains: keyword, mode: "insensitive" } },
+            ];
         }
 
         const total = await prisma.news.count({ where });

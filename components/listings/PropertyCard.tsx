@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { CompareButton } from "@/components/listings/CompareButton";
+import { FavoriteButton } from "@/components/listings/FavoriteButton";
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 
 export type ListingCardData = {
@@ -148,7 +149,8 @@ export function PropertyCard({ listing, viewMode = "grid", onHover, onHoverEnd, 
                 {listing.title}
               </h3>
             </Link>
-            <div className="shrink-0 md:opacity-0 md:-translate-y-2 md:group-hover:opacity-100 md:group-hover:translate-y-0 opacity-100 translate-y-0 transition-all duration-300">
+            <div className="shrink-0 md:opacity-0 md:-translate-y-2 md:group-hover:opacity-100 md:group-hover:translate-y-0 opacity-100 translate-y-0 transition-all duration-300 flex items-center gap-2">
+              <FavoriteButton listingId={listing.id} compact className="inline-flex items-center justify-center rounded-lg bg-[var(--card)] p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-bold text-[var(--foreground)] transition-transform hover:scale-105 border border-[var(--border)] shadow-sm" />
               <CompareButton listingId={listing.id} compact className="inline-flex items-center justify-center rounded-lg bg-[var(--card)] p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-bold text-[var(--foreground)] transition-transform hover:scale-105 border border-[var(--border)] shadow-sm" />
             </div>
           </div>
@@ -243,8 +245,13 @@ export function PropertyCard({ listing, viewMode = "grid", onHover, onHoverEnd, 
           {listing.listingType === "SALE" ? "Đang bán" : "Cho thuê"}
         </span>
 
-        {/* Compare Button */}
-        <div className="absolute right-3 bottom-3 z-20 md:opacity-0 md:translate-x-2 md:group-hover:opacity-100 md:group-hover:translate-x-0 opacity-100 translate-x-0 transition-all duration-300 shadow-lg">
+        {/* Action Buttons */}
+        <div className="absolute right-3 bottom-3 z-20 md:opacity-0 md:translate-x-2 md:group-hover:opacity-100 md:group-hover:translate-x-0 opacity-100 translate-x-0 transition-all duration-300 shadow-lg flex flex-col gap-2">
+          <FavoriteButton
+            listingId={listing.id}
+            compact
+            className="inline-flex items-center justify-center rounded-lg bg-[var(--card)] px-2.5 py-1.5 text-xs font-bold text-[var(--foreground)] transition-transform hover:scale-105 border border-[var(--border)]"
+          />
           <CompareButton
             listingId={listing.id}
             compact
