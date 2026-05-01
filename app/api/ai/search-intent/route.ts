@@ -402,15 +402,15 @@ function cleanupKeyword(query: string): string | null {
     " ",
   );
   cleaned = cleaned.replace(
-    /(?:từ|tu)?\s*\d+(?:[.,]\d+)?\s*(?:-|đến|den|tới|toi)\s*\d+(?:[.,]\d+)?\s*(?:tỷ|ty|ti|triệu|tr)(?=\s|$)/giu,
+    /(?:từ|tu)?\s*\d+(?:[.,]\d+)?\s*(?:-|đến|den|tới|toi)\s*\d+(?:[.,]\d+)?\s*(?:tỷ|tỉ|ty|ti|triệu|tr)(?=\s|$)/giu,
     " ",
   );
   cleaned = cleaned.replace(
-    /(?:dưới|duoi|trên|tren|từ|tu|hơn|hon|ít\s*nhất|it\s*nhat|không\s*quá|khong\s*qua|tầm|tam|khoảng|khoang|quanh|gần|gan)\s*\d+(?:[.,]\d+)?\s*(?:tỷ|ty|ti|triệu|tr)(?=\s|$)/giu,
+    /(?:dưới|duoi|trên|tren|từ|tu|hơn|hon|ít\s*nhất|it\s*nhat|không\s*quá|khong\s*qua|tầm|tam|khoảng|khoang|quanh|gần|gan)\s*\d+(?:[.,]\d+)?\s*(?:tỷ|tỉ|ty|ti|triệu|tr)(?=\s|$)/giu,
     " ",
   );
   cleaned = cleaned.replace(
-    /\d+(?:[.,]\d+)?\s*(?:tỷ|ty|ti|triệu|tr)\s*(?:trở\s*xuống|tro\s*xuong|đổ\s*lại|do\s*lai|trở\s*lên|tro\s*len)?(?=\s|$)/giu,
+    /\d+(?:[.,]\d+)?\s*(?:tỷ|tỉ|ty|ti|triệu|tr)\s*(?:trở\s*xuống|tro\s*xuong|đổ\s*lại|do\s*lai|trở\s*lên|tro\s*len)?(?=\s|$)/giu,
     " ",
   );
   cleaned = cleaned.replace(

@@ -1,0 +1,47 @@
+@startuml
+skinparam monochrome true
+autonumber
+
+actor "Khách hàng" as User
+participant "Giao diện (React/Next.js)" as Client
+participant "Search API (/api/ai/search-intent)" as API
+participant "Local Regex (Heuristic)" as Regex
+participant "Google Gemini (LLM)" as Gemini
+participant "Prisma ORM" as ORM
+database "PostgreSQL" as DB
+
+User -> Client : Nhập đoạn mô tả (vd: "can ho q7 gia re duoi 3 ty")
+Client -> API : HTTP POST { query }
+activate API
+
+API -> Regex : extractHeuristicFilters(query)
+activate Regex
+Regex --> API : Trả kết quả dự phòng Regex (district, priceMax)
+deactivate Regex
+
+API -> Gemini : callGeminiChat(System Prompt & Query)
+activate Gemini
+
+alt Gọi AI Thành công
+    Gemini --> API : Trả về định dạng JSON (NER Extracted)
+else Quá tải / Timeout / Quotas Limit
+    Gemini --> API : Error Exception
+    note right of API: Sử dụng Heuristic Regex Fallback
+end
+deactivate Gemini
+
+API -> API : Chuẩn hóa Dữ liệu (Merge Filters)
+API --> Client : Return { filters, explanation }
+deactivate API
+
+Client -> ORM : Fetch Data với query Object (priceMax, category)
+activate ORM
+ORM -> DB : Execute SELECT (WHERE price <= 3000000000)
+activate DB
+DB --> ORM : Return Listing Rows
+deactivate DB
+
+ORM --> Client : JSON Real Estate Data
+deactivate ORM
+Client --> User : Hiển thị màn hình Kết quả tìm kiếm
+@enduml

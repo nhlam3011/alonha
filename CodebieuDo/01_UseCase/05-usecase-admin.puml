@@ -1,0 +1,30 @@
+@startuml
+left to right direction
+skinparam monochrome true
+skinparam packageStyle rectangle
+
+actor "Quản trị viên (Admin)" as admin
+
+rectangle "Module Quản trị Hệ thống (Admin Portal)" {
+  usecase "Xem Dashboard Thống kê" as UC_Dashboard
+  usecase "Quản lý Tài khoản (User/Agent)" as UC_ManageUser
+  
+  usecase "Kiểm duyệt Thông tin Môi giới (Agent App)" as UC_ApproveAgent
+  usecase "Kiểm duyệt Tin đăng BĐS" as UC_ApproveListing
+  
+  usecase "Quản lý Giao dịch (Wallet/Transactions)" as UC_ManageTx
+  usecase "Cấu hình Thông số hệ thống" as UC_Config
+}
+
+admin --> UC_Dashboard
+admin --> UC_ManageUser
+
+admin --> UC_ApproveAgent
+admin --> UC_ApproveListing
+
+admin --> UC_ManageTx
+admin --> UC_Config
+
+UC_ApproveAgent .> UC_ManageUser : <<extend>>
+UC_ApproveListing .> UC_Dashboard : <<extend>> (Phát hiện Listing pending)
+@enduml

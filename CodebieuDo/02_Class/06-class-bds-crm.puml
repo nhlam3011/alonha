@@ -1,0 +1,95 @@
+@startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+hide circle
+
+title SƠ ĐỒ LỚP PHÂN RÃ: BẤT ĐỘNG SẢN & ĐIỀU HƯỚNG CRM
+
+class User {
+  + id: String
+  + name: String
+  + email: String
+  + role: UserRole
+  --
+  + getAgentPerformance(): Score
+}
+
+class Listing {
+  + id: String
+  + slug: String
+  + category: String
+  + price: Decimal
+  + area: Float
+  + status: Enum(PENDING...)
+  + viewCount: Int
+  --
+  + incrementViewCount(): void
+  + pushToVIPTop(serviceId: String): Boolean
+  + calculateEstimatedROI(): Float
+}
+
+class Lead {
+  + id: String
+  + customerName: String
+  + customerPhone: String
+  + source: String
+  + status: Enum(NEW, CONTACTED...)
+  + notes: String
+  --
+  + changeFollowUpStatus(newStatus: Enum): void
+  + assignToAgent(agentId: String): void
+}
+
+class ViewingAppointment {
+  + id: String
+  + appointmentDate: DateTime
+  + status: Enum(PENDING, CONFIRMED...)
+  + customerName: String
+  --
+  + approveByAgent(): void
+  + cancelByUser(reason: String): void
+  + triggerReminderEmail(): void
+}
+
+class Wallet {
+  + id: String
+  + balance: Decimal
+  + freezeAmount: Decimal
+  --
+  + lockBalanceForService(amount: Decimal): void
+  + unlockBalance(): void
+}
+
+class Transaction {
+  + id: String
+  + type: Enum(DEPOSIT, PAYMENT)
+  + amount: Decimal
+  + balanceAfter: Decimal
+  --
+  + generateReceiptPDF(): File
+  + processHookFromBank(): void
+}
+
+class ListingService {
+  + packageId: String
+  + startedAt: DateTime
+  + expiresAt: DateTime
+  --
+  + checkIsExpired(): Boolean
+  + applyVIPPurchased(): void
+}
+
+' Luồng CRM
+User "1" -- "N" Listing
+Listing "1" -- "N" Lead
+Listing "1" -- "N" ViewingAppointment
+Lead "1" -- "N" ViewingAppointment
+User "1" -- "N" Lead
+
+' Luồng Giao dịch
+User "1" -- "1" Wallet
+Wallet "1" -- "N" Transaction
+Listing "1" -- "N" ListingService
+ListingService "1" -- "1" Transaction
+
+@enduml

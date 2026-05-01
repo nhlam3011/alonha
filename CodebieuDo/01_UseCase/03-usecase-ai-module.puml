@@ -1,0 +1,41 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam monochrome true
+
+' Khai báo Actor
+actor "Khách hàng (User)" as user
+actor "Môi giới (Agent)" as agent
+actor "Hệ thống AI (LLM/NLP)" as ai
+
+' Khung hệ thống ở chính giữa
+rectangle "Hệ sinh thái AI tích hợp (AloNha)" {
+  ' Các Use case xếp dọc từ trên xuống
+  usecase "Tìm kiếm qua NLP (Nhập tự do)" as UC_NLPSearch
+  usecase "Trò chuyện tương tác AI Chatbot" as UC_Chatbot
+  usecase "Trích xuất Keyword (Mô hình NER)" as UC_NER
+  usecase "Truy vấn Ngữ cảnh (Vector)" as UC_VectorSearch
+  usecase "Khởi tạo dữ liệu Đăng tin BĐS" as UC_SubmitRaw
+  usecase "Nhập liệu bằng Giọng nói (Dictation)" as UC_VoiceToText
+  usecase "Sinh Nội dung bài đăng tự động" as UC_GenContent
+}
+
+' Cột Trái: Tương tác từ User & Agent (Mũi tên đi vào Use Case)
+user --> UC_NLPSearch
+user --> UC_Chatbot
+
+agent --> UC_SubmitRaw
+agent --> UC_VoiceToText
+agent --> UC_GenContent
+
+' Vùng giữa: Các liên kết nội bộ
+UC_NLPSearch ..> UC_NER : <<include>>
+UC_Chatbot ..> UC_VectorSearch : <<include>>
+
+' Cột Phải: Tương tác từ Hệ thống AI (Vuốt ngược mũi tên từ phải sang USE CASE giống ảnh mẫu)
+UC_NER <-- ai
+UC_VectorSearch <-- ai
+UC_VoiceToText <-- ai
+UC_GenContent <-- ai
+
+@enduml

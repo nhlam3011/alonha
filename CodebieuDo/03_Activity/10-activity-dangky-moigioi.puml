@@ -1,0 +1,49 @@
+@startuml
+skinparam monochrome true
+
+|Khách hàng (User)|
+start
+:Truy cập trang "Trở thành Môi giới";
+:Điền Biểu mẫu Thông tin (Agent Application);
+note right
+  - CCCD, Tên, Số điện thoại
+  - File/Ảnh giấy tờ pháp lý
+end note
+:Nhấn Gửi yêu cầu;
+
+|Hệ thống (Web App)|
+if (Kiểm tra Validate Form hợp lệ?) then (Lỗi)
+  :Hiển thị Cảnh báo lỗi Form;
+  |Khách hàng (User)|
+  :Sửa lại bộ hồ sơ;
+  detach
+else (Hợp lệ)
+  |Hệ thống (Web App)|
+  :Lưu DB (Model AgentApplication);
+  :Đổi trạng thái thành PENDING;
+  :Gửi thông báo chờ cho User;
+endif
+
+|Quản trị viên (Admin)|
+:Kiểm tra danh sách Hồ sơ chờ duyệt;
+:Đọc thông tin Hồ sơ Môi giới;
+if (Hồ sơ đầy đủ, đáng tin?) then (Từ chối)
+  :Nhấn nút Từ chối (Reject);
+  :Nhập lý do từ chối (Optional);
+  |Hệ thống (Web App)|
+  :Đổi trạng thái hồ sơ thành REJECTED;
+  :Gửi Email thông báo thất bại;
+else (Duyệt)
+  |Quản trị viên (Admin)|
+  :Nhấn nút Chấp nhận (Approve);
+  |Hệ thống (Web App)|
+  :Đổi trạng thái hồ sơ thành APPROVED;
+  :Cập nhật User.Role = "AGENT";
+  :Gửi Email thông báo Chấp nhận;
+endif
+
+|Khách hàng (User)|
+:Nhận được đặc quyền Môi giới mới;
+stop
+
+@enduml

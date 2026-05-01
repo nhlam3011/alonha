@@ -1,0 +1,48 @@
+@startuml
+skinparam monochrome true
+autonumber
+
+actor "Môi giới (Agent)" as Agent
+participant "Client Web" as Client
+participant "Payment API" as API
+participant "Ví điện tử / Transaction DB" as WalletDB
+participant "Bất động sản DB" as ListingDB
+
+Agent -> Client : Đăng nhập & Truy cập Ví Quản lý
+Agent -> Client : Chọn Nạp 500,000 VNĐ điểm ảo (TopUp)
+Client -> API : POST /api/wallet/deposit {500k}
+activate API
+API -> WalletDB : prisma.transaction.create (DEPOSIT)
+API -> WalletDB : prisma.wallet.update (+500k)
+API --> Client : Thông báo nạp tiền giả lập thành công
+deactivate API
+
+Agent -> Client : Bấm Nâng cấp thẻ / đẩy Top VIP cho Bài đăng
+Client -> API : POST /api/listing/buy-vip {listingId, package}
+activate API
+
+API -> WalletDB : Check Balance Ví điện tử 
+activate WalletDB
+WalletDB --> API : Trả về số dư khả dụng
+deactivate WalletDB
+
+alt Số dư không đủ
+    API --> Client : Lỗi (Not Enough Balance)
+    Client --> Agent : Cảnh báo cần Nạp thêm điểm
+else Số dư hợp lệ
+    API -> WalletDB : Deduct Balance (Trừ tiền) & Create RECEIPT Transaction
+    activate WalletDB
+    WalletDB --> API : OK
+    deactivate WalletDB
+    
+    API -> ListingDB : update Listing.service = VIP
+    activate ListingDB
+    ListingDB --> API : OK
+    deactivate ListingDB
+    
+    API --> Client : Trả về 200 Success Payment
+end
+deactivate API
+
+Client --> Agent : Hiển thị Bill giao dịch
+@enduml

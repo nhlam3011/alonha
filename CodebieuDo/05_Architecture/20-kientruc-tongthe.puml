@@ -1,0 +1,40 @@
+@startuml
+skinparam monochrome true
+skinparam componentStyle rectangle
+
+title SƠ ĐỒ KIẾN TRÚC TỔNG THỂ HỆ THỐNG
+
+package "Tầng Giao Diện (Client Side)" {
+  [Next.js Client Components] as Client
+  [Server Components (SSR)] as SSR
+  note right of Client: Tối ưu UI/UX, Hydration
+}
+
+package "Tầng Xử Lý Nghiệp Vụ (Backend / API)" {
+  [API Routes Controller] as API
+  [Middleware Auth JWT] as Auth
+  [AI Service Controller] as AIService
+  
+  API --> Auth : Xác thực requests
+  API <--> AIService : Giao tiếp luồng thông minh
+}
+
+package "Tầng Quản Trị Dữ Liệu & Hạ Tầng (Infrastructure)" {
+  [Prisma ORM] as Prisma
+  database "PostgreSQL (Supabase)" as DB
+  cloud "Cloudinary (Images Storage)" as Cloudinary
+  cloud "Google Gemini (LLM API)" as LLM
+}
+
+' Liên kết các tầng
+Client <--> API : HTTP / REST Axios
+SSR <--> API : Gọi dữ liệu dựng trang tĩnh
+SSR <--> Prisma : Gọi DB trực tiếp từ Server
+
+API <--> Prisma : CRUD Bất động sản / User
+AIService <--> LLM : Truyền Prompt / Nhận Streaming JSON
+
+Prisma <--> DB : Kết nối TCP/IP Database Protocol
+API --> Cloudinary : Upload ảnh qua Buffer
+
+@enduml

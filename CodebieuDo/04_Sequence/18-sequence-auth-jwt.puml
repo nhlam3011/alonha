@@ -1,0 +1,46 @@
+@startuml
+skinparam monochrome true
+autonumber
+
+actor "Khách hàng" as User
+participant "Giao diện (Next.js App)" as Client
+participant "NextAuth Route (/api/auth)" as AuthAPI
+participant "Prisma / User Model" as DB
+participant "Bcrypt/JWT Service" as JWTLib
+
+User -> Client : Mở Modal / Trang Đăng nhập
+User -> Client : Nhập Email, Mật khẩu và Submit
+Client -> AuthAPI : POST Credentials (payload)
+activate AuthAPI
+
+AuthAPI -> DB : Truy vấn Tài khoản Email hiện có
+activate DB
+DB --> AuthAPI : Trả về Bản ghi User (kèm Hash Pasword)
+deactivate DB
+
+alt User không tồn tại
+    AuthAPI --> Client : Lỗi (Account Not Found)
+    Client --> User : Cảnh báo hiển thị UI
+else Email đúng
+    AuthAPI -> JWTLib : comparePassword(Input, HashBase)
+    activate JWTLib
+    
+    alt Sai mật khẩu
+        JWTLib --> AuthAPI : Result = False
+        AuthAPI --> Client : Lỗi (Sai mật khẩu)
+    else Mật khẩu trùng khớp
+        JWTLib --> AuthAPI : Result = True
+        
+        AuthAPI -> JWTLib : Sign Token (Sign JWT \n với secret key & expire time)
+        JWTLib --> AuthAPI : Chuỗi JWT Hash String
+        deactivate JWTLib
+        
+        AuthAPI -> AuthAPI : Set Cookie (NextAuth Session)
+        
+        AuthAPI --> Client : Code 200 (Success)
+        Client --> User : Đẩy về Trang Chủ (Logged in state)
+    end
+end
+deactivate AuthAPI
+
+@enduml

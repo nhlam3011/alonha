@@ -1,0 +1,106 @@
+@startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+hide circle
+
+title SƠ ĐỒ LỚP TỔNG THỂ (OVERALL CLASS DIAGRAM)
+
+class User {
+  + id: String
+  + name: String
+  + email: String
+  + role: UserRole
+  + isVerified: Boolean
+  --
+  + login(password: String): AuthToken
+  + upgradeToAgent(): Boolean
+  + updateProfile(data: Json): void
+}
+
+class Listing {
+  + id: String
+  + title: String
+  + price: Decimal
+  + area: Float
+  + status: ListingStatus
+  --
+  + approveListing(): void
+  + hiddenListing(): void
+  + generateAutoDescription(): String
+}
+
+class Project {
+  + id: String
+  + name: String
+  + developer: String
+  --
+  + getProjectDetails(): Json
+  + filterByProvince(): Array
+}
+
+class Wallet {
+  + id: String
+  + balance: Decimal
+  --
+  + checkBalance(amount: Decimal): Boolean
+  + deductFund(amount: Decimal): void
+  + depositFund(amount: Decimal): void
+}
+
+class Transaction {
+  + id: String
+  + amount: Decimal
+  + status: TransactionStatus
+  --
+  + verifyPayment(): Boolean
+  + cancelTransaction(): void
+}
+
+class Lead {
+  + id: String
+  + name: String
+  + phone: String
+  + status: LeadStatus
+  --
+  + updateTimelineStatus(): void
+  + convertToDeal(): void
+}
+
+class ViewingAppointment {
+  + id: String
+  + appointmentDate: DateTime
+  + status: AppointmentStatus
+  --
+  + confirmAppointment(): Boolean
+  + rejectAppointment(): void
+}
+
+class ChatbotConversation {
+  + id: String
+  + title: String
+  --
+  + generateTitleByContext(): String
+  + loadVectorHistory(): Array
+}
+
+class ChatMessage {
+  + id: String
+  + content: String
+  --
+  + sendToUser(): void
+  + markAsRead(): void
+}
+
+' ------ CÁC MỐI QUAN HỆ CHÍNH ------
+User "1" -- "N" Listing
+User "1" -- "1" Wallet
+Wallet "1" -- "N" Transaction
+
+Listing "N" -- "0..1" Project
+Listing "1" -- "N" Lead
+Lead "1" -- "N" ViewingAppointment
+
+User "1" -- "N" ChatbotConversation
+User "1" -- "N" ChatMessage
+
+@enduml

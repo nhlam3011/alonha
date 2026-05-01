@@ -1,0 +1,42 @@
+@startuml
+' General Use Case Diagram for AloNha
+' Excluding simple flows like login/register
+
+left to right direction
+actor Customer as C
+actor Agent as A
+actor Admin as Ad
+
+package "Core Features" {
+  usecase "Natural Language Search" as UC1
+  usecase "AI Chatbot Assistant" as UC2
+  usecase "Feng Shui Analysis" as UC3
+  usecase "Personalized Recommendations" as UC4
+  usecase "Create & Manage Listings" as UC5
+  usecase "Lead Management" as UC6
+  usecase "Schedule Viewing Appointment" as UC7
+  usecase "Wallet & VIP Packages" as UC8
+  usecase "Listing Approval Workflow" as UC9
+  usecase "User Management" as UC10
+  usecase "System Configuration" as UC11
+  usecase "Analytics Dashboard" as UC12
+}
+
+C --> UC1
+C --> UC2
+C --> UC3
+C --> UC4
+C --> UC7
+C --> UC8
+
+A --> UC5
+A --> UC6
+A --> UC7
+A --> UC8
+
+Ad --> UC9
+Ad --> UC10
+Ad --> UC11
+Ad --> UC12
+
+@enduml

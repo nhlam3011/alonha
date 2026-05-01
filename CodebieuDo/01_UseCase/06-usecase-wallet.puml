@@ -1,0 +1,28 @@
+@startuml
+left to right direction
+skinparam monochrome true
+skinparam packageStyle rectangle
+
+actor "Người dùng / Môi giới" as user
+
+rectangle "Module Giao dịch & Ví Điện Tử (Wallet/FinTech)" {
+  usecase "Kiểm tra Số dư Ví" as UC_CheckBalance
+  
+  usecase "Nạp tiền vào Ví (Mô phỏng)" as UC_Deposit
+  usecase "Thanh toán Gói Đẩy Top (Listing VIP)" as UC_BuyVIP
+  usecase "Thanh toán Gói Dịch vụ CRM" as UC_BuyCRM
+  
+  usecase "Tra cứu Lịch sử Giao dịch (Transactions)" as UC_ViewTx
+}
+
+user --> UC_CheckBalance
+user --> UC_Deposit
+user --> UC_BuyVIP
+user --> UC_BuyCRM
+user --> UC_ViewTx
+
+UC_BuyVIP ..> UC_CheckBalance : <<include>> (Xác minh số dư)
+UC_BuyCRM ..> UC_CheckBalance : <<include>> (Xác minh số dư)
+UC_Deposit ..> UC_ViewTx : <<extend>> (Lưu lịch sử nạp)
+
+@enduml

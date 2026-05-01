@@ -1,0 +1,26 @@
+@startuml
+skinparam monochrome true
+
+title SƠ ĐỒ LUỒNG XỬ LÝ TÌM KIẾM AI & CHATBOT
+
+start
+split
+  -[Tìm kiếm thông minh]->
+  :Người dùng gõ đoạn hội thoại tìm nhà\nVD: "Nhà 3 tỷ quận 7";
+  :NLP NER Tự động nhận diện thực thể;
+  :Gọi Gemini API với JSON Schema Prompt;
+  :Trích xuất ra Object: { priceMax: 3T, district: "Quận 7" };
+  :Đẩy Object thành Parameters WHERE cho Prisma DB;
+  :Lọc ra Danh sách BĐS tương ứng;
+split again
+  -[Chatbot RAG thông minh]->
+  :Người dùng hỏi đáp thả ga qua hộp chat;
+  :Hệ thống lấy 5 dòng chat gần nhất làm Context History;
+  :Rút trích thuộc tính căn nhà hiện tại Khách đang xem (Nếu có);
+  :Gom History + Listing Context gửi LLM;
+  :Truyền luồng Streaming Text (Chunk) về Client;
+end split
+:Hiển thị Kết quả mượt mà lên Giao diện Client;
+stop
+
+@enduml

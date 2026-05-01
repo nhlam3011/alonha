@@ -1,0 +1,35 @@
+@startuml
+left to right direction
+skinparam monochrome true
+skinparam packageStyle rectangle
+
+actor "Khách hàng (User/Guest)" as user
+
+rectangle "Module Tương tác người dùng (User Subsystem)" {
+  ' Xem tin
+  usecase "Tra cứu Bất động sản " as UC_Search
+  usecase "Xem chi tiết thông tin BĐS" as UC_ViewListing
+  
+  ' Cá nhân / Lưu trữ
+  usecase "Lưu BĐS Yêu thích (Favorites)" as UC_Fav
+  usecase "Quản lý Hồ sơ cá nhân (Profile)" as UC_Profile
+  
+  ' Tương tác mua bán
+  usecase "Đặt lịch hẹn xem nhà" as UC_BookAppt
+  usecase "Quản lý Lịch biểu đã đặt" as UC_ManageAppt
+  usecase "Để lại thông tin tư vấn (Lead Form)" as UC_SendLead
+}
+
+user --> UC_Search
+user --> UC_ViewListing
+user --> UC_Fav
+user --> UC_Profile
+
+user --> UC_BookAppt
+user --> UC_ManageAppt
+user --> UC_SendLead
+
+UC_BookAppt ..> UC_ViewListing : <<extend>> (Từ trang chi tiết)
+UC_SendLead ..> UC_ViewListing : <<extend>> (Từ trang chi tiết)
+
+@enduml

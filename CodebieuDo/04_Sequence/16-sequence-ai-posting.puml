@@ -1,0 +1,49 @@
+@startuml
+skinparam monochrome true
+autonumber
+
+actor "Môi giới (Agent)" as Agent
+participant "Dashboard FrontEnd" as Client
+participant "Upload API (/api/upload)" as UploadAPI
+participant "Cloud Server (Cloudinary)" as Cloudinary
+participant "Posting API (/api/listings)" as API
+participant "LLM Generator" as LLM
+participant "Prisma ORM" as ORM
+
+Agent -> Client : Điền Form Meta (Giá, Diện tích, Vị trí) & Chọn Ảnh
+Client -> UploadAPI : POST multipart/form-data (Images)
+activate UploadAPI
+
+UploadAPI -> Cloudinary : Upload Buffer Bytes
+activate Cloudinary
+Cloudinary --> UploadAPI : Mảng Array <Secure URL>
+deactivate Cloudinary
+
+UploadAPI --> Client : Trả về Links ảnh Public
+deactivate UploadAPI
+
+alt Agent nhấn nút "Sử dụng sinh văn bản AI"
+    Client -> API : POST /ai/generate-description { Meta }
+    activate API
+    API -> LLM : Request Text Generation
+    activate LLM
+    LLM --> API : Content Markdown Chuẩn SEO
+    deactivate LLM
+    API --> Client : Đổ Response vào hộp Text Editor
+    deactivate API
+end
+
+Agent -> Client : Review, Edit và Nhấn SUMBIT Đăng Bài
+Client -> API : POST /api/listings { Title, Desc, Price, Images.. }
+activate API
+
+API -> ORM : prisma.listing.create(data)
+activate ORM
+ORM --> API : Trả về Bản ghi mới lưu (Status: PENDING)
+deactivate ORM
+
+API --> Client : Code 200 (Thành công chờ duyệt)
+deactivate API
+
+Client --> Agent : Cảnh báo Toast "Thêm thành công, Chờ kiểm duyệt"
+@enduml

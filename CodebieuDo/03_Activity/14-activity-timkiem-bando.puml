@@ -1,0 +1,35 @@
+@startuml
+skinparam monochrome true
+
+|Khách hàng (User)|
+start
+:Mở màn hình Tìm kiếm Bản Đồ (Map View);
+:Kéo thả / Pan Bản đồ vào Vùng cần nhắm (Bounding Box);
+:Điều chỉnh thanh cuộn Filter cứng tĩnh;
+note right: Cấu hình: Khoảng giá, Diện tích, Danh mục
+
+|Hệ thống (Next.js)|
+:Thu thập Tọa độ 4 đỉnh Bounds (NorthEast, SouthWest);
+:Compile bộ lọc tĩnh;
+:Post Request Query sang REST API;
+
+|Database (Prisma / GeoSpatial)|
+:Execute Query lọc các tọa độ (Lat/Lng) hẹp;
+:Chồng Filter WHERE điều kiện Giá, Diện tích;
+:Trả Fetch API mảng Object JSON BĐS;
+
+|Hệ thống (Next.js)|
+:Cleans up Marker (Điểm ghim) thừa cũ;
+:Render đè Marker tọa độ mới lên Giao diện Leaflet;
+
+|Khách hàng (User)|
+:Nhìn thấy các biểu tượng Marker BĐS bay lên màn hình;
+:Click chuột tương tác với 1 Marker;
+
+|Hệ thống (Next.js)|
+:Bật Overlay Popup Mini báo Giá và Cấu hình căn nhà;
+
+|Khách hàng (User)|
+:Click thẻ Popup mở tab Trang chi tiết BĐS;
+stop
+@enduml

@@ -1,0 +1,42 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam monochrome true
+
+actor "Môi giới (Agent)" as agent
+actor "Khách hàng" as user
+
+rectangle "Module Môi Giới (Agent Dashboard)" {
+  ' Nhóm Listing
+  usecase "Đăng tin Bất động sản" as UC_PostListing
+  usecase "Quản lý trạng thái Tin đăng (Ẩn/Hiện)" as UC_ManageListing
+  
+  ' Phụ trợ
+  usecase "Nâng cấp hiển thị (Đẩy VIP Top)" as UC_PushTop
+  usecase "Nạp tiền giả lập vào Ví" as UC_Deposit
+  
+  ' Nhóm CRM / Lịch hẹn
+  usecase "Giám sát Khách hàng tiềm năng (Leads)" as UC_ViewLeads
+  usecase "Cập nhật trạng thái Sale (Đã gọi...)" as UC_UpdateLead
+  
+  usecase "Tiếp nhận Lịch hẹn yêu cầu" as UC_ViewAppt
+  usecase "Duyệt / Hủy Lịch hẹn nhanh" as UC_ProcessAppt
+}
+
+agent --> UC_PostListing
+agent --> UC_ManageListing
+agent --> UC_PushTop
+agent --> UC_Deposit
+
+agent --> UC_ViewLeads
+agent --> UC_ViewAppt
+
+' Mối quan hệ Use Case
+UC_PushTop ..> UC_Deposit : <<include>> (Giới hạn ngân sách)
+
+UC_ViewLeads <.. UC_UpdateLead : <<extend>>
+UC_ViewAppt <.. UC_ProcessAppt : <<extend>>
+
+user --> UC_ViewLeads : Tương tác để lại SĐT
+user --> UC_ViewAppt : Tạo yêu cầu hẹn giờ
+@enduml

@@ -1,0 +1,37 @@
+@startuml
+skinparam monochrome true
+autonumber
+
+actor "Khách hàng" as User
+participant "RAG Chat Component" as Client
+participant "Route Handler (/api/chat)" as API
+participant "Vector Engine / Prisma" as ContextDB
+participant "Gemini API (Streaming)" as LLM
+
+User -> Client : Truy cập Tab Chat & Gửi tin nhắn
+Client -> API : POST { message, conversationId, listingId? }
+activate API
+
+alt Có dính kèm Listing Context (Hỏi về 1 nhà cụ thể)
+    API -> ContextDB : Get Listing Info bằng ID
+    activate ContextDB
+    ContextDB --> API : Metadata (Giá, Mô tả, Quy mô)
+    deactivate ContextDB
+end
+
+API -> ContextDB : Load Lịch sử cuộc hội thoại (Past 5 messages)
+activate ContextDB
+ContextDB --> API : Context Vector / Arrays
+deactivate ContextDB
+
+API -> API : Đóng gói Context + Lịch sử + System Prompt
+API -> LLM : streamGemini(Payload)
+activate LLM
+
+LLM -->> API : Stream Chunks (Token Data)
+API -->> Client : Response Streaming API Hook
+deactivate LLM
+deactivate API
+
+Client -->> User : Hiển thị Chữ nhảy từng dòng (Typing Effect)
+@enduml

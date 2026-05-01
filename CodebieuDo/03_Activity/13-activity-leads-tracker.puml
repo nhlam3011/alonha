@@ -1,0 +1,35 @@
+@startuml
+skinparam monochrome true
+
+|Khách hàng (User)|
+start
+:Lướt danh sách Bất động sản;
+:Chọn 1 bài tin và xem chi tiết;
+:Cảm thấy hấp dẫn, bấm "Yêu cầu tư vấn";
+|Hệ thống (Web App)|
+:User điền & Submit Modal Lead;
+:Khởi tạo bản ghi Database (Model Lead);
+:Trạng thái Lead = NEW;
+:Ping thông báo tới Môi giới chủ tin;
+
+|Môi giới (Agent)|
+:Mở Trang tĩnh "Quản lý Leads" (CRM Hub);
+:Nhặt Lead mới rót về;
+:Xem chi tiết Số điện thoại & Lịch sử duyệt;
+:Gọi điện Telesale trực tiếp;
+if (Khách hàng phản hồi?) then (Không / Sai số)
+  :Ghi chú "Khách không nhấc máy / Data ảo";
+  |Hệ thống (Web App)|
+  :Chuyển trạng thái vòng đời JUNK / DEAD;
+  detach
+else (Có nhu cầu chốt)
+  |Môi giới (Agent)|
+  :Ghi chú cẩn thận Log Trao đổi;
+  |Hệ thống (Web App)|
+  :Đổi trạng thái Lead = IN_PROGRESS;
+endif
+
+|Môi giới (Agent)|
+:Chăm sóc dài hạn qua nền tảng;
+stop
+@enduml

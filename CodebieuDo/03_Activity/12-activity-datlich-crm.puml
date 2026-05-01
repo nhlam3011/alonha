@@ -1,0 +1,41 @@
+@startuml
+skinparam monochrome true
+
+|Khách hàng (User)|
+start
+:Đọc bản tin chi tiết Bất động sản;
+:Bấm nút "Đặt lịch xem nhà";
+:Bật Form chọn Giờ (DatePicker) / Điền SĐT;
+:Nhấn Gửi yêu cầu;
+
+|Hệ thống (Web App)|
+:Kiểm tra trùng lặp thời gian?;
+if (Bị trùng slot?) then (Đã kẹt lịch)
+  :Cảnh báo Khách hàng đổi giờ khác;
+  detach
+else (Trống lịch)
+  :Ghi nhận lịch hẹn `ViewingAppointment` (Trạng thái: PENDING);
+  :Đẩy Notification Realtime đến màn hình Agent;
+endif
+
+|Môi giới (Agent)|
+:Kiểm tra Dashboard Lịch biểu (Calendar);
+:Đọc tin báo có lịch mới;
+if (Quyết định thụ lý?) then (Từ chối)
+  :Nhấn nút Hủy lịch Booking;
+  |Hệ thống (Web App)|
+  :Cập nhật trạng thái REJECTED;
+  :Email cáo lỗi cho khách;
+else (Chấp thuận)
+  |Môi giới (Agent)|
+  :Nhấn nút Xác nhận Lịch biểu;
+  |Hệ thống (Web App)|
+  :Cập nhật trạng thái CONFIRMED;
+  :Gửi Email xác nhận và Địa điểm cho khách;
+endif
+
+|Khách hàng (User)|
+:Chủ động đến xem nhà theo lịch;
+stop
+
+@enduml

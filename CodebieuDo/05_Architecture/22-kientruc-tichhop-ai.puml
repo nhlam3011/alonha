@@ -1,0 +1,35 @@
+@startuml
+skinparam monochrome true
+skinparam packageStyle rectangle
+
+title SƠ ĐỒ KIẾN TRÚC TÍCH HỢP A.I (AI ARCHITECTURE)
+
+package "Next.js Application Core" {
+  [User Interface (Chat/Search)] as UI
+  
+  package "AI Integration Layer" {
+    [Prompt Engineer Engine] as PromptEngine
+    [Context Builder (RAG)] as ContextBuilder
+    [Fallback Regex/Heuristic] as Fallback
+  }
+}
+
+package "External Data & AI Services" {
+  [PostgreSQL DB] as DB
+  cloud "Google Gemini 1.5 API" as AIProvider
+}
+
+UI --> PromptEngine : 1. Nhu cầu thô của User
+UI --> Fallback : Nhánh rẽ: Xử lý quy tắc tự nhiên tĩnh
+
+PromptEngine --> ContextBuilder : 2. Chắp nối ngữ cảnh BĐS (Nếu cần)
+ContextBuilder <--> DB : 3. Fetch Lịch sử chat / Dữ liệu nhà bán
+
+PromptEngine --> AIProvider : 4. Giao tiếp Payload (JSON Schema)
+AIProvider --> PromptEngine : 5. Trả về Token Stream / Extract JSON
+
+PromptEngine --> UI : 6. Parse và hiển thị Realtime cho Khách
+
+Fallback ..> UI : Xử lý dữ liệu phòng hờ nếu AI hết Quotas
+
+@enduml

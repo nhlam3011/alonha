@@ -1,0 +1,75 @@
+@startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+hide circle
+
+title SƠ ĐỒ LỚP PHÂN RÃ: MODULE AI & MESSAGING
+
+class User {
+  + id: String
+  + role: UserRole
+  --
+  + getChatbotHistory(): Array
+  + startNewConversation(): ConversationId
+}
+
+class ChatbotConversation {
+  + id: String
+  + title: String
+  + contextPath: String
+  + lastMessageAt: DateTime
+  + createdAt: DateTime
+  --
+  + insertRAGContext(listingId: String): void
+  + querySimilarVectors(prompt: String): Array
+  + clearHistory(): void
+}
+
+class ChatbotMessage {
+  + id: String
+  + role: Enum(user, model)
+  + content: String
+  + generatedMetadata: Json
+  --
+  + streamResponseFromLLM(): Stream
+  + executeNERExtraction(): Json
+  + formatMarkdownOutput(): String
+}
+
+class Conversation {
+  + id: String
+  + lastMessageAt: DateTime
+  --
+  + getParticipants(): ArrayId
+  + pinConversation(): void
+}
+
+class ChatMessage {
+  + id: String
+  + content: String
+  + isRead: Boolean
+  --
+  + triggerRealtimeSocket(): void
+  + recallMessage(): Boolean
+}
+
+class Listing {
+  + id: String
+  + title: String
+  + metadata: Json
+  --
+  + vectorizeContentData(): Embeddings
+  + extractContextForBot(): String
+}
+
+' Liên kết AI Chatbot RAG
+User "1" -- "N" ChatbotConversation
+ChatbotConversation "1" -- "N" ChatbotMessage
+ChatbotConversation "N" -- "0..1" Listing
+
+' Liên kết Real-time Messaging (User to Agent)
+User "1" -- "N" Conversation
+Conversation "1" -- "N" ChatMessage
+User "1" -- "N" ChatMessage
+
+@enduml

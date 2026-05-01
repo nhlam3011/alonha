@@ -1,0 +1,45 @@
+@startuml
+skinparam monochrome true
+
+title SƠ ĐỒ TRIỂN KHAI HỆ THỐNG (DEPLOYMENT DIAGRAM)
+
+node "Thiết bị Khách hàng (Client Devices)" <<device>> {
+  node "Trình duyệt (Browser)" <<execution environment>> {
+    artifact "Single Page App (React JS)"
+    artifact "TailwindCSS Styles"
+  }
+}
+
+node "Máy chủ Vercel (Edge Network)" <<execution environment>> {
+  node "Container Next.js V14" <<server>> {
+    artifact "Node.js Runtime"
+    component "Server-side Rendering (SSR)"
+    component "Next.js API Routes"
+    component "Prisma Client Engine"
+  }
+}
+
+cloud "Hạ tầng Đám Mây Bên thứ 3" {
+  node "Supabase (Database as a Service)" <<database cluster>> {
+    database "PostgreSQL 15" {
+      artifact "Tables (Listing, User...)"
+    }
+  }
+  
+  node "Cloudinary (Media Hosting)" <<CDN>> {
+    folder "Images & Thumbnails"
+  }
+  
+  node "Google Cloud Platform" <<AI PaaS>> {
+    component "Gemini 1.5 Pro Models"
+  }
+}
+
+' Liên kết vật lý
+"Trình duyệt (Browser)" <--> "Container Next.js V14" : HTTPS (Cổng 443)
+"Container Next.js V14" <--> "PostgreSQL 15" : TCP/IP (Cổng 5432)
+"Container Next.js V14" --> "Cloudinary (Media Hosting)" : HTTPS (Upload API)
+"Container Next.js V14" <--> "Gemini 1.5 Pro Models" : HTTPS (REST / Stream)
+"Trình duyệt (Browser)" --> "Cloudinary (Media Hosting)" : HTTPS (Tải ảnh trực tiếp)
+
+@enduml

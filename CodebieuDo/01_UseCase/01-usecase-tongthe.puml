@@ -1,0 +1,52 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam monochrome true
+
+actor "Khách hàng (User)" as user
+actor "Môi giới (Agent)" as agent
+actor "Quản trị viên (Admin)" as admin
+
+rectangle "Hệ thống AloNha" {
+  ' Chức năng chung
+  usecase "Xác thực (Đăng nhập/OTP)" as UC_Auth
+  
+  ' Khách hàng
+  usecase "Tìm kiếm BĐS AI (NLP/NER)" as UC_AISearch
+  usecase "Nhắn tin & Chatbot AI" as UC_AIChat
+  usecase "Đặt lịch hẹn xem nhà" as UC_Booking
+  usecase "Quản lý BĐS yêu thích" as UC_Favorite
+  
+  ' Môi giới
+  usecase "Đăng tải & Quản lý Listing" as UC_ManageListing
+  usecase "Chăm sóc khách hàng (CRM Leads)" as UC_ManageLeads
+  usecase "Xử lý lịch hẹn (Duyệt/Quản lý)" as UC_ManageBooking
+  usecase "Quản lý ngân sách nạp đẩy VIP" as UC_Wallet
+  
+  ' Quản trị
+  usecase "Kiểm duyệt Tin đăng BĐS" as UC_ApproveListing
+  usecase "Kiểm duyệt thăng hạng Môi giới" as UC_ApproveAgent
+  usecase "Quản lý Dữ liệu Hệ thống/Dự án" as UC_SystemManage
+}
+
+' Liên kết Actor -> Use Case
+user --> UC_Auth
+user --> UC_AISearch
+user --> UC_AIChat
+user --> UC_Booking
+user --> UC_Favorite
+
+agent --> UC_Auth
+agent --> UC_ManageListing
+agent --> UC_ManageLeads
+agent --> UC_ManageBooking
+agent --> UC_Wallet
+
+admin --> UC_Auth
+admin --> UC_ApproveListing
+admin --> UC_ApproveAgent
+admin --> UC_SystemManage
+
+' Kế thừa Actor
+user <|-- agent : (Agent có quyền như User)
+@enduml

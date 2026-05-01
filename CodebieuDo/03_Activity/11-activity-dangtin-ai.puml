@@ -1,0 +1,50 @@
+@startuml
+skinparam monochrome true
+
+|Môi giới (Agent)|
+start
+:Truy cập form Tạo Tin đăng mới;
+:Tải lên Hình ảnh BĐS;
+
+|Hệ thống (Next.js & Cloudinary)|
+:Gọi API Upload;
+:Trả về link Hình ảnh hợp lệ;
+
+|Môi giới (Agent)|
+:Nhập tham số Meta cơ bản;
+note right
+  (Giá, Vị trí, Diện tích, Danh mục)
+end note
+
+if (Cần AI trợ lý viết nội dung?) then (Có)
+  :Nhấn "Tự động sinh mô tả AI";
+  
+  |Trợ lý AI (LLM / NLP)|
+  :Tổng hợp tham số Meta thành Prompt;
+  :Chạy LLM Model sinh đoạn PR chuẩn SEO;
+  :Trả về chuỗi văn bản Markdown;
+  
+  |Môi giới (Agent)|
+  :Xem văn bản Editor;
+  :Điều chỉnh tay nếu văn bản chưa ưng ý;
+else (Không)
+  |Môi giới (Agent)|
+  :Tự nhập nội dung Mô tả chay;
+endif
+
+|Môi giới (Agent)|
+:Nhấn Submit Lưu tin đăng;
+
+|Hệ thống (Next.js & Cloudinary)|
+if (Dữ liệu hợp lệ 100%?) then (Lỗi Validate)
+  :Trả về UI Cảnh báo;
+  detach
+else (Chuẩn xác)
+  :Ghi DB trạng thái PENDING;
+endif
+
+|Quản trị viên (Admin)|
+:Duyệt bài đăng (Publish);
+stop
+
+@enduml
