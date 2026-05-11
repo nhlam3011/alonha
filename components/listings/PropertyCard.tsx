@@ -42,7 +42,7 @@ const placeholderImage = "https://images.unsplash.com/photo-1600596542815-ffad4c
 
 function formatPrice(value: number): string {
   if (value >= 1e9) return `${(value / 1e9).toFixed(1)} tỷ`;
-  if (value >= 1e6) return `${(value / 1e6).toFixed(0)} tr`;
+  if (value >= 1e6) return `${(value / 1e6).toFixed(0)} triệu`;
   return value.toLocaleString("vi-VN");
 }
 

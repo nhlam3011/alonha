@@ -53,7 +53,7 @@ export async function POST(req: Request) {
         data: {
           conversationId: conversation.id,
           senderId: customerId,
-          content: message ? `[Từ tin đăng: ${listingId}] ${message}` : `Tôi quan tâm đến tin đăng: ${listingId}. Vui lòng tư vấn giúp tôi.`,
+          content: `[Từ tin đăng: ${listingId}] ${message || "Tôi quan tâm đến bất động sản này. Vui lòng tư vấn giúp tôi."}`,
         },
       });
     }

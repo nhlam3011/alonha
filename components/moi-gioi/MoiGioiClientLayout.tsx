@@ -69,8 +69,24 @@ export function MoiGioiClientLayout({ children }: { children: React.ReactNode })
   const { data: session } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [unreadCounts, setUnreadCounts] = useState({ notifications: 0, messages: 0 });
   const name = (session?.user?.name as string) || "Môi giới";
   const avatar = session?.user?.image as string | undefined;
+
+  useEffect(() => {
+    if (session?.user) {
+      const fetchUnread = () => {
+        fetch("/api/user/unread")
+          .then(res => res.json())
+          .then(data => setUnreadCounts(data))
+          .catch(() => {});
+      };
+      
+      fetchUnread();
+      const interval = setInterval(fetchUnread, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [session?.user]);
 
   useEffect(() => {
     setSidebarOpen(false);
@@ -152,6 +168,9 @@ export function MoiGioiClientLayout({ children }: { children: React.ReactNode })
             const isActive = item.href === "/moi-gioi"
               ? pathname === "/moi-gioi"
               : pathname.startsWith(item.href);
+              
+            const hasUnread = (item.href === "/moi-gioi/tin-nhan" && unreadCounts.messages > 0) || 
+                              (item.href === "/moi-gioi/thong-bao" && unreadCounts.notifications > 0);
 
             return (
               <Link
@@ -164,8 +183,14 @@ export function MoiGioiClientLayout({ children }: { children: React.ReactNode })
                     : "text-slate-900 hover:bg-slate-200 hover:text-slate-900 dark:text-slate-700 dark:hover:bg-slate-700/50 dark:hover:text-slate-50 font-medium"
                   } px-4 py-3 w-full ${collapsed ? "lg:justify-center lg:p-0 lg:w-[48px] lg:h-[48px] lg:mx-auto" : ""}`}
               >
-                <span className={`shrink-0 transition-colors`}>
+                <span className={`relative shrink-0 transition-colors`}>
                   {item.icon}
+                  {hasUnread && (
+                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border-2 border-[var(--sidebar-bg)]"></span>
+                    </span>
+                  )}
                 </span>
                 <span className={`truncate transition-all duration-300 overflow-hidden whitespace-nowrap max-w-[200px] opacity-100 ml-3.5 ${collapsed ? "lg:max-w-0 lg:opacity-0 lg:ml-0" : ""}`}>
                   {item.label}

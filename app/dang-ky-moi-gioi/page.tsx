@@ -119,7 +119,7 @@ export default function RegisterAgentPage() {
 
   if (authStatus === "loading" || loading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="flex min-h-[60vh] items-center justify-center pt-24">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />
       </div>
     );
@@ -127,7 +127,7 @@ export default function RegisterAgentPage() {
 
   if (authStatus === "unauthenticated") {
     return (
-      <div className="mx-auto max-w-lg px-4 py-16 text-center">
+      <div className="mx-auto max-w-lg px-4 pt-28 pb-16 text-center">
         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-xl shadow-blue-500/20">
           <svg className="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
         </div>
@@ -142,7 +142,7 @@ export default function RegisterAgentPage() {
 
   if ((session?.user as any)?.role === "AGENT") {
     return (
-      <div className="mx-auto max-w-lg px-4 py-16 text-center">
+      <div className="mx-auto max-w-lg px-4 pt-28 pb-16 text-center">
         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
           <svg className="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         </div>
@@ -156,17 +156,17 @@ export default function RegisterAgentPage() {
   }
 
   if (existingApp) {
-    const statusMap: Record<string, { label: string; color: string; icon: string }> = {
-      PENDING: { label: "Đang chờ duyệt", color: "text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-800", icon: "⏳" },
-      REVIEWING: { label: "Đang xem xét", color: "text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-800", icon: "🔍" },
-      INTERVIEW: { label: "Hẹn phỏng vấn", color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800", icon: "📅" },
-      APPROVED: { label: "Đã duyệt", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800", icon: "✅" },
-      REJECTED: { label: "Từ chối", color: "text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800", icon: "❌" },
+    const statusMap: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
+      PENDING: { label: "Đang chờ duyệt", color: "text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-800", icon: <svg className="h-10 w-10 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
+      REVIEWING: { label: "Đang xem xét", color: "text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-800", icon: <svg className="h-10 w-10 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg> },
+      INTERVIEW: { label: "Hẹn phỏng vấn", color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800", icon: <svg className="h-10 w-10 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> },
+      APPROVED: { label: "Đã duyệt", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800", icon: <svg className="h-10 w-10 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
+      REJECTED: { label: "Từ chối", color: "text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800", icon: <svg className="h-10 w-10 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" /></svg> },
     };
     const s = statusMap[existingApp.status] || statusMap.PENDING;
 
     return (
-      <div className="mx-auto max-w-2xl px-4 py-8">
+      <div className="mx-auto max-w-2xl px-4 pt-28 pb-12">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-[var(--foreground)]">Đơn đăng ký Môi giới</h1>
           <p className="mt-2 text-sm text-[var(--muted-foreground)]">Xem chi tiết trạng thái và thông tin hồ sơ của bạn</p>
@@ -174,7 +174,7 @@ export default function RegisterAgentPage() {
 
         <div className={`rounded-2xl border p-6 ${s.color} mb-6`}>
           <div className="text-center">
-            <span className="text-4xl">{s.icon}</span>
+            <div className="flex justify-center mb-2">{s.icon}</div>
             <h2 className="mt-4 text-xl font-bold">{s.label}</h2>
             <p className="mt-2 text-sm opacity-80">
               Đơn đăng ký của bạn {existingApp.status === "APPROVED" ? "đã được duyệt" : existingApp.status === "REJECTED" ? "không được chấp nhận" : "đang được xử lý"}. {existingApp.status !== "APPROVED" && existingApp.status !== "REJECTED" && "Chúng tôi sẽ liên hệ sớm nhất."}
@@ -212,10 +212,16 @@ export default function RegisterAgentPage() {
               Lịch hẹn phỏng vấn
             </h3>
             <div className="text-sm">
-              <p className="font-semibold text-indigo-800 dark:text-indigo-200">
-                📅 {new Date(existingApp.interviewDate).toLocaleString("vi-VN", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+              <p className="font-semibold text-indigo-800 dark:text-indigo-200 flex items-center gap-2">
+                <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                {new Date(existingApp.interviewDate).toLocaleString("vi-VN", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
               </p>
-              {existingApp.interviewLocation && <p className="mt-2 text-indigo-700 dark:text-indigo-300">📍 {existingApp.interviewLocation}</p>}
+              {existingApp.interviewLocation && (
+                <p className="mt-2 text-indigo-700 dark:text-indigo-300 flex items-start gap-2">
+                  <svg className="h-4 w-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  <span>{existingApp.interviewLocation}</span>
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -254,7 +260,7 @@ export default function RegisterAgentPage() {
 
   if (success) {
     return (
-      <div className="mx-auto max-w-lg px-4 py-16 text-center">
+      <div className="mx-auto max-w-lg px-4 pt-28 pb-16 text-center">
         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 shadow-lg">
           <svg className="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         </div>
@@ -272,7 +278,7 @@ export default function RegisterAgentPage() {
   const stepIdx = STEPS.indexOf(step);
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12">
+    <div className="mx-auto max-w-2xl px-4 pt-28 pb-12 sm:pt-32 sm:pb-16">
       {/* Header */}
       <div className="text-center mb-8">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-xl shadow-blue-500/20">
@@ -517,13 +523,30 @@ export default function RegisterAgentPage() {
       {/* Info cards */}
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
         {[
-          { icon: "📋", title: "Bước 1", desc: "Gửi hồ sơ đăng ký online" },
-          { icon: "🤝", title: "Bước 2", desc: "Phỏng vấn tại văn phòng" },
-          { icon: "🎉", title: "Bước 3", desc: "Trở thành môi giới Alonha" },
+          { 
+            icon: <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>, 
+            title: "Bước 1", desc: "Gửi hồ sơ đăng ký online",
+            iconClass: "text-blue-600 dark:text-blue-400",
+            bgClass: "bg-blue-50 dark:bg-blue-900/20"
+          },
+          { 
+            icon: <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>, 
+            title: "Bước 2", desc: "Phỏng vấn tại văn phòng",
+            iconClass: "text-indigo-600 dark:text-indigo-400",
+            bgClass: "bg-indigo-50 dark:bg-indigo-900/20"
+          },
+          { 
+            icon: <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>, 
+            title: "Bước 3", desc: "Trở thành môi giới Alonha",
+            iconClass: "text-emerald-600 dark:text-emerald-400",
+            bgClass: "bg-emerald-50 dark:bg-emerald-900/20"
+          },
         ].map((item) => (
-          <div key={item.title} className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-center">
-            <span className="text-2xl">{item.icon}</span>
-            <p className="mt-2 text-sm font-bold text-[var(--foreground)]">{item.title}</p>
+          <div key={item.title} className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 text-center flex flex-col items-center justify-center transition-all hover:shadow-md">
+            <div className={`mb-3 rounded-xl p-3 shadow-sm ${item.bgClass} ${item.iconClass}`}>
+              {item.icon}
+            </div>
+            <p className="font-bold text-[var(--foreground)]">{item.title}</p>
             <p className="mt-1 text-xs text-[var(--muted-foreground)]">{item.desc}</p>
           </div>
         ))}

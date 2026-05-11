@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const UserIcon = (props: React.SVGProps<SVGSVGElement>) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>;
 const BellIcon = (props: React.SVGProps<SVGSVGElement>) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>;
@@ -28,6 +28,22 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   const router = useRouter();
   const { data: session, status } = useSession();
   const role = session?.user?.role as string | undefined;
+  const [unreadCounts, setUnreadCounts] = useState({ notifications: 0, messages: 0 });
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      const fetchUnread = () => {
+        fetch("/api/user/unread")
+          .then(res => res.json())
+          .then(data => setUnreadCounts(data))
+          .catch(() => {});
+      };
+      
+      fetchUnread();
+      const interval = setInterval(fetchUnread, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [status]);
 
   const allowedPaths = ["/tai-khoan/thong-bao", "/tai-khoan/lich-hen"];
   const isAllowedPath = allowedPaths.some(path => pathname.startsWith(path));
@@ -123,6 +139,9 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
                 {navItems.map((item) => {
                   const isActive = pathname === item.href || (item.href !== "/tai-khoan" && pathname.startsWith(item.href));
                   const Icon = item.icon;
+                  const hasUnread = (item.href === "/tai-khoan/tin-nhan" && unreadCounts.messages > 0) || 
+                                    (item.href === "/tai-khoan/thong-bao" && unreadCounts.notifications > 0);
+                  
                   return (
                     <Link
                       key={item.href}
@@ -133,8 +152,14 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
                         }`}
                     >
                       <div className="flex items-center gap-2 lg:gap-3">
-                        <span className={`flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${isActive ? "bg-[var(--primary)]/20 text-[var(--primary)]" : "bg-[var(--muted)]/20 text-[var(--muted-foreground)] group-hover:bg-[var(--primary)]/10 group-hover:text-[var(--primary)]"}`}>
+                        <span className={`relative flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${isActive ? "bg-[var(--primary)]/20 text-[var(--primary)]" : "bg-[var(--muted)]/20 text-[var(--muted-foreground)] group-hover:bg-[var(--primary)]/10 group-hover:text-[var(--primary)]"}`}>
                           <Icon className="w-4 h-4" />
+                          {hasUnread && (
+                            <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border-2 border-[var(--card)]"></span>
+                            </span>
+                          )}
                         </span>
                         <span className="whitespace-nowrap text-sm lg:text-base">{item.label}</span>
                       </div>

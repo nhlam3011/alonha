@@ -16,8 +16,8 @@ type ChatItem = {
 };
 
 const QUICK_PROMPTS = [
-  { label: "Căn hộ 2PN dưới 4 tỷ", prompt: "Tìm căn hộ 2 phòng ngủ dưới 4 tỷ tại TP.HCM" },
-  { label: "Cho thuê gần trung tâm", prompt: "Nhà cho thuê gần trung tâm khoảng 12 triệu/tháng" },
+  { label: "Căn hộ 2PN dưới 4 tỷ", prompt: "Tìm căn hộ 2 phòng ngủ dưới 4 tỷ" },
+  { label: "Cho thuê gần trung tâm", prompt: "Nhà cho thuê gần trung tâm" },
   { label: "Pháp lý đặt cọc", prompt: "Cần lưu ý pháp lý gì trước khi đặt cọc?" },
   { label: "So sánh giá BĐS", prompt: "Hướng dẫn so sánh giá bất động sản" },
 ];
@@ -39,6 +39,7 @@ export function ChatbotTrigger() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [expandedMessages, setExpandedMessages] = useState<number[]>([]);
   const idSeed = useId();
   const fallbackSessionId = `web-${idSeed.replace(/:/g, "")}`;
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -51,6 +52,18 @@ export function ChatbotTrigger() {
 
   useEffect(() => {
     if (open && inputRef.current) inputRef.current.focus();
+    if (open && messages.length === 0) {
+      // Load history
+      const sid = getSessionId();
+      fetch(`/api/ai/chat?sessionId=${sid}`)
+        .then(r => r.json())
+        .then(data => {
+          if (Array.isArray(data.messages)) {
+            setMessages(data.messages);
+          }
+        })
+        .catch(console.error);
+    }
   }, [open]);
 
   function getSessionId() {
@@ -89,18 +102,19 @@ export function ChatbotTrigger() {
   const hasMessages = messages.length > 0;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end sm:bottom-6 sm:right-6">
       {/* Chat window */}
       {open && (
         <div className="animate-fade-in-up mb-3 flex w-[calc(100vw-2rem)] max-w-[24rem] max-h-[calc(100dvh-7rem)] flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-2xl sm:w-[24rem]">
           {/* Header */}
           <div className="flex items-center gap-3 border-b border-[var(--border)] px-4 py-3">
             <div className="relative">
-              <div className="flex size-9 items-center justify-center rounded-xl bg-[var(--primary)] text-white">
-                <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
+              <div className="flex size-10 items-center justify-center overflow-hidden rounded-xl bg-[var(--primary-light)]">
+                <img
+                  src="/ai-assistant.png"
+                  alt="AI Assistant"
+                  className="size-full object-cover"
+                />
               </div>
               <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-[var(--card)] bg-emerald-500" />
             </div>
@@ -109,14 +123,19 @@ export function ChatbotTrigger() {
               <p className="text-[10px] text-[var(--muted-foreground)]">AI hỗ trợ tư vấn BĐS</p>
             </div>
             {hasMessages && (
-              <button type="button" onClick={() => setMessages([])} title="Xóa hội thoại"
+              <button type="button" onClick={() => {
+                setMessages([]);
+                setExpandedMessages([]);
+                const newId = `web-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+                window.localStorage.setItem("alonha_chat_session_id", newId);
+              }} title="Xóa hội thoại mới"
                 className="rounded-lg p-1.5 text-[var(--muted-foreground)] transition hover:bg-[var(--muted)] hover:text-[var(--foreground)]">
                 <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
               </button>
             )}
             <button type="button" onClick={() => setOpen(false)}
               className="rounded-lg p-1.5 text-[var(--muted-foreground)] transition hover:bg-[var(--muted)] hover:text-[var(--foreground)]">
-              <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              <svg className="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
 
@@ -126,14 +145,9 @@ export function ChatbotTrigger() {
             {!hasMessages && (
               <div className="space-y-4">
                 <div className="text-center">
-                  <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-[var(--primary-light)] text-[var(--primary)]">
-                    <svg className="size-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-base font-bold text-[var(--foreground)]">Xin chào! 👋</h3>
+                  <h3 className="text-base font-bold text-[var(--foreground)]">Xin chào!</h3>
                   <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                    Tôi là trợ lý AI. Hãy hỏi về BĐS, giá, khu vực hoặc quy trình giao dịch.
+                    Tôi là trợ lý AI. Hãy hỏi về BĐS, giá hoặc quy trình giao dịch.
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -157,12 +171,43 @@ export function ChatbotTrigger() {
                       ? "rounded-br-md bg-[var(--primary)] text-white"
                       : "rounded-bl-md border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)]"
                       }`}>
-                      <p className="whitespace-pre-line">{m.content}</p>
+                      <div className="space-y-2 whitespace-pre-line break-words">
+                        {m.content.split(/(\n\d+\.\s+)/).map((part, idx) => {
+                          // Handle numbered list items
+                          const listMatch = part.match(/^\d+\.\s+(.*)$/);
+                          if (listMatch) {
+                            return (
+                              <div key={idx} className="flex gap-2 items-start mt-1 first:mt-0">
+                                <span className="flex-shrink-0 flex items-center justify-center size-5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-[10px] font-bold mt-0.5">
+                                  {part.match(/^\d+/)?.[0]}
+                                </span>
+                                <span className="flex-1">{listMatch[1]}</span>
+                              </div>
+                            );
+                          }
+
+                          // Handle URLs within regular text
+                          return (
+                            <span key={idx}>
+                              {part.split(/(https?:\/\/[^\s]+)/g).map((subPart, sIdx) => {
+                                if (subPart.match(/(https?:\/\/[^\s]+)/)) {
+                                  return (
+                                    <a key={sIdx} href={subPart} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline break-all">
+                                      {subPart}
+                                    </a>
+                                  );
+                                }
+                                return <span key={sIdx}>{subPart}</span>;
+                              })}
+                            </span>
+                          );
+                        })}
+                      </div>
                     </div>
                     {/* Listing results */}
                     {!isUser && m.results && m.results.length > 0 && (
                       <div className="mt-2 space-y-1.5">
-                        {m.results.map((r) => (
+                        {(expandedMessages.includes(i) ? m.results : m.results.slice(0, 2)).map((r) => (
                           <Link key={r.id} href={`/bat-dong-san/${r.slug}`}
                             className="group block rounded-xl border border-[var(--border)] bg-[var(--card)] p-3 transition-all hover:border-[var(--primary)]/40 hover:shadow-sm">
                             <p className="text-xs font-semibold text-[var(--foreground)] line-clamp-2 group-hover:text-[var(--primary)]">{r.title}</p>
@@ -173,6 +218,16 @@ export function ChatbotTrigger() {
                             {r.address && <p className="mt-0.5 text-[10px] text-[var(--muted-foreground)] line-clamp-1">{r.address}</p>}
                           </Link>
                         ))}
+                        {m.results.length > 2 && !expandedMessages.includes(i) && (
+                          <button
+                            type="button"
+                            onClick={() => setExpandedMessages(prev => [...prev, i])}
+                            className="w-full py-2 text-[11px] font-bold text-[var(--primary)] hover:underline flex items-center justify-center gap-1 bg-[var(--primary)]/5 rounded-xl border border-dashed border-[var(--primary)]/20"
+                          >
+                            Xem thêm {m.results.length - 2} tin khác
+                            <svg className="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                          </button>
+                        )}
                       </div>
                     )}
                     <p className="mt-0.5 text-[9px] text-[var(--muted-foreground)]">{formatTime(m.timestamp)}</p>
@@ -232,14 +287,16 @@ export function ChatbotTrigger() {
 
       {/* Trigger button */}
       <button type="button" onClick={() => setOpen((o) => !o)}
-        className="group flex size-14 items-center justify-center rounded-full bg-[var(--primary)] text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+        className="group flex size-14 items-center justify-center overflow-hidden rounded-full bg-[var(--primary)] text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
         aria-label="Chat">
         {open ? (
-          <svg className="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          <svg className="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
         ) : (
-          <svg className="size-6 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
+          <img
+            src="/ai-assistant.png"
+            alt="Open Chat"
+            className="size-full object-cover transition-transform group-hover:scale-110"
+          />
         )}
       </button>
     </div>

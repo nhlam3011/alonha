@@ -26,18 +26,37 @@ export async function GET() {
     },
   });
 
-  const data = list.map((l) => ({
-    id: l.id,
-    name: l.name,
-    phone: l.phone,
-    email: l.email,
-    source: l.source || "Liên hệ",
-    isRead: l.isRead,
-    status: l.isRead ? "Đã xem" : "Mới",
-    createdAt: l.createdAt.toISOString(),
-    listingTitle: l.listing?.title,
-    listingSlug: l.listing?.slug,
-    customerId: l.customerId,
+  const data = await Promise.all(list.map(async (l) => {
+    let unreadCount = 0;
+    if (l.customerId) {
+      unreadCount = await prisma.chatMessage.count({
+        where: {
+          conversation: {
+            OR: [
+              { user1Id: l.customerId, user2Id: session.user.id },
+              { user1Id: session.user.id, user2Id: l.customerId }
+            ]
+          },
+          senderId: l.customerId,
+          readAt: null
+        }
+      });
+    }
+
+    return {
+      id: l.id,
+      name: l.name,
+      phone: l.phone,
+      email: l.email,
+      source: l.source || "Liên hệ",
+      isRead: l.isRead,
+      status: l.isRead ? "Đã xem" : "Mới",
+      createdAt: l.createdAt.toISOString(),
+      listingTitle: l.listing?.title,
+      listingSlug: l.listing?.slug,
+      customerId: l.customerId,
+      unreadCount
+    };
   }));
 
   return NextResponse.json({ data });
@@ -100,4 +119,26 @@ export async function POST(req: Request) {
       customerId: lead.customerId,
     },
   });
+}
+
+export async function DELETE(req: Request) {
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+
+  const lead = await prisma.lead.findUnique({
+    where: { id },
+  });
+
+  if (!lead) return NextResponse.json({ error: "Lead not found" }, { status: 404 });
+  if (lead.agentId !== session.user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  await prisma.lead.delete({
+    where: { id },
+  });
+
+  return NextResponse.json({ message: "Lead deleted successfully" });
 }

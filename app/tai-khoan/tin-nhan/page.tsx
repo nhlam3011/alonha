@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 interface ChatMessage {
   id: string;
@@ -10,16 +11,21 @@ interface ChatMessage {
   imageUrl?: string | null;
   createdAt: string;
   isMe: boolean;
+  listingTitle?: string;
+  listingSlug?: string;
+  unreadCount?: number;
+  conversationId?: string;
 }
 
 interface Recipient {
   id: string;
   name: string;
-  avatar: string | null;
-  role: string;
-  lastMessage?: string;
-  lastMessageAt?: string;
+  avatar?: string | null;
   unreadCount?: number;
+  role?: string;
+  conversationId?: string;
+  lastMessage?: string | null;
+  lastMessageAt?: string | null;
 }
 
 export default function UserTinNhanPage() {
@@ -34,6 +40,7 @@ function UserTinNhanContent() {
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
   const deepLinkId = searchParams.get("userId");
+  const listingIdParam = searchParams.get("listingId");
 
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
@@ -43,7 +50,13 @@ function UserTinNhanContent() {
   const [sending, setSending] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [messageInput, setMessageInput] = useState("");
-  
+
+  useEffect(() => {
+    if (listingIdParam && selectedRecipient && chatMessages.length === 0 && !loadingChat) {
+      setMessageInput(`[Từ tin đăng: ${listingIdParam}] Tôi muốn trao đổi về tin đăng này.`);
+    }
+  }, [listingIdParam, selectedRecipient, chatMessages.length, loadingChat]);
+
   const selectedRecipientRef = useRef<Recipient | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const conversationIdRef = useRef<string | null>(null);
@@ -63,13 +76,13 @@ function UserTinNhanContent() {
       const data = await res.json();
       if (data.data) {
         setRecipients(data.data);
-        
+
         if (deepLinkId) {
-            const found = data.data.find((r: Recipient) => r.id === deepLinkId);
-            if (found) setSelectedRecipient(found);
-            else {
-                fetchUserInfo(deepLinkId);
-            }
+          const found = data.data.find((r: Recipient) => r.id === deepLinkId);
+          if (found) setSelectedRecipient(found);
+          else {
+            fetchUserInfo(deepLinkId);
+          }
         }
       }
     } catch (err) {
@@ -80,26 +93,49 @@ function UserTinNhanContent() {
   }, [session?.user?.id, deepLinkId]);
 
   async function fetchUserInfo(userId: string) {
-      try {
-          const res = await fetch(`/api/users/${userId}`);
-          const data = await res.json();
-          if (data.user) {
-              const newRec: Recipient = {
-                  id: data.user.id,
-                  name: data.user.name || "Người dùng",
-                  avatar: data.user.avatar || null,
-                  role: data.user.role || "USER"
-              };
-              setSelectedRecipient(newRec);
-              setRecipients(prev => {
-                  if (prev.find(r => r.id === userId)) return prev;
-                  return [newRec, ...prev];
-              });
-          }
-      } catch (e) {
-          console.error("Fetch user info error:", e);
+    try {
+      const res = await fetch(`/api/users/${userId}`);
+      const data = await res.json();
+      if (data.user) {
+        const newRec: Recipient = {
+          id: data.user.id,
+          name: data.user.name || "Người dùng",
+          avatar: data.user.avatar || null,
+          role: data.user.role || "USER"
+        };
+        setSelectedRecipient(newRec);
+        setRecipients(prev => {
+          if (prev.find(r => r.id === userId)) return prev;
+          return [newRec, ...prev];
+        });
       }
+    } catch (e) {
+      console.error("Fetch user info error:", e);
+    }
   }
+
+  const handleDeleteConversation = async (e: React.MouseEvent, conversationId: string) => {
+    e.stopPropagation();
+    if (!confirm("Bạn có chắc chắn muốn xóa cuộc trò chuyện này? Toàn bộ lịch sử tin nhắn sẽ bị mất.")) return;
+
+    try {
+      const res = await fetch(`/api/chat/messages?conversationId=${conversationId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setRecipients((prev) => prev.filter((r) => r.conversationId !== conversationId));
+        if (selectedRecipient?.conversationId === conversationId) {
+          setSelectedRecipient(null);
+          setChatMessages([]);
+        }
+      } else {
+        const data = await res.json();
+        alert(data.error || "Xóa thất bại");
+      }
+    } catch (error) {
+      alert("Lỗi khi xóa cuộc trò chuyện");
+    }
+  };
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -181,8 +217,8 @@ function UserTinNhanContent() {
     if (!file || !selectedRecipient) return;
 
     if (!file.type.startsWith('image/')) {
-        alert('Vui lòng chọn file hình ảnh');
-        return;
+      alert('Vui lòng chọn file hình ảnh');
+      return;
     }
 
     setUploadingImage(true);
@@ -247,12 +283,11 @@ function UserTinNhanContent() {
               <div className="p-8 text-center text-[var(--muted-foreground)] text-sm mt-10">Chưa có cuộc trò chuyện nào.</div>
             ) : (
               recipients.map((r) => (
-                <button
+                <div
                   key={r.id}
                   onClick={() => setSelectedRecipient(r)}
-                  className={`flex w-full items-center gap-3 p-4 text-left transition-colors border-b border-[var(--border)]/30 ${
-                    selectedRecipient?.id === r.id ? "bg-[var(--primary)]/10" : "hover:bg-[var(--muted)]/20"
-                  }`}
+                  className={`group flex w-full items-center gap-3 p-4 text-left transition-colors border-b border-[var(--border)]/30 cursor-pointer ${selectedRecipient?.id === r.id ? "bg-[var(--primary)]/10" : "hover:bg-[var(--muted)]/20"
+                    }`}
                 >
                   <div className="relative shrink-0">
                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] text-white overflow-hidden ring-2 ring-[var(--border)]/50">
@@ -265,21 +300,41 @@ function UserTinNhanContent() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-1">
-                      <p className="truncate text-sm font-bold text-[var(--foreground)]">{r.name}</p>
+                      <p className={`truncate text-sm font-bold ${r.unreadCount && r.unreadCount > 0 ? "text-[var(--foreground)]" : "text-[var(--foreground)]/80"}`}>{r.name}</p>
                       {r.lastMessageAt && (
-                        <span className="shrink-0 text-[10px] text-[var(--muted-foreground)]">
-                           {new Date(r.lastMessageAt).toLocaleDateString("vi-VN", { day: '2-digit', month: '2-digit' })}
+                        <span className={`shrink-0 text-[10px] ${r.unreadCount && r.unreadCount > 0 ? "text-[var(--primary)] font-bold" : "text-[var(--muted-foreground)]"}`}>
+                          {new Date(r.lastMessageAt).toLocaleDateString("vi-VN", { day: '2-digit', month: '2-digit' })}
                         </span>
                       )}
                     </div>
                     <p className="mt-0.5 truncate text-[10px] uppercase font-semibold text-[var(--primary)] opacity-80">
                       {r.role === "ADMIN" ? "Hỗ trợ Alonha" : "Môi giới"}
                     </p>
-                    {r.lastMessage && (
-                      <p className="mt-1 truncate text-xs text-[var(--muted-foreground)] line-clamp-1">{r.lastMessage}</p>
-                    )}
+                    <div className="flex items-center justify-between gap-2 mt-1">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        {r.unreadCount && r.unreadCount > 0 && (
+                          <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--primary)] px-1.5 text-[10px] font-bold text-white shadow-sm shadow-[var(--primary)]/20 animate-pulse">
+                            {r.unreadCount > 99 ? "99+" : r.unreadCount}
+                          </span>
+                        )}
+                        <p className={`text-xs truncate ${r.unreadCount && r.unreadCount > 0 ? "font-bold text-[var(--foreground)]" : "text-[var(--muted-foreground)]"}`}>
+                          {r.lastMessage || "Chưa có tin nhắn"}
+                        </p>
+                      </div>
+                      {r.conversationId && (
+                        <button
+                          onClick={(e) => handleDeleteConversation(e, r.conversationId!)}
+                          className="p-1.5 rounded-lg hover:bg-rose-500/10 text-[var(--muted-foreground)] hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"
+                          title="Xóa trò chuyện"
+                        >
+                          <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </button>
+                </div>
               ))
             )}
           </div>
@@ -293,15 +348,15 @@ function UserTinNhanContent() {
               <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-4 bg-[var(--card)]/80 backdrop-blur-md sticky top-0 z-10 shadow-sm">
                 <div className="flex items-center gap-3">
                   <button onClick={() => setSelectedRecipient(null)} className="sm:hidden p-1 -ml-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
                   </button>
                   <div className="relative">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] text-white overflow-hidden ring-2 ring-white">
-                        {selectedRecipient.avatar ? (
-                          <img src={selectedRecipient.avatar} alt={selectedRecipient.name} className="h-full w-full object-cover" />
-                        ) : (
-                          <span className="text-sm font-bold">{selectedRecipient.name.charAt(0).toUpperCase()}</span>
-                        )}
+                      {selectedRecipient.avatar ? (
+                        <img src={selectedRecipient.avatar} alt={selectedRecipient.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="text-sm font-bold">{selectedRecipient.name.charAt(0).toUpperCase()}</span>
+                      )}
                     </div>
                     <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white"></span>
                   </div>
@@ -327,22 +382,58 @@ function UserTinNhanContent() {
                 ) : (
                   chatMessages.map((m) => (
                     <div key={m.id} className={`flex ${m.isMe ? "justify-end" : "justify-start"} animate-in slide-in-from-bottom-2 duration-300`}>
-                      <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
-                        m.isMe
+                      <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${m.isMe
                           ? "bg-[var(--primary)] text-white rounded-br-none"
                           : "bg-white dark:bg-[var(--card)] border border-[var(--border)] text-[var(--foreground)] rounded-bl-none"
-                      }`}>
+                        }`}>
                         {m.imageUrl && (
                           <div className="mb-2">
-                             <img
-                                src={m.imageUrl}
-                                alt="Hình ảnh"
-                                className="max-w-full rounded-lg max-h-60 object-cover cursor-pointer"
-                                onClick={() => m.imageUrl && window.open(m.imageUrl, '_blank')}
+                            <img
+                              src={m.imageUrl}
+                              alt="Hình ảnh"
+                              className="max-w-full rounded-lg max-h-60 object-cover cursor-pointer"
+                              onClick={() => m.imageUrl && window.open(m.imageUrl, '_blank')}
                             />
                           </div>
                         )}
-                        {m.content && <p className="whitespace-pre-wrap leading-relaxed break-words">{m.content}</p>}
+                        {m.content && (
+                          (() => {
+                            const match = m.content.match(/^\[Từ tin đăng:\s*([a-zA-Z0-9_-]+)\]([\s\S]*)$/i);
+                            if (match) {
+                              const listingId = match[1];
+                              const restText = match[2].trim();
+                              const title = m.listingTitle || "Xem thông tin Bất động sản";
+                              const href = m.listingSlug ? `/bat-dong-san/${m.listingSlug}` : `/bat-dong-san/${listingId}`;
+                              return (
+                                <div className="flex flex-col gap-2">
+                                  <Link
+                                    href={href}
+                                    target="_blank"
+                                    className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all no-underline group shadow-sm ${m.isMe
+                                        ? "bg-white/20 border-white/30 hover:bg-white/30 text-white"
+                                        : "bg-white dark:bg-black/20 border-[var(--border)] hover:bg-slate-50 dark:hover:bg-black/40 text-[var(--foreground)]"
+                                      }`}
+                                  >
+                                    <div className={`h-10 w-10 shrink-0 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform ${m.isMe ? "bg-white/20 text-white" : "bg-[var(--primary)]/10 text-[var(--primary)]"
+                                      }`}>
+                                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className={`text-sm font-bold truncate transition-colors ${m.isMe ? "" : "group-hover:text-[var(--primary)]"}`} title={title}>{title}</p>
+                                      <p className={`text-[11px] truncate mt-0.5 ${m.isMe ? "text-blue-100" : "text-[var(--muted-foreground)]"}`}>Mã tin: {listingId}</p>
+                                    </div>
+                                    <div className={`h-8 w-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity ${m.isMe ? "bg-white/20" : "bg-[var(--primary)]/10 text-[var(--primary)]"
+                                      }`}>
+                                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                    </div>
+                                  </Link>
+                                  {restText && <p className="whitespace-pre-wrap leading-relaxed break-words">{restText}</p>}
+                                </div>
+                              );
+                            }
+                            return <p className="whitespace-pre-wrap leading-relaxed break-words">{m.content}</p>;
+                          })()
+                        )}
                         <p className={`mt-1.5 text-[9px] text-right ${m.isMe ? "text-blue-100" : "text-[var(--muted-foreground)]"}`}>
                           {new Date(m.createdAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
                         </p>

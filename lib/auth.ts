@@ -44,6 +44,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: user.name,
           image: user.avatar,
           role: user.role,
+          phone: user.phone,
         };
       },
     }),
@@ -80,6 +81,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (account?.provider === "credentials" && "id" in user && "role" in user) {
           token.id = user.id;
           token.role = user.role;
+          token.phone = (user as any).phone;
         } else if (account?.provider === "google" && user.email) {
           const dbUser = await prisma.user.findFirst({
             where: { email: user.email.toLowerCase() },
@@ -87,6 +89,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           if (dbUser && !dbUser.isLocked) {
             token.id = dbUser.id;
             token.role = dbUser.role;
+            token.phone = dbUser.phone;
           }
         }
         token.sub = (token.id ?? (user as { id?: string }).id) as string | undefined;
@@ -100,6 +103,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.id = (token.id ?? token.sub) as string;
         session.user.role = (token.role ?? "USER") as UserRole;
+        (session.user as any).phone = token.phone as string | undefined;
         if (token.picture) {
           session.user.image = token.picture;
         }

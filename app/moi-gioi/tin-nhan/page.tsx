@@ -16,6 +16,7 @@ type LeadItem = {
   listingSlug?: string;
   note?: string;
   customerId?: string | null;
+  unreadCount?: number;
 };
 
 type SupportAdmin = {
@@ -31,6 +32,8 @@ type ChatMessage = {
   imageUrl?: string | null;
   createdAt: string;
   isMe: boolean;
+  listingTitle?: string;
+  listingSlug?: string;
 };
 
 export default function TinNhanPage() {
@@ -68,13 +71,39 @@ function TinNhanContent() {
   useEffect(() => {
     fetch("/api/moi-gioi/leads")
       .then((r) => r.json())
-      .then((res) => {
+      .then(async (res) => {
         if (Array.isArray(res.data)) {
           setItems(res.data);
           if (initialUserId) {
             const lead = res.data.find((l: LeadItem) => l.customerId === initialUserId);
             if (lead) {
               setSelectedRecipient({ id: lead.customerId!, name: lead.name });
+            } else {
+              // Not found in leads, try to fetch user info directly
+              try {
+                const userRes = await fetch(`/api/users/${initialUserId}`);
+                const userData = await userRes.json();
+                if (userData.user) {
+                  const newUser = { id: userData.user.id, name: userData.user.name || "Người dùng" };
+                  setSelectedRecipient(newUser);
+                  // Optionally add to items list to show in sidebar
+                  setItems(prev => [
+                    {
+                      id: `temp-${userData.user.id}`,
+                      name: userData.user.name || "Người dùng",
+                      phone: userData.user.phone || "---",
+                      email: userData.user.email,
+                      source: "Chat trực tiếp",
+                      status: "Mới",
+                      createdAt: new Date().toISOString(),
+                      customerId: userData.user.id
+                    },
+                    ...prev
+                  ]);
+                }
+              } catch (e) {
+                console.error("Fetch user info error:", e);
+              }
             }
           }
         }
@@ -258,6 +287,28 @@ function TinNhanContent() {
     }
   }
 
+  const handleDeleteLead = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!confirm("Bạn có chắc chắn muốn xóa khách hàng này khỏi danh sách?")) return;
+
+    try {
+      const res = await fetch(`/api/moi-gioi/leads?id=${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setItems((prev) => prev.filter((item) => item.id !== id));
+        const lead = items.find((item) => item.id === id);
+        if (lead?.customerId === selectedRecipient?.id) {
+          setSelectedRecipient(null);
+        }
+      } else {
+        alert("Xóa khách hàng thất bại");
+      }
+    } catch (error) {
+      alert("Lỗi khi xóa khách hàng");
+    }
+  };
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return items;
@@ -345,16 +396,16 @@ function TinNhanContent() {
                   <div
                     key={item.id}
                     onClick={() => item.customerId && setSelectedRecipient({ id: item.customerId, name: item.name })}
-                    className={`group p-4 cursor-pointer transition-all flex items-start gap-4 ${selectedRecipient?.id === item.customerId ? 'bg-[var(--primary)]/10 ring-1 ring-inset ring-[var(--primary)]/20' : 'hover:bg-[var(--primary)]/5'} ${!item.customerId ? 'opacity-40 grayscale cursor-not-allowed' : ''}`}
-                    title={!item.customerId ? "Khách hàng dãng vãng - không thể nhắn tin trực tiếp" : ""}
+                    className={`group relative p-4 cursor-pointer transition-all flex items-start gap-4 border-b border-[var(--border)]/30 ${selectedRecipient?.id === item.customerId ? 'bg-[var(--primary)]/10 ring-1 ring-inset ring-[var(--primary)]/20' : 'hover:bg-[var(--primary)]/5'} ${!item.customerId ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+                    title={!item.customerId ? "Khách hàng vãng lai - không thể nhắn tin" : ""}
                   >
-                    <div className="h-10 w-10 shrink-0 rounded-xl bg-gradient-to-br from-[var(--primary)] to-blue-500 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                    <div className="h-10 w-10 shrink-0 rounded-xl bg-gradient-to-br from-[var(--primary)] to-blue-500 flex items-center justify-center text-white font-bold text-sm shadow-md ring-2 ring-white/10">
                       {item.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-bold text-[var(--foreground)] truncate group-hover:text-[var(--primary)] transition-colors">{item.name}</h3>
-                        <span className="text-[10px] font-medium text-[var(--muted-foreground)] tabular-nums">
+                        <h3 className={`font-bold truncate group-hover:text-[var(--primary)] transition-colors ${item.unreadCount && item.unreadCount > 0 ? "text-[var(--foreground)]" : "text-[var(--foreground)]/80"}`}>{item.name}</h3>
+                        <span className={`text-[10px] font-medium tabular-nums ${item.unreadCount && item.unreadCount > 0 ? "text-[var(--primary)] font-bold" : "text-[var(--muted-foreground)]"}`}>
                           {new Date(item.createdAt).toLocaleDateString("vi-VN", { day: '2-digit', month: '2-digit' })}
                         </span>
                       </div>
@@ -364,11 +415,29 @@ function TinNhanContent() {
                           {item.phone}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ring-1 ring-inset ${item.status === 'Mới' ? 'bg-green-500/10 text-green-600 ring-green-500/20' : 'bg-[var(--muted)] text-[var(--muted-foreground)] ring-[var(--border)]'}`}>
-                          {item.status}
-                        </span>
-                        {!item.customerId && <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 ring-1 ring-inset ring-amber-500/20">Vãng lai</span>}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ring-1 ring-inset ${item.status === 'Mới' ? 'bg-green-500/10 text-green-600 ring-green-500/20' : 'bg-[var(--muted)] text-[var(--muted-foreground)] ring-[var(--border)]'}`}>
+                            {item.status}
+                          </span>
+                          {!item.customerId && <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 ring-1 ring-inset ring-amber-500/20">Vãng lai</span>}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={(e) => handleDeleteLead(e, item.id)}
+                            className="p-1.5 rounded-lg hover:bg-rose-500/10 text-[var(--muted-foreground)] hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"
+                            title="Xóa khách hàng"
+                          >
+                            <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                          {item.unreadCount && item.unreadCount > 0 && (
+                            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--primary)] px-1.5 text-[10px] font-bold text-white shadow-sm shadow-[var(--primary)]/20">
+                              {item.unreadCount > 99 ? "99+" : item.unreadCount}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -476,7 +545,44 @@ function TinNhanContent() {
                         />
                       </div>
                     )}
-                    {m.content && <p className="leading-relaxed whitespace-pre-wrap break-words">{m.content}</p>}
+                    {m.content && (
+                      (() => {
+                        const match = m.content.match(/^\[Từ tin đăng:\s*([a-zA-Z0-9_-]+)\]([\s\S]*)$/i);
+                        if (match) {
+                          const listingId = match[1];
+                          const restText = match[2].trim();
+                          const title = m.listingTitle || "Xem thông tin Bất động sản";
+                          const href = m.listingSlug ? `/bat-dong-san/${m.listingSlug}` : `/bat-dong-san/${listingId}`;
+                          return (
+                            <div className="flex flex-col gap-2">
+                              <Link
+                                href={href}
+                                target="_blank"
+                                className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all no-underline group shadow-sm ${m.isMe
+                                  ? "bg-white/20 border-white/30 hover:bg-white/30 text-white"
+                                  : "bg-white dark:bg-black/20 border-[var(--border)] hover:bg-slate-50 dark:hover:bg-black/40 text-[var(--foreground)]"
+                                  }`}
+                              >
+                                <div className={`h-10 w-10 shrink-0 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform ${m.isMe ? "bg-white/20 text-white" : "bg-[var(--primary)]/10 text-[var(--primary)]"
+                                  }`}>
+                                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className={`text-sm font-bold truncate transition-colors ${m.isMe ? "" : "group-hover:text-[var(--primary)]"}`} title={title}>{title}</p>
+                                  <p className={`text-[11px] truncate mt-0.5 ${m.isMe ? "text-blue-100" : "text-[var(--muted-foreground)]"}`}>Mã tin: {listingId}</p>
+                                </div>
+                                <div className={`h-8 w-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity ${m.isMe ? "bg-white/20" : "bg-[var(--primary)]/10 text-[var(--primary)]"
+                                  }`}>
+                                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                </div>
+                              </Link>
+                              {restText && <p className="leading-relaxed whitespace-pre-wrap break-words">{restText}</p>}
+                            </div>
+                          );
+                        }
+                        return <p className="leading-relaxed whitespace-pre-wrap break-words">{m.content}</p>;
+                      })()
+                    )}
                     <div className={`flex items-center gap-1 mt-1 ${m.isMe ? "justify-end" : "justify-start"}`}>
                       <p className={`text-[9px] font-medium uppercase tracking-wider ${m.isMe ? "text-blue-100/80" : "text-[var(--muted-foreground)]"}`}>
                         {new Date(m.createdAt).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' })}

@@ -18,8 +18,23 @@ function ScheduleViewingContent() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (session?.user?.name) setFullName(session.user.name);
-  }, [session]);
+    if (status === "authenticated") {
+      fetch("/api/user/profile")
+        .then(r => r.json())
+        .then(user => {
+          if (user.name) setFullName(user.name);
+          if (user.phone) setPhone(user.phone);
+          if (user.email) setEmail(user.email);
+        })
+        .catch(() => {
+          if (session?.user) {
+            if (session.user.name) setFullName(session.user.name);
+            if ((session.user as any).phone) setPhone((session.user as any).phone);
+            if (session.user.email) setEmail(session.user.email);
+          }
+        });
+    }
+  }, [status, session]);
 
   if (status === "unauthenticated") {
     return (
@@ -63,15 +78,15 @@ function ScheduleViewingContent() {
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div>
           <label className="block text-sm font-medium">Họ tên</label>
-          <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} required className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2" />
+          <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} required readOnly className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 bg-[var(--muted)]/20 cursor-not-allowed" />
         </div>
         <div>
           <label className="block text-sm font-medium">Số điện thoại</label>
-          <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2" />
+          <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required readOnly className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 bg-[var(--muted)]/20 cursor-not-allowed" />
         </div>
         <div>
           <label className="block text-sm font-medium">Email (tùy chọn)</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2" />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} readOnly className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 bg-[var(--muted)]/20 cursor-not-allowed" />
         </div>
         <div>
           <label className="block text-sm font-medium">Ngày giờ xem</label>

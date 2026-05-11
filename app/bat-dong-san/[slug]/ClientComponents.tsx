@@ -136,9 +136,31 @@ export function ActionButtons({ listingId }: { listingId: string }) {
 }
 
 export function ContactSidebar({ listingId }: { listingId: string }) {
+    const { data: session } = useSession();
     const [formSent, setFormSent] = useState(false);
     const [formLoading, setFormLoading] = useState(false);
     const [form, setForm] = useState({ name: "", phone: "", message: "" });
+
+    useEffect(() => {
+        if (session?.user) {
+            fetch("/api/user/profile")
+                .then(r => r.json())
+                .then(user => {
+                    setForm(f => ({
+                        ...f,
+                        name: user.name || f.name,
+                        phone: user.phone || f.phone
+                    }));
+                })
+                .catch(() => {
+                    setForm(f => ({
+                        ...f,
+                        name: f.name || session.user?.name || "",
+                        phone: f.phone || (session.user as any).phone || ""
+                    }));
+                });
+        }
+    }, [session]);
 
     async function submitContact(e: React.FormEvent) {
         e.preventDefault();
@@ -171,16 +193,18 @@ export function ContactSidebar({ listingId }: { listingId: string }) {
                         placeholder="Họ tên"
                         value={form.name}
                         onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                        className="form-input"
+                        className={`form-input ${session ? "bg-[var(--muted)]/20 cursor-not-allowed" : ""}`}
                         required
+                        readOnly={!!session}
                     />
                     <input
                         type="tel"
                         placeholder="Số điện thoại"
                         value={form.phone}
                         onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                        className="form-input"
+                        className={`form-input ${session ? "bg-[var(--muted)]/20 cursor-not-allowed" : ""}`}
                         required
+                        readOnly={!!session}
                     />
                     <textarea
                         placeholder="Tôi quan tâm..."

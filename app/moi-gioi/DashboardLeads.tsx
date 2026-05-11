@@ -94,6 +94,20 @@ export function DashboardLeads({ initialLeads, listings }: { initialLeads: LeadR
         }
     }
 
+    async function deleteLead(id: string) {
+        if (!confirm("Bạn có chắc chắn muốn xóa khách hàng này?")) return;
+        try {
+            const res = await fetch(`/api/moi-gioi/leads?id=${id}`, { method: "DELETE" });
+            if (res.ok) {
+                setLeads(prev => prev.filter(l => l.id !== id));
+            } else {
+                alert("Xóa thất bại");
+            }
+        } catch (err) {
+            alert("Lỗi khi xóa");
+        }
+    }
+
     return (
         <div className="flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm lg:col-span-1 h-fit">
             <div className="flex items-center justify-between border-b border-[var(--border)] p-5">
@@ -193,9 +207,9 @@ export function DashboardLeads({ initialLeads, listings }: { initialLeads: LeadR
                                 </div>
                             ) : (
                                 filteredLeads.map((l) => (
-                                    <div key={l.id} className={`group relative rounded-xl border p-3 transition-all hover:shadow-md ${l.isRead ? 'card-container' : 'border-blue-200 bg-blue-50'}`}>
+                                    <div key={l.id} className={`group relative rounded-xl border p-3 transition-all hover:shadow-md ${l.isRead ? 'border-[var(--border)] bg-[var(--card)]/50' : 'border-[var(--primary)]/30 bg-[var(--primary)]/5'}`}>
                                         <div className="flex justify-between items-start mb-1">
-                                            <p className="font-bold text-sm text-[var(--foreground)] line-clamp-1">{l.name}</p>
+                                            <p className={`font-bold text-sm line-clamp-1 ${l.isRead ? 'text-[var(--foreground)]' : 'text-[var(--primary)]'}`}>{l.name}</p>
                                             <span className="text-[10px] text-[var(--muted-foreground)] whitespace-nowrap ml-2">
                                                 {new Date(l.createdAt).toLocaleDateString("vi-VN", { day: '2-digit', month: '2-digit' })}
                                             </span>
@@ -205,7 +219,7 @@ export function DashboardLeads({ initialLeads, listings }: { initialLeads: LeadR
                                             {l.phone}
                                         </div>
                                         {l.listingTitle && (
-                                            <div className="flex items-start gap-1.5 text-[11px] text-blue-600 bg-blue-100 p-1.5 rounded-lg mb-2">
+                                            <div className="flex items-start gap-1.5 text-[11px] text-[var(--primary)] bg-[var(--primary)]/10 p-1.5 rounded-lg mb-2 border border-[var(--primary)]/10">
                                                 <svg className="h-3 w-3 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                                                 <span className="line-clamp-2 leading-tight">{l.listingTitle}</span>
                                             </div>
@@ -229,8 +243,15 @@ export function DashboardLeads({ initialLeads, listings }: { initialLeads: LeadR
                                                 </Link>
                                             )}
                                             <button
+                                                onClick={() => deleteLead(l.id)}
+                                                className="flex items-center justify-center h-7 w-7 rounded-lg bg-rose-100 text-rose-600 hover:bg-rose-200 transition-colors"
+                                                title="Xóa khách hàng"
+                                            >
+                                                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            </button>
+                                            <button
                                                 onClick={() => toggleLeadRead(l)}
-                                                className={`text-[10px] font-medium px-2 py-1.5 rounded-lg border transition-colors ${l.isRead ? 'border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--muted)]' : 'border-blue-200 bg-white text-blue-600 hover:bg-blue-50'}`}
+                                                className={`text-[10px] font-medium px-2 py-1.5 rounded-lg border transition-colors ${l.isRead ? 'border-[var(--border)] text-[var(--muted-foreground)] hover:bg-[var(--muted)]' : 'border-[var(--primary)] bg-[var(--primary)] text-white hover:opacity-90'}`}
                                             >
                                                 {l.isRead ? 'Đã xử lý' : 'Đánh dấu đã xem'}
                                             </button>

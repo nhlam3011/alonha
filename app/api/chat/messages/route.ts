@@ -32,18 +32,37 @@ export async function GET(req: Request) {
       },
     });
 
-    const data = conversations.map((conv) => {
+    const data = await Promise.all(conversations.map(async (conv) => {
       const otherUser = conv.user1Id === currentUserId ? conv.user2 : conv.user1;
       const lastMsg = conv.messages[0];
+      
+      let cleanLastMessage = lastMsg?.content || null;
+      if (cleanLastMessage) {
+        const match = cleanLastMessage.match(/^\[Từ tin đăng:\s*([a-zA-Z0-9_-]+)\]([\s\S]*)$/i);
+        if (match) {
+          cleanLastMessage = match[2].trim() || "Đã gửi thông tin bất động sản";
+        }
+      }
+
+      const unreadCount = await prisma.chatMessage.count({
+        where: {
+          conversationId: conv.id,
+          senderId: { not: currentUserId },
+          readAt: null
+        }
+      });
+
       return {
         id: otherUser.id,
         name: otherUser.name || "Người dùng",
         avatar: otherUser.avatar,
         role: otherUser.role,
-        lastMessage: lastMsg?.content || null,
+        lastMessage: cleanLastMessage,
         lastMessageAt: lastMsg?.createdAt.toISOString() || conv.updatedAt.toISOString(),
+        unreadCount,
+        conversationId: conv.id
       };
-    });
+    }));
 
     return NextResponse.json({ data });
   }
@@ -96,16 +115,59 @@ export async function GET(req: Request) {
       content: true,
       imageUrl: true,
       createdAt: true,
+      readAt: true,
     },
   });
 
-  const data = messages.map((m) => ({
-    id: m.id,
-    content: m.content,
-    imageUrl: m.imageUrl,
-    createdAt: m.createdAt.toISOString(),
-    isMe: m.senderId === currentUserId,
-  }));
+  // Mark unread messages from the other user as read
+  const unreadMessageIds = messages
+    .filter(m => m.senderId !== currentUserId && !m.readAt)
+    .map(m => m.id);
+
+  if (unreadMessageIds.length > 0) {
+    await prisma.chatMessage.updateMany({
+      where: { id: { in: unreadMessageIds } },
+      data: { readAt: new Date() }
+    });
+  }
+
+  const listingIds = messages.map(m => {
+    const match = m.content.match(/^\[Từ tin đăng:\s*([a-zA-Z0-9_-]+)\]([\s\S]*)$/i);
+    return match ? match[1] : null;
+  }).filter(Boolean) as string[];
+
+  const listingsMap = new Map<string, { slug: string, title: string }>();
+  if (listingIds.length > 0) {
+    const listings = await prisma.listing.findMany({
+      where: { id: { in: Array.from(new Set(listingIds)) } },
+      select: { id: true, slug: true, title: true }
+    });
+    listings.forEach(l => listingsMap.set(l.id, { slug: l.slug, title: l.title }));
+  }
+
+  const data = messages.map((m) => {
+    let listingTitle = undefined;
+    let listingSlug = undefined;
+    
+    const match = m.content.match(/^\[Từ tin đăng:\s*([a-zA-Z0-9_-]+)\]([\s\S]*)$/i);
+    if (match) {
+        const info = listingsMap.get(match[1]);
+        if (info) {
+            listingTitle = info.title;
+            listingSlug = info.slug;
+        }
+    }
+
+    return {
+      id: m.id,
+      content: m.content,
+      imageUrl: m.imageUrl,
+      createdAt: m.createdAt.toISOString(),
+      isMe: m.senderId === currentUserId,
+      listingTitle,
+      listingSlug,
+    };
+  });
 
   return NextResponse.json({
     data,
@@ -264,7 +326,7 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ message: "Đã xóa tin nhắn." });
   }
 
-  if (clearAll && conversationId) {
+  if (conversationId) {
     const userRole = String((session.user as any).role || "USER");
     const conversation = await prisma.conversation.findUnique({
       where: { id: conversationId },
@@ -280,11 +342,17 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "Bạn không có quyền xóa cuộc trò chuyện này." }, { status: 403 });
     }
 
-    await prisma.chatMessage.deleteMany({
-      where: { conversationId },
-    });
-
-    return NextResponse.json({ message: "Đã xóa toàn bộ lịch sử trò chuyện." });
+    if (clearAll) {
+      await prisma.chatMessage.deleteMany({
+        where: { conversationId },
+      });
+      return NextResponse.json({ message: "Đã xóa toàn bộ lịch sử trò chuyện." });
+    } else {
+      await prisma.conversation.delete({
+        where: { id: conversationId },
+      });
+      return NextResponse.json({ message: "Đã xóa cuộc trò chuyện." });
+    }
   }
 
   return NextResponse.json(
