@@ -29,7 +29,7 @@ type SearchIntentBody = {
 const ALLOWED_CATEGORY_SLUGS = new Set([
   "can-ho-chung-cu",
   "nha-rieng",
-  "nha-mat-phong",
+  "nha-pho",
   "dat-nen",
   "kho-nha-xuong",
   "biet-thu",
@@ -372,7 +372,7 @@ function stripCategoryPhraseInKeyword(keyword: string, category: IntentFilters["
 
   if (category === "can-ho-chung-cu") {
     cleaned = cleaned.replace(/\b(căn\s*hộ|can\s*ho|chung\s*cư|chung\s*cu|cc\s*mini|apartment|studio)\b/giu, " ");
-  } else if (category === "nha-mat-phong") {
+  } else if (category === "nha-pho") {
     cleaned = cleaned.replace(/\b(nhà\s*mặt\s*phố|nha\s*mat\s*pho|nhà\s*phố|nha\s*pho|mặt\s*tiền|mat\s*tien|shophouse)\b/giu, " ");
   } else if (category === "nha-rieng") {
     cleaned = cleaned.replace(/\b(nhà\s*riêng|nha\s*rieng)\b/giu, " ");
@@ -490,7 +490,11 @@ Bạn PHẢI tự động nhận diện và chuyển đổi các từ viết t�
 - "DN" hoặc "dn" -> "Đà Nẵng"
 - "Q1", "Q.1", "q1" -> "Quận 1"
 
-Luôn tự động chuẩn hóa tên địa điểm về dạng có dấu CHUẨN tiếng Việt trong kết quả.`;
+LƯU Ý ĐẶC BIỆT VỀ ĐỊA LÝ & HÀNH CHÍNH MỚI:
+Hệ thống sử dụng dữ liệu hành chính mới nhất (sau sáp nhập). Do đó, bạn TUYỆT ĐỐI KHÔNG ĐƯỢC tự ý suy diễn, tự thêm hay đoán Tỉnh/Thành phố hoặc Quận/Huyện nếu khách không trực tiếp nhắc đến.
+Ví dụ: Khách tìm "nhà hồng mai", TUYỆT ĐỐI KHÔNG tự điền district là "Hai Bà Trưng" hay province là "Hà Nội". Chỉ lấy những gì có thật trong câu của khách.
+
+Luôn tự động chuẩn hóa tên địa điểm (nếu có nhắc đến) về dạng có dấu CHUẨN tiếng Việt trong kết quả.`;
 
     const userPrompt = `
 Khách mô tả nhu cầu tìm bất động sản như sau (tiếng Việt, có thể KHÔNG DẤU hoặc viết hoa/thường tùy ý):
@@ -512,25 +516,25 @@ QUY TẮC TRÍCH XUẤT GIÁ BẮT BUỘC:
 - priceMin/priceMax: tính bằng VNĐ (VND). Ví dụ: 3 tỷ = 3000000000.
 - areaMin/areaMax: m².
 - loaiHinh: chỉ nhận 'sale' (mua/bán) hoặc 'rent' (thuê).
-- category (slug) phải thuộc: 'can-ho-chung-cu', 'nha-rieng', 'nha-mat-phong', 'dat-nen', 'kho-nha-xuong', 'biet-thu', 'van-phong', 'mat-bang', 'bds-khac'.
-- province/district: Tên CHUẨN TIẾNG VIỆT (có dấu).
-- keyword: Cụm từ tìm kiếm ngắn gọn còn lại (tên dự án, tên đường). Tuyệt đối không để thông tin đã trích xuất vào keyword.
+- category (slug) phải thuộc: 'can-ho-chung-cu', 'nha-rieng', 'nha-pho', 'dat-nen', 'kho-nha-xuong', 'biet-thu', 'van-phong', 'mat-bang', 'bds-khac'. NẾU khách chỉ nhắc chung chung "nhà" mà không rõ loại hình, BẮT BUỘC để null, không được tự đoán là 'nha-rieng'.
+- province/district: Tên CHUẨN TIẾNG VIỆT (có dấu). Nhắc lại: KHÔNG tự đoán nếu không có trong câu!
+- keyword: Cụm từ tìm kiếm ngắn gọn còn lại (tên dự án, tên đường) ĐÚNG NHƯ KHÁCH NHẬP. Tuyệt đối không tự bịa thêm tên quận/huyện vào keyword, không để thông tin đã trích xuất vào keyword.
 
 STRUCT JSON ĐẦU RA:
 {
   "filters": {
     "keyword": "tên đường hoặc dự án",
     "loaiHinh": "sale",
-    "category": "can-ho-chung-cu",
+    "category": null,
     "priceMin": 3000000000,
     "priceMax": 5000000000,
     "areaMin": 60,
     "areaMax": 90,
     "bedrooms": 2,
-    "province": "Hồ Chí Minh",
-    "district": "Quận 7"
+    "province": null,
+    "district": null
   },
-  "explanation": "Mua căn hộ chung cư 2PN tại Quận 7, TP.HCM, tầm giá 3-5 tỷ, diện tích 60-90 m²."
+  "explanation": "Giải thích ngắn gọn về nhu cầu."
 }
 `;
 
